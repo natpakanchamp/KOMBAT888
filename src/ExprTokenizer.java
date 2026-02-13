@@ -48,11 +48,7 @@ class ExprTokenizer implements Tokenizer {
             String tokenText = matcher.group();
             if (matcher.group("IDENTIFIER") != null) {
                 // ถ้าเป็นคำ ให้เช็คว่าเป็น Reserved Word หรือไม่
-                if (RESERVED_WORDS.contains(tokenText)) {
-                    next = tokenText; // เป็นคำสั่ง เช่น move, if
-                } else {
-                    next = tokenText; // เป็นชื่อตัวแปรทั่วไป
-                }
+                next = tokenText;
             } else {
                 // เป็น NUMBER, OPERATOR หรือ DELIMITER
                 next = tokenText;
@@ -69,6 +65,7 @@ class ExprTokenizer implements Tokenizer {
         if(!hasNextToken()) return false;
         return peek().equals(s);
     }
+    @Override
     public void consume(String s)
             throws CheckException {
         if(peek(s)) consume();

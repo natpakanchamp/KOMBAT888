@@ -3,5 +3,5 @@ interface Parser {
      *  given to this parser.
      *  throws: SyntaxError if the token
      *          stream cannot be parsed */
-    Expr parse() throws CheckException, SyntaxError;
+    Node parse() throws CheckException, SyntaxError;
 }

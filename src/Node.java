@@ -1,4 +1,5 @@
+import java.util.Map;
+
 interface Node {
-    // อาจจะมีเมธอดสำหรับสั่งให้ Node นี้ทำงาน (Execute)
-    void execute();
+    void execute(Map<String, Integer> localVars, Map<String, Integer> globalVars) throws EvalError;
 }

@@ -13,4 +13,9 @@ interface Tokenizer {
      *  effects: removes the next token
      *           from the input stream */
     String consume();
+
+    boolean peek(String s);
+
+    void consume(String s)
+            throws CheckException;
 }
