@@ -1,13 +1,35 @@
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-void main() {
-    //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-    // to see how IntelliJ IDEA suggests fixing it.
-    IO.println(String.format("Hello and welcome!"));
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
-    for (int i = 1; i <= 5; i++) {
-        //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-        // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-        IO.println("i = " + i);
+void main() {
+    String filePath = "strategy.txt"; // ระบุชื่อไฟล์คำสั่งของคุณ
+
+    try {
+        // 1. อ่านไฟล์คำสั่ง
+        String content = Files.readString(Path.of(filePath));
+
+        // 2. สร้าง Tokenizer และ Parser จากโค้ดที่คุณเขียนไว้
+        Tokenizer tokenizer = new ExprTokenizer(content);
+        Parser parser = new ExprParser(tokenizer);
+
+        // 3. แปลงคำสั่งเป็น Node (AST)
+        Node strategy = parser.parse();
+
+        // 4. เตรียมตัวแปร (Local และ Global)
+        Map<String, Integer> localVars = new HashMap<>();
+        Map<String, Integer> globalVars = new HashMap<>();
+
+        // 5. สั่งให้ Minion ทำงานตามกลยุทธ์
+        System.out.println("Starting Minion Strategy...");
+        strategy.execute(localVars, globalVars);
+
+    } catch (DoneException e) {
+        // เมื่อเจอคำสั่ง "done" จะหยุดการทำงานในเทิร์นนี้
+        System.out.println("Minion finished its turn.");
+    } catch (Exception e) {
+        System.err.println("Error: " + e.getMessage());
+        e.printStackTrace();
     }
 }
