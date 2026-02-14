@@ -9,6 +9,7 @@ public class GameState {
     // Spec: Budget ต้องเป็น double เพื่อคำนวณดอกเบี้ย
     private static long playerBudget;
     private static int turnCount = 1;
+    private static int usedSpawns = 0;
 
     // ตำแหน่งปัจจุบันของ Minion ที่กำลังรัน Strategy
     private static int currentRow;
@@ -148,27 +149,57 @@ public class GameState {
 
     // Logic หา opponent/ally ที่ใกล้ที่สุด (Breadth-First Search หรือวนลูปหา)
     private static int findClosest(boolean findAlly) {
-        int minDist = Integer.MAX_VALUE;
-        int bestDir = 0; // 1..6
+        int minVal = Integer.MAX_VALUE; // เก็บค่าที่น้อยที่สุด (dist*10 + dir)
 
-        // วนลูปทั้งกระดานเพื่อหาตัวที่ใกล้ที่สุด (Simplified)
-        for(int r=0; r<ROWS; r++) {
-            for(int c=0; c<COLS; c++) {
-                if(field[r][c] != null && field[r][c].isAlly() == findAlly) {
-                    // คำนวณระยะทาง (Hex Distance formula is complex, using simplified max-diff here)
-                    // จริงๆ ต้องใช้สูตร Hex distance: (abs(q1-q2) + abs(r1-r2) + abs(s1-s2)) / 2
-                    // แต่เพื่อความง่ายใช้ระยะทางคร่าวๆ
-                    int dist = Math.abs(r - currentRow) + Math.abs(c - currentCol);
-                    if(dist < minDist) {
-                        minDist = dist;
-                        // ต้องคำนวณ Direction number (1-6) ตาม Diagram Spec [cite: 120]
-                        bestDir = calculateDirNum(currentRow, currentCol, r, c);
+        for (int r = 0; r < ROWS; r++) {
+            for (int c = 0; c < COLS; c++) {
+                Unit u = field[r][c];
+                // เช็คว่าเป็น Unit ที่เราตามหาหรือไม่ (เพื่อน หรือ ศัตรู)
+                if (u != null && u.isAlly() == findAlly) {
+                    // หาว่าอยู่ทิศไหน
+                    int dir = calculateDirNum(currentRow, currentCol, r, c);
+
+                    // ถ้า dir != 0 แสดงว่าอยู่ในแนวเส้นตรงที่มองเห็นได้
+                    if (dir != 0) {
+                        // คำนวณระยะห่าง (Spec: distance)
+                        // เนื่องจากอยู่ในแนวตรง เราใช้วิธีคำนวณระยะแบบไหนก็ได้
+                        // หรือจะให้ calculateDirNum คืนระยะมาด้วยก็ได้
+                        // แต่วิธีง่ายๆ คือใช้สูตร Hex distance หรือวนลูปนับเอา
+                        // ในที่นี้สมมติว่าใช้ Math.max(abs(dr), abs(dc)) คร่าวๆ หรือเรียก helper
+                        int dist = getDistance(currentRow, currentCol, r, c);
+
+                        // สร้างค่าผลลัพธ์ตาม Format: dist * 10 + dir
+                        // เช่น ระยะ 3 ทิศ 1 -> 31
+                        int val = dist * 10 + dir;
+
+                        if (val < minVal) {
+                            minVal = val;
+                        }
                     }
                 }
             }
         }
-        if (minDist == Integer.MAX_VALUE) return 0;
-        return bestDir * 10 + minDist; // สูตรสมมติ (Spec: directionDigit + distanceDigits)
+
+        return (minVal == Integer.MAX_VALUE) ? 0 : minVal;
+    }
+
+    // Helper เพื่อนับระยะทาง (ใช้เฉพาะกรณีที่รู้ว่าอยู่ในแนวเส้นตรงเดียวกันแล้ว)
+    private static int getDistance(int r1, int c1, int r2, int c2) {
+        // กรณี Hexagon แบบ Odd-q (Skew Vertical) ระยะทางอาจจะซับซ้อน
+        // แต่วิธีที่ชัวร์ที่สุดคือเรียก calculateOffset เดินไปหาแล้วนับก้าวครับ
+        String[] directions = {"", "up", "upright", "downright", "down", "downleft", "upleft"};
+        int dir = calculateDirNum(r1, c1, r2, c2);
+        if (dir == 0) return 999;
+
+        int steps = 0;
+        int r = r1, c = c1;
+        while(r != r2 || c != c2) {
+            int[] next = calculateOffset(r, c, directions[dir]);
+            r = next[0];
+            c = next[1];
+            steps++;
+        }
+        return steps;
     }
 
     // --- Helper: Hex Grid Logic (Odd-q Vertical Skew) ---
@@ -188,9 +219,36 @@ public class GameState {
         return new int[]{targetR, targetC};
     }
 
+    // เพิ่มเมธอดนี้ใน GameState
     private static int calculateDirNum(int r1, int c1, int r2, int c2) {
-        // Logic แปลงพิกัดเป็นทิศทาง 1-6 (ต้องเขียนละเอียดตาม Diagram)
-        return 1; // Placeholder
+        // อาร์เรย์เก็บชื่อทิศทางตามลำดับ 1-6
+        // 1=up, 2=upright, 3=downright, 4=down, 5=downleft, 6=upleft
+        String[] directions = {"", "up", "upright", "downright", "down", "downleft", "upleft"};
+
+        // วนหาทั้ง 6 ทิศทาง
+        for (int d = 1; d <= 6; d++) {
+            int r = r1;
+            int c = c1;
+
+            // เดินหน้าไปในทิศ d เรื่อยๆ เพื่อดูว่าจะชนเป้าหมายไหม
+            // (จำกัดระยะเดินเผื่อไว้ไม่ให้เกินขนาดกระดาน เช่น 15 ช่อง)
+            for (int dist = 0; dist < 15; dist++) {
+                // คำนวณตำแหน่งถัดไป
+                int[] next = calculateOffset(r, c, directions[d]);
+                r = next[0];
+                c = next[1];
+
+                // ถ้าออกนอกกระดาน ให้หยุดทิศนี้ แล้วไปดูทิศถัดไป
+                if (!isValidPos(r, c)) break;
+
+                // ถ้าเจอเป้าหมาย คืนค่าทิศทางทันที
+                if (r == r2 && c == c2) {
+                    return d;
+                }
+            }
+        }
+
+        return 0; // ไม่เจอในทิศทางหลักใดๆ เลย
     }
 
     private static boolean isValidPos(int r, int c) {
@@ -199,8 +257,13 @@ public class GameState {
 
     // Setters for Testing/Setup
     public static void setMinionPos(int r, int c) { currentRow = r; currentCol = c; }
-    public static void spawnUnit(int r, int c, int hp, int def, boolean isAlly) {
-        if(isValidPos(r,c)) field[r][c] = new Unit(hp, def, isAlly, 0);
+    // แก้ไข: เปลี่ยน int hp, int def เป็น long
+    public static void spawnUnit(int r, int c, long hp, long def, boolean isAlly) {
+        if(isValidPos(r,c)) {
+            // ส่งค่า long เข้า Unit ได้เลย ไม่ต้องกลัว data loss
+            field[r][c] = new Unit(hp, def, isAlly, 0);
+        }
+        usedSpawns++;
     }
 
     // Getters for Variables
@@ -214,5 +277,15 @@ public class GameState {
         return (int) (b * Math.log10(m) * Math.log(t));
     }
     public static int getMaxBudget() { return (int) GameConfig.max_budget; }
-    public static int getRemainingSpawns() { return (int) GameConfig.max_spawns; } // ต้องทำตัวนับเพิ่ม
+    // แก้ไขจาก: return (int) usedSpawns;
+    public static int getRemainingSpawns() {
+        return (int) (GameConfig.max_spawns - usedSpawns);
+    }
+    /**
+     * ดึงค่าจำนวนเทิร์นสูงสุดจาก GameConfig
+     * @return จำนวนเทิร์นสูงสุด (long)
+     */
+    public static long getMaxTurns() {
+        return GameConfig.max_turns;
+    }
 }

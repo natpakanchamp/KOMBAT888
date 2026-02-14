@@ -1,42 +1,72 @@
 import ast.*;
 import exception.*;
 import paser.*;
-import engine.*; // import engine เพื่อเรียกใช้ GameConfig และ GameState
+import engine.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-void main() {
-    String configPath = "config.txt"; // ชื่อไฟล์ Config ของคุณ
-    String strategyPath = "strategy.txt";
+public class Main {
+    public static void main(String[] args) {
+        // 1. รับชื่อไฟล์จาก Arguments (ถ้าไม่มีให้ใช้ค่า Default)
+        String configPath = args.length > 0 ? args[0] : "config.txt";
+        String strategyPath = args.length > 1 ? args[1] : "strategy.txt";
 
-    try {
-        // 1. โหลดค่า Config
-        System.out.println("Loading configuration...");
-        GameConfig.loadConfig(configPath);
+        try {
+            // --- Initialization Phase ---
+            System.out.println("Loading configuration from " + configPath);
+            GameConfig.loadConfig(configPath);
 
-        // 2. ตั้งค่าเริ่มต้นให้ GameState (เช่น เงินเริ่มต้น)
-        GameState.initialize();
-        System.out.println("Initial Budget: " + GameState.getPlayerBudget());
+            GameState.initialize();
+            System.out.println("Initial Budget: " + GameState.getPlayerBudget());
+            System.out.println("Max Turns: " + GameState.getMaxTurns());
 
-        // 3. อ่านและรันไฟล์ Strategy ตามปกติ
-        String content = Files.readString(Path.of(strategyPath));
-        Tokenizer tokenizer = new ExprTokenizer(content);
-        Parser parser = new ExprParser(tokenizer);
-        Node strategy = parser.parse();
+            // --- Parsing Phase (ทำแค่ครั้งเดียว) ---
+            System.out.println("Parsing strategy from " + strategyPath);
+            String content = Files.readString(Path.of(strategyPath));
+            Tokenizer tokenizer = new ExprTokenizer(content);
+            Parser parser = new ExprParser(tokenizer);
+            Node strategy = parser.parse();
 
-        Map<String, Long> localVars = new HashMap<>();
-        Map<String, Long> globalVars = new HashMap<>();
+            // เตรียมตัวแปร (Global เก็บค่าข้ามเทิร์นได้, Local รีเซ็ตทุกเทิร์นไหมขึ้นอยู่กับดีไซน์ แต่ปกติ Global คือ Persistent)
+            Map<String, Long> globalVars = new HashMap<>();
 
-        System.out.println("Starting Minion Strategy...");
-        strategy.execute(localVars, globalVars);
+            // --- Game Loop Phase ---
+            int maxTurns = (int) GameConfig.max_turns;
 
-    } catch (DoneException e) {
-        System.out.println("Minion finished its turn.");
-    } catch (Exception e) {
-        System.err.println("Error: " + e.getMessage());
-        e.printStackTrace();
+            // วนลูปจนกว่าจะครบเทิร์น หรือ เกมจบ
+            for (int turn = 1; turn <= maxTurns; turn++) {
+                System.out.println("\n=== TURN " + turn + " ===");
+
+                // 1. เริ่มเทิร์นใหม่ (คำนวณดอกเบี้ย + เพิ่มเงิน)
+                GameState.startNewTurn();
+                System.out.println("Current Budget: " + GameState.getPlayerBudget());
+
+                // 2. เตรียมตัวแปร Local สำหรับเทิร์นนี้
+                Map<String, Long> localVars = new HashMap<>();
+
+                // 3. รัน Strategy (Minion Action)
+                try {
+                    strategy.execute(localVars, globalVars);
+                } catch (DoneException e) {
+                    System.out.println("Minion called 'done'. Ending turn.");
+                } catch (EvalError e) {
+                    System.err.println("Runtime Error: " + e.getMessage());
+                    break; // ถ้า error อาจจะหยุดเกมเลย
+                }
+
+                // (Optional) เช็คเงื่อนไขจบเกมอื่นๆ เช่น Minion ตายหมด
+                // if (GameState.isGameOver()) break;
+            }
+
+            System.out.println("\n=== GAME OVER ===");
+            System.out.println("Final Budget: " + GameState.getPlayerBudget());
+
+        } catch (Exception e) {
+            System.err.println("Fatal Error: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

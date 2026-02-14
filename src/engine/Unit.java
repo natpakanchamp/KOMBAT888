@@ -3,10 +3,11 @@ package engine;
 public class Unit {
     private long hp;
     private long defense;
-    private boolean isAlly; // True = ของเรา, False = ของศัตรู
-    private int id; // เอาไว้เช็คลำดับการ spawn
+    private boolean isAlly;
+    private int id;
 
-    public Unit(int hp, int defense, boolean isAlly, int id) {
+    // แก้ไข: เปลี่ยน int hp, int defense เป็น long
+    public Unit(long hp, long defense, boolean isAlly, int id) {
         this.hp = hp;
         this.defense = defense;
         this.isAlly = isAlly;
