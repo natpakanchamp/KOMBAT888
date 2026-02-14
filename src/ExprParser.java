@@ -130,13 +130,13 @@ public class ExprParser implements Parser {
         while(tkz.peek("*") || tkz.peek("/") || tkz.peek("%")) {
             if(tkz.peek().equals("*")) {
                 tkz.consume();
-                f = eFact.createBinaryArithExpr(f, "*", parseTerm());
+                f = eFact.createBinaryArithExpr(f, "*", parseFactor());
             } else if(tkz.peek("/")) {
                 tkz.consume();
-                f = eFact.createBinaryArithExpr(f, "/", parseTerm());
+                f = eFact.createBinaryArithExpr(f, "/", parseFactor());
             } else {
                 tkz.consume();
-                f = eFact.createBinaryArithExpr(f, "%", parseTerm());
+                f = eFact.createBinaryArithExpr(f, "%", parseFactor());
             }
         }
         return f;
