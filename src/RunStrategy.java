@@ -2,7 +2,7 @@ import ast.Node;
 import paser.*;
 import utils.FileUtil;
 
-public void runStrategy(String filePath) {
+public void RunStrategy(String filePath) {
     // 1. อ่านโค้ดจากไฟล์
     String content = FileUtil.readFile(filePath);
 
