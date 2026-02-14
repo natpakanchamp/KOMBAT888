@@ -158,7 +158,7 @@ public class ExprParser implements Parser {
     private Expr parsePower() throws CheckException, SyntaxError {
         if(isNumeric(tkz.peek())) {
             String n = tkz.consume();
-            return eFact.createIntLit(Integer.parseInt(n));
+            return eFact.createNumberLit(Long.parseLong(n));
         } else if(isIdentifier(tkz.peek())) {
             String v = tkz.consume();
             return eFact.createVariable(v);

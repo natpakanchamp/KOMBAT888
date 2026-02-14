@@ -15,8 +15,8 @@ public class ExprFactory {
     public BinaryArithExpr createBinaryArithExpr(Expr left, String op, Expr right) {
         return new BinaryArithExpr(left, op, right);
     }
-    public IntLit createIntLit(long n) {
-        return new IntLit(n);
+    public NumberLit createNumberLit(long n) {
+        return new NumberLit(n);
     }
     public Variable createVariable(String name) {
         return new Variable(name);

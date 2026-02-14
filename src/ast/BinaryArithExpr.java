@@ -26,7 +26,7 @@ public record BinaryArithExpr(
                 if (rv == 0) throw new EvalError("Division by zero");
                 yield lv % rv;
             }
-            case "^" -> (int) Math.pow(lv, rv);
+            case "^" -> (long) Math.pow(lv, rv);
             default -> throw new EvalError("Unknown operator: " + op);
         };
     }
