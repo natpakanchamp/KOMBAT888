@@ -1,0 +1,47 @@
+* commit d90a57767a9d7c6b1bba0e0cae7613444fb06b3d
+| Author: Film_ <pawich23013@gmail.com_>
+| Date:   Sat Feb 14 16:19:09 2026 +0700
+| 
+|     add .idea/ in gitignore
+| 
+* commit 9a818b1c2020a377c62feb6612d987a186d05268
+| Author: Film_ <pawich23013@gmail.com_>
+| Date:   Sat Feb 14 16:16:36 2026 +0700
+| 
+|     correct ExprParser and SyntaxError
+| 
+* commit 3739793ed6a7f7402265e8f564ff2c51fbda8ad8
+| Author: Film_ <pawich23013@gmail.com_>
+| Date:   Sat Feb 14 16:07:20 2026 +0700
+| 
+|     Update: add factory pattern
+|   
+| * commit 202954d99ef8ef4249eb89ced58e939b650b5d3a
+|/  Author: Allendel24 <pawich23013@gmail.com>
+|   Date:   Fri Feb 13 21:02:41 2026 +0700
+|   
+|       Create README.md
+| 
+* commit 1a9ec527635c8dd3b107b5e6ed1311560290ee17
+| Author: Film_ <pawich23013@gmail.com_>
+| Date:   Fri Feb 13 21:00:09 2026 +0700
+| 
+|     Initial commit
+|   
+| * commit 699dd777c77ffb3300124963efd5fc344d21b838
+|/  Author: Allendel24 <pawich23013@gmail.com>
+|   Date:   Tue Feb 10 20:41:23 2026 +0700
+|   
+|       Create README.md
+| 
+* commit 7b2763c7cd0a50e482b31bf3b8edb5e07914636b
+  Author: Film_ <pawich23013@gmail.com_>
+  Date:   Tue Feb 10 20:40:07 2026 +0700
+  
+      Initial commit
+  
+* commit f314a10c51e5f5627113fcf2f8c2f3fe456d0557
+  Author: natpakan <champnatpakan@gmail.com>
+  Date:   Wed Feb 4 14:00:54 2026 +0700
+  
+      Initial commit
