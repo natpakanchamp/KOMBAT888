@@ -9,10 +9,10 @@ public record BinaryArithExpr(
         implements Expr {
 
     @Override
-    public int eval(Map<String, Integer> localVars, Map<String, Integer> globalVars) throws EvalError {
+    public long eval(Map<String, Long> localVars, Map<String, Long> globalVars) throws EvalError {
         // ส่งต่อทั้ง localVars และ globalVars ลงไปยัง ast.Node ลูกทั้งสองข้าง
-        int lv = left.eval(localVars, globalVars);
-        int rv = right.eval(localVars, globalVars);
+        long lv = left.eval(localVars, globalVars);
+        long rv = right.eval(localVars, globalVars);
 
         return switch (op) {
             case "+" -> lv + rv;

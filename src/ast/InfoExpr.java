@@ -12,7 +12,7 @@ import java.util.Map;
 public record InfoExpr(String type, String direction) implements Expr {
 
     @Override
-    public int eval(Map<String, Integer> localVars, Map<String, Integer> globalVars) throws EvalError {
+    public long eval(Map<String, Long> localVars, Map<String, Long> globalVars) throws EvalError {
 
         return switch (type) {
             case "ally" ->

@@ -10,11 +10,11 @@ import java.util.Map;
  */
 public record ShootNode(String direction, Expr expenditure) implements Node {
     @Override
-    public void execute(Map<String, Integer> localVars, Map<String, Integer> globalVars) throws EvalError {
+    public void execute(Map<String, Long> localVars, Map<String, Long> globalVars) throws EvalError {
         // 1. คำนวณค่า x (expenditure) จากนิพจน์
-        int x = expenditure.eval(localVars, globalVars);
+        long x = expenditure.eval(localVars, globalVars);
         x = Math.max(0, x); // ป้องกันค่าติดลบ
-        int cost = x + 1;
+        long cost = x + 1;
 
         // 2. ตรวจสอบว่ามีงบประมาณเพียงพอหรือไม่ (ราคารวมคือ x + 1)
         if (GameState.getPlayerBudget() >= cost) {

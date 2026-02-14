@@ -18,8 +18,8 @@ import exception.DoneException;
 
 class ExecutionTest {
 
-    private Map<String, Integer> localVars;
-    private Map<String, Integer> globalVars;
+    private Map<String, Long> localVars;
+    private Map<String, Long> globalVars;
 
     @BeforeEach
     void setUp() throws Exception {

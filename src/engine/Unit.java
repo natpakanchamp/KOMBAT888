@@ -1,10 +1,21 @@
 package engine;
 
-// คลาสเสริมสำหรับเก็บข้อมูล engine.Unit ในสนาม
-class Unit {
-    private int hp;
-    private int defense;
-    public int getHP() { return hp; }
-    public int getDefense() { return defense; }
-    public void takeDamage(int d) { hp -= d; }
+public class Unit {
+    private long hp;
+    private long defense;
+    private boolean isAlly; // True = ของเรา, False = ของศัตรู
+    private int id; // เอาไว้เช็คลำดับการ spawn
+
+    public Unit(int hp, int defense, boolean isAlly, int id) {
+        this.hp = hp;
+        this.defense = defense;
+        this.isAlly = isAlly;
+        this.id = id;
+    }
+
+    public long getHP() { return hp; }
+    public long getDefense() { return defense; }
+    public boolean isAlly() { return isAlly; }
+    public void takeDamage(long d) { hp -= d; }
+    public boolean isDead() { return hp <= 0; }
 }

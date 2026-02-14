@@ -5,5 +5,5 @@ import exception.*;
 import java.util.Map;
 
 public interface Node {
-    void execute(Map<String, Integer> localVars, Map<String, Integer> globalVars) throws EvalError;
+    void execute(Map<String, Long> localVars, Map<String, Long> globalVars) throws EvalError;
 }

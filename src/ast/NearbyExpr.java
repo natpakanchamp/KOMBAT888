@@ -12,10 +12,10 @@ import java.util.Map;
 public record NearbyExpr(String direction) implements Expr {
 
     @Override
-    public int eval(Map<String, Integer> localVars, Map<String, Integer> globalVars) throws EvalError {
+    public long eval(Map<String, Long> localVars, Map<String, Long> globalVars) throws EvalError {
         // 1. นำทิศทางที่เก็บไว้ (เช่น "up", "downleft") ไปถาม engine.GameState
         // 2. engine.GameState จะตรวจสอบตำแหน่งปัจจุบันของผู้เล่น และดูช่องที่ระบุ
-        int info = GameState.query("nearby", direction);
+        Long info = GameState.query("nearby", direction);
 
         /* ตัวอย่างการส่งคืนค่าของ engine.GameState (สมมติ):
            0   -> ว่างเปล่า

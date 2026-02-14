@@ -10,7 +10,7 @@ public record Variable(String name) implements Expr {
     private static final Random randomGen = new Random();
 
     @Override
-    public int eval(Map<String, Integer> localVars, Map<String, Integer> globalVars) throws EvalError {
+    public long eval(Map<String, Long> localVars, Map<String, Long> globalVars) throws EvalError {
         // 1. จัดการ Special Variables (Read-only)
         switch (name) {
             case "row": return GameState.getCurrentRow(); // ดึงแถวปัจจุบันของ Minion
@@ -25,10 +25,10 @@ public record Variable(String name) implements Expr {
         // 2. จัดการตัวแปรทั่วไป (คืนค่า 0 หากยังไม่มีการกำหนดค่า)
         if (Character.isUpperCase(name.charAt(0))) {
             // ตัวพิมพ์ใหญ่เป็น Global Shared
-            return globalVars.getOrDefault(name, 0);
+            return globalVars.getOrDefault(name, 0L);
         } else {
             // ตัวพิมพ์เล็กเป็น Local Private
-            return localVars.getOrDefault(name, 0);
+            return localVars.getOrDefault(name, 0L);
         }
     }
 

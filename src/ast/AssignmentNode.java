@@ -8,7 +8,7 @@ import java.util.Set;
 public record AssignmentNode(String name, Expr expression) implements Node {
 
     @Override
-    public void execute(Map<String, Integer> localVars, Map<String, Integer> globalVars) throws EvalError {
+    public void execute(Map<String, Long> localVars, Map<String, Long> globalVars) throws EvalError {
         // 1. ตรวจสอบ Special Variables (Read-only)
         // ถ้าเป็น row, col, Budget, Int, MaxBudget, SpawnsLeft, random ให้ทำ no-op
         if (isSpecialVariable(name)) {
@@ -16,7 +16,7 @@ public record AssignmentNode(String name, Expr expression) implements Node {
         }
 
         // 2. คำนวณค่าจาก Expression
-        int value = expression.eval(localVars, globalVars);
+        long value = expression.eval(localVars, globalVars);
 
         // 3. บันทึกค่าตามกฎ Case Sensitivity
         if (Character.isUpperCase(name.charAt(0))) {
