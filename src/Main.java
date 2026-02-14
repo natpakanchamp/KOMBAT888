@@ -1,3 +1,7 @@
+import ast.*;
+import exception.*;
+import paser.*;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -10,11 +14,11 @@ void main() {
         // 1. อ่านไฟล์คำสั่ง
         String content = Files.readString(Path.of(filePath));
 
-        // 2. สร้าง Tokenizer และ Parser จากโค้ดที่คุณเขียนไว้
+        // 2. สร้าง paser.Tokenizer และ paser.ExprParser.Parser จากโค้ดที่คุณเขียนไว้
         Tokenizer tokenizer = new ExprTokenizer(content);
         Parser parser = new ExprParser(tokenizer);
 
-        // 3. แปลงคำสั่งเป็น Node (AST)
+        // 3. แปลงคำสั่งเป็น ast.Node (AST)
         Node strategy = parser.parse();
 
         // 4. เตรียมตัวแปร (Local และ Global)

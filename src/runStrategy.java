@@ -1,13 +1,17 @@
+import ast.Node;
+import paser.*;
+import utils.FileUtil;
+
 public void runStrategy(String filePath) {
     // 1. อ่านโค้ดจากไฟล์
     String content = FileUtil.readFile(filePath);
 
     if (content != null) {
         try {
-            // 2. ส่งให้ Tokenizer
+            // 2. ส่งให้ paser.Tokenizer
             Tokenizer tokenizer = new ExprTokenizer(content);
 
-            // 3. ส่งให้ Parser เพื่อสร้าง Node
+            // 3. ส่งให้ paser.ExprParser.Parser เพื่อสร้าง ast.Node
             Parser parser = new ExprParser(tokenizer);
             Node strategy = parser.parse();
 
