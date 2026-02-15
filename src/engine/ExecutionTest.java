@@ -8,13 +8,9 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
-import paser.ExprParser;
-import paser.ExprTokenizer;
-import paser.Parser;
-import paser.Tokenizer;
+import paser.*;
 import ast.Node;
-import exception.EvalError;
-import exception.DoneException;
+import exception.*;
 
 class ExecutionTest {
 
