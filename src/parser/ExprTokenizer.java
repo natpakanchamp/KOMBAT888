@@ -9,11 +9,6 @@ import java.util.regex.Pattern;
 
 public class ExprTokenizer implements Tokenizer {
     private String src, next;  private int pos;
-    private static final Set<String> RESERVED_WORDS = Set.of(
-            "ally", "done", "down", "downleft", "downright", "else",
-            "if", "move", "nearby", "opponent", "shoot", "then",
-            "up", "upleft", "upright", "while"
-    );
     private static final Pattern TOKEN_PATTERN = Pattern.compile(
             "(?<NUMBER>\\d+)|(?<IDENTIFIER>[a-zA-Z][a-zA-Z0-9]*)|(?<OPERATOR>[+\\-*/%^=])|(?<DELIMITER>[(){}])"
     );

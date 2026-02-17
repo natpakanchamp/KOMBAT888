@@ -14,6 +14,11 @@ public class ExprParser implements Parser {
     private NodeFactory nFact;
     private static final Set<String> ACTION = Set.of("done", "move", "shoot");
     private static final Set<String> DIRECTION = Set.of("up", "down", "upleft", "upright", "downleft", "downright");
+    private static final Set<String> RESERVED_WORDS = Set.of(
+            "ally", "done", "down", "downleft", "downright", "else",
+            "if", "move", "nearby", "opponent", "shoot", "then",
+            "up", "upleft", "upright", "while"
+    );
     public ExprParser(Tokenizer tkz) {
         this.tkz = tkz;
         eFact = ExprFactory.getInstance();
@@ -59,6 +64,9 @@ public class ExprParser implements Parser {
     }
     private Node parseAssignmentStatement() throws CheckException, SyntaxError {
         String identifier = tkz.consume();
+        if (RESERVED_WORDS.contains(identifier)) {
+            throw new SyntaxError("Cannot use reserved word '" + identifier + "' as variable name");
+        }
         tkz.consume("=");
         Expr e = parseExpression();
         return nFact.createAssignmentNode(identifier, e);
