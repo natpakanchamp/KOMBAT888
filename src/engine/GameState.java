@@ -27,6 +27,9 @@ public class GameState {
 
     // --- Initialization ---
     public static void initialize() {
+        // [UPDATE] รีเซ็ต ID ของ Unit เพื่อเริ่มนับ 1 ใหม่
+        Unit.resetId();
+
         p1Budget = GameConfig.init_budget;
         p2Budget = GameConfig.init_budget;
         turnCount = 1;
@@ -150,8 +153,8 @@ public class GameState {
 
     public static void spawnUnit(int r, int c, long hp, long def) {
         if(isValidPos(r,c)) {
-            // สร้าง Unit ให้ currentPlayer
-            field[r][c] = new Unit(hp, def, currentPlayer, 0);
+            // [UPDATE] ลบพารามิเตอร์ id ออก ให้ตรงกับ Constructor ใหม่ของ Unit
+            field[r][c] = new Unit(hp, def, currentPlayer);
 
             // เพิ่มยอดการใช้ Spawn ของคนนั้นๆ
             usedSpawns[currentPlayer]++;
