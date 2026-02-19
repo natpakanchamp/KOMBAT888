@@ -3,7 +3,6 @@ package parser;
 import exception.*;
 import factory.*;
 import ast.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -12,56 +11,57 @@ public class ExprParser implements Parser {
     private Tokenizer tkz;
     private ExprFactory eFact;
     private NodeFactory nFact;
+
+    // คำสั่ง Action
     private static final Set<String> ACTION = Set.of("done", "move", "shoot");
+    // ทิศทาง
     private static final Set<String> DIRECTION = Set.of("up", "down", "upleft", "upright", "downleft", "downright");
+    // คำสงวน (ห้ามตั้งเป็นชื่อตัวแปร)
     private static final Set<String> RESERVED_WORDS = Set.of(
             "ally", "done", "down", "downleft", "downright", "else",
             "if", "move", "nearby", "opponent", "shoot", "then",
             "up", "upleft", "upright", "while"
     );
+
     public ExprParser(Tokenizer tkz) {
         this.tkz = tkz;
         eFact = ExprFactory.getInstance();
         nFact = NodeFactory.getInstance();
     }
-    public static boolean isDirection(String str) {
-        return str != null && DIRECTION.contains(str);
-    }
-    public static boolean isNumeric(String str) {
-        return str != null && str.matches("\\d+");
-    }
-    public static boolean isIdentifier(String str) {
-        return str != null && str.matches("[a-zA-Z][a-zA-Z0-9]*");
-    }
+
+    // Helper Methods
+    public static boolean isDirection(String str) { return str != null && DIRECTION.contains(str); }
+    public static boolean isNumeric(String str) { return str != null && str.matches("\\d+"); }
+    public static boolean isIdentifier(String str) { return str != null && str.matches("[a-zA-Z][a-zA-Z0-9]*"); }
+
     @Override
-    public Node parse() throws CheckException, SyntaxError {
-        // parseStrategy จะทำหน้าที่รวบรวม Statement+ ทั้งหมดมาเป็น ast.BlockNode
-        return parseStrategy();
-    }
+    public Node parse() throws CheckException, SyntaxError { return parseStrategy(); }
+
+    // Strategy → Statement+
     private Node parseStrategy() throws CheckException, SyntaxError {
         List<Node> statements = new ArrayList<>();
-        // วนลูปอ่านจนกว่า Token จะหมด เพื่อรองรับ Statement+
         while (tkz.hasNextToken()) {
             statements.add(parseStatement());
         }
-        // ตรวจสอบกฎ "+" (ต้องมีอย่างน้อย 1 Statement)
-        if (statements.isEmpty()) {
-            throw new SyntaxError("Strategy requires at least one statement");
-        }
+        if (statements.isEmpty()) throw new SyntaxError("Strategy requires at least one statement");
         return nFact.createBlockNode(statements);
     }
+
+    // Statement → Command | BlockStatement | IfStatement | WhileStatement
     private Node parseStatement() throws CheckException, SyntaxError {
         if (tkz.peek("{")) return parseBlockStatement();
         else if (tkz.peek("if")) return parseIfStatement();
-        else if (tkz.peek("while"))  return parseWhileStatement();
+        else if (tkz.peek("while")) return parseWhileStatement();
         return parseCommand();
     }
+
+    // Command → AssignmentStatement | ActionCommand
     private Node parseCommand() throws CheckException, SyntaxError {
-        if(!ACTION.contains(tkz.peek())) {
-            return parseAssignmentStatement();
-        }
+        if (!ACTION.contains(tkz.peek())) return parseAssignmentStatement();
         return parseActionCommand();
     }
+
+    // AssignmentStatement → <identifier> = Expression
     private Node parseAssignmentStatement() throws CheckException, SyntaxError {
         String identifier = tkz.consume();
         if (RESERVED_WORDS.contains(identifier)) {
@@ -71,34 +71,41 @@ public class ExprParser implements Parser {
         Expr e = parseExpression();
         return nFact.createAssignmentNode(identifier, e);
     }
+
+    // ActionCommand → done | MoveCommand | AttackCommand
     private Node parseActionCommand() throws CheckException, SyntaxError {
-        if(tkz.peek("done")) {
+        if (tkz.peek("done")) {
             tkz.consume("done");
             return nFact.createDoneNode();
-        }
-        else if(tkz.peek("move")) return parseMoveCommand();
-        else if(tkz.peek("shoot")) return parseAttackCommand();
+        } else if (tkz.peek("move")) return parseMoveCommand();
+        else if (tkz.peek("shoot")) return parseAttackCommand();
         throw new SyntaxError("Unknown action: " + tkz.peek());
     }
+
+    // MoveCommand → move Direction
     private Node parseMoveCommand() throws CheckException, SyntaxError {
         tkz.consume("move");
         String dir = parseDirection();
         return nFact.createMoveNode(dir);
     }
+
+    // AttackCommand → shoot Direction Expression
     private Node parseAttackCommand() throws CheckException, SyntaxError {
         tkz.consume("shoot");
         String dir = parseDirection();
         Expr e = parseExpression();
         return nFact.createShootNode(dir, e);
     }
+
+    // Direction
     private String parseDirection() throws CheckException, SyntaxError {
         String dir = tkz.peek();
-        if (isDirection(dir)) {
-            return tkz.consume();
-        }
+        if (isDirection(dir)) return tkz.consume();
         throw new SyntaxError("Invalid direction: " + dir);
     }
-    private Node parseBlockStatement () throws CheckException, SyntaxError {
+
+    // BlockStatement → { Statement* }
+    private Node parseBlockStatement() throws CheckException, SyntaxError {
         List<Node> statements = new ArrayList<>();
         tkz.consume("{");
         while (tkz.hasNextToken() && !tkz.peek("}")) {
@@ -107,6 +114,8 @@ public class ExprParser implements Parser {
         tkz.consume("}");
         return nFact.createBlockNode(statements);
     }
+
+    // IfStatement → if ( Expression ) then Statement else Statement
     private Node parseIfStatement() throws CheckException, SyntaxError {
         tkz.consume("if");
         tkz.consume("(");
@@ -118,6 +127,8 @@ public class ExprParser implements Parser {
         Node nElse = parseStatement();
         return nFact.createIfNode(e, nThen, nElse);
     }
+
+    // WhileStatement → while ( Expression ) Statement
     private Node parseWhileStatement() throws CheckException, SyntaxError {
         tkz.consume("while");
         tkz.consume("(");
@@ -126,71 +137,74 @@ public class ExprParser implements Parser {
         Node n = parseStatement();
         return nFact.createWhileNode(e, n);
     }
+
+    // --- Expression Parsing (Strict Grammar) ---
+
+    // Expression → Expression + Term | Expression - Term | Term
     private Expr parseExpression() throws CheckException, SyntaxError {
         Expr t = parseTerm();
-        while(tkz.peek("+") || tkz.peek("-")) {
-            if(tkz.peek().equals("+")) {
-                tkz.consume();
-                t = eFact.createBinaryArithExpr(t, "+", parseTerm());
-            } else {
-                tkz.consume();
-                t = eFact.createBinaryArithExpr(t, "-", parseTerm());
-            }
+        while (tkz.peek("+") || tkz.peek("-")) {
+            String op = tkz.consume();
+            t = eFact.createBinaryArithExpr(t, op, parseTerm());
         }
         return t;
     }
+
+    // Term → Term * Factor | Term / Factor | Term % Factor | Factor
     private Expr parseTerm() throws CheckException, SyntaxError {
         Expr f = parseFactor();
-        while(tkz.peek("*") || tkz.peek("/") || tkz.peek("%")) {
-            if(tkz.peek().equals("*")) {
-                tkz.consume();
-                f = eFact.createBinaryArithExpr(f, "*", parseFactor());
-            } else if(tkz.peek("/")) {
-                tkz.consume();
-                f = eFact.createBinaryArithExpr(f, "/", parseFactor());
-            } else {
-                tkz.consume();
-                f = eFact.createBinaryArithExpr(f, "%", parseFactor());
-            }
+        while (tkz.peek("*") || tkz.peek("/") || tkz.peek("%")) {
+            String op = tkz.consume();
+            f = eFact.createBinaryArithExpr(f, op, parseFactor());
         }
         return f;
     }
+
+    // Factor → Power ^ Factor | Power
     private Expr parseFactor() throws CheckException, SyntaxError {
         Expr p = parsePower();
-        if(tkz.peek("^")) {
+        if (tkz.peek("^")) {
             tkz.consume();
-            p = eFact.createBinaryArithExpr(p, "^", parseTerm());
+            // [Fix] Right-associative: ต้องเรียก parseFactor (ตัวเอง) ซ้ำ
+            p = eFact.createBinaryArithExpr(p, "^", parseFactor());
         }
         return p;
     }
+
+    // Power → <number> | <identifier> | ( Expression ) | InfoExpression
     private Expr parsePower() throws CheckException, SyntaxError {
-        if(isNumeric(tkz.peek())) {
-            String n = tkz.consume();
-            return eFact.createNumberLit(Long.parseLong(n));
-        } else if(isIdentifier(tkz.peek())) {
-            String v = tkz.consume();
-            return eFact.createVariable(v);
-        } else if(tkz.peek().equals("(")) {
+        if (isNumeric(tkz.peek())) {
+            return eFact.createNumberLit(Long.parseLong(tkz.consume()));
+        }
+        // [Fix] ต้องเช็ค InfoExpression (nearby, ally, opponent) ก่อน Identifier!!
+        else if (tkz.peek("nearby") || tkz.peek("ally") || tkz.peek("opponent")) {
+            return parseInfoExpression();
+        }
+        else if (isIdentifier(tkz.peek())) {
+            return eFact.createVariable(tkz.consume());
+        }
+        else if (tkz.peek("(")) {
             tkz.consume("(");
-            Expr e =  parseExpression();
+            Expr e = parseExpression();
             tkz.consume(")");
             return e;
         }
-        return parseInfoExpression();
+        throw new SyntaxError("Unexpected token in expression: " + tkz.peek());
     }
+
+    // InfoExpression → ally | opponent | nearby Direction
     private Expr parseInfoExpression() throws CheckException, SyntaxError {
-        if(tkz.peek("ally")) {
+        if (tkz.peek("ally")) {
             tkz.consume();
             return eFact.createInfoExpr("ally", null);
-        } else if(tkz.peek("opponent")) {
+        } else if (tkz.peek("opponent")) {
             tkz.consume();
             return eFact.createInfoExpr("opponent", null);
-        } else if(tkz.peek("nearby")) {
+        } else if (tkz.peek("nearby")) {
             tkz.consume();
+            // nearby กิน token ที่เป็น Direction เข้าไปด้วย
             return eFact.createInfoExpr("nearby", parseDirection());
         }
         throw new SyntaxError("Unknown info expression: " + tkz.peek());
     }
-
-
 }
