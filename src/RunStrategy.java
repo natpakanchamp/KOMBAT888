@@ -1,5 +1,5 @@
 import ast.Node;
-import parser.*; // ใช้ package 'paser' ตามที่คุณตั้งไว้ในโปรเจกต์
+import parser.*; // ใช้ package 'parser' ตามที่คุณตั้งไว้ในโปรเจกต์
 import utils.FileUtil;
 import java.util.HashMap;
 import java.util.Map;
