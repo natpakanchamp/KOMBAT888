@@ -1,2 +1,1 @@
-# KOMBAT888
-OOP Project
+oop proj
