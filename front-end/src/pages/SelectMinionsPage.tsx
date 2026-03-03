@@ -10,6 +10,7 @@ import lancer from "../assets/lancer.png"
 import caster from "../assets/caster.png"
 import berserker from "../assets/berserker.png"
 import sword from "../assets/sword.png"
+import bow from "../assets/bow.png"
 
 export default function SelectMinionsPage() {
 
@@ -43,7 +44,7 @@ export default function SelectMinionsPage() {
                         name="Archer"
                         description=""
                         charImg={archer}
-                        backImg={cardBack}
+                        backImg={bow}
                     />
                     <UnitCard
                         name="Lancer"
