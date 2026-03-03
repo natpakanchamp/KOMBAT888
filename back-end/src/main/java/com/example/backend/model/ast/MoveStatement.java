@@ -13,12 +13,12 @@ public record MoveStatement(String directionStr) implements Statement {
     private static final DirectionAdapter adapter = new StringToDirectionAdapter();
 
     @Override
-    public void execute(Map<String, Long> localVars, Map<String, Long> globalVars) throws EvalError {
+    public void execute(GameState state, Map<String, Long> localVars, Map<String, Long> globalVars) throws EvalError {
         // ขั้นตอน 1: Adapt ข้อมูล
         DIRECTION dir = adapter.adapt(directionStr);
 
         // ขั้นตอน 2: Business Logic
-        GameState.pay(1L);
-        GameState.move(dir.name());
+        state.pay(1L);
+        state.move(dir.name());
     }
 }

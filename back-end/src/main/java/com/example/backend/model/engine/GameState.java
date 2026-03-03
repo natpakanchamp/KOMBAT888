@@ -2,11 +2,11 @@ package com.example.backend.model.engine;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.UtilityClass;
 
 import java.util.*;
 
-@UtilityClass
+@Getter
+@Setter
 public class GameState {
     public final int ROWS = 8;
     public final int COLS = 8;
@@ -16,25 +16,15 @@ public class GameState {
     private double p2Budget;
     private int turnCount;
     private int[] usedSpawns;
-
-    // ลอมบอกจะสร้าง getCurrentPlayer() และ setCurrentPlayer(int) ให้แบบ static
-    @Getter @Setter
     private int currentPlayer = 1;
-
-    // ลอมบอกจะสร้าง getCurrentRow() ให้แบบ static
-    @Getter
     private int currentRow;
-
-    // ลอมบอกจะสร้าง getCurrentCol() ให้แบบ static
-    @Getter
     private int currentCol;
 
     private Set<String> p1SpawnableHexes;
     private Set<String> p2SpawnableHexes;
 
-    // --- 1. Initialization ---
-    public void initialize() {
-        Unit.resetId();
+    // Constructor สร้างกระดานใหม่ของแต่ละห้อง
+    public GameState() {
         p1Budget = GameConfig.init_budget;
         p2Budget = GameConfig.init_budget;
         turnCount = 1;
@@ -46,8 +36,6 @@ public class GameState {
         p2SpawnableHexes = new HashSet<>(Arrays.asList("7,7", "7,6", "7,5", "6,7", "6,6"));
     }
 
-    // --- 2. State Management (Custom Getters/Setters) ---
-    // เมธอดเหล่านี้มี Logic พิเศษ จึงใช้ Lombok สร้างให้ไม่ได้ ต้องเขียนเอง
     public void advanceGlobalTurn() { turnCount++; }
 
     public long getPlayerBudget() {
@@ -72,7 +60,6 @@ public class GameState {
         else p2Budget = Math.max(0, p2Budget - amount);
     }
 
-    // --- 3. Income & Interest ---
     public void processTurnIncome() {
         if (turnCount == 1) return;
 
@@ -90,7 +77,6 @@ public class GameState {
         }
     }
 
-    // --- 4. Hex Purchase ---
     public boolean buyHex(int r, int c) {
         if (!isValidPos(r, c)) return false;
         if (getPlayerBudget() < GameConfig.hex_purchase_cost) return false;
@@ -116,12 +102,9 @@ public class GameState {
             System.out.println("Player " + currentPlayer + " successfully bought hex (" + r + "," + c + ")");
             return true;
         }
-
-        System.out.println("Cannot buy hex (" + r + "," + c + ") - Not adjacent to your territory.");
         return false;
     }
 
-    // --- 5. Unit Spawning ---
     public void spawnUnit(int r, int c, long hp, long def, int type) {
         if (!isValidPos(r, c)) return;
 
@@ -131,23 +114,14 @@ public class GameState {
             return;
         }
 
-        if (field[r][c] != null) {
-            System.out.println("Cannot spawn - Hex occupied.");
-            return;
-        }
-
-        if (getPlayerBudget() < GameConfig.spawn_cost) {
-            System.out.println("Cannot spawn - Not enough budget.");
-            return;
-        }
+        if (field[r][c] != null) return;
+        if (getPlayerBudget() < GameConfig.spawn_cost) return;
 
         pay(GameConfig.spawn_cost);
         field[r][c] = new Unit(hp, def, currentPlayer, type);
         usedSpawns[currentPlayer]++;
-        System.out.println("Player " + currentPlayer + " spawned Type " + type + " at (" + r + "," + c + ")");
     }
 
-    // --- 6. Unit Retrieval ---
     public List<Unit> getPlayerUnitsSortedById(int player) {
         List<Unit> units = new ArrayList<>();
         for (int r = 0; r < ROWS; r++) {
@@ -175,7 +149,6 @@ public class GameState {
         return field[r][c];
     }
 
-    // --- 7. Action Commands ---
     public void move(String direction) {
         pay(1);
         int[] nextPos = calculateOffset(currentRow, currentCol, direction);
@@ -187,9 +160,6 @@ public class GameState {
                 field[currentRow][currentCol] = null;
                 currentRow = nr;
                 currentCol = nc;
-                System.out.println("Unit moved " + direction + " to (" + nr + "," + nc + ")");
-            } else {
-                System.out.println("Cannot move - Blocked.");
             }
         }
     }
@@ -203,18 +173,13 @@ public class GameState {
             Unit target = field[targetPos[0]][targetPos[1]];
             long damage = expenditure;
             target.takeDamage(damage);
-            System.out.println("Shot " + direction + " hitting Unit " + target.getId() + " for " + damage + " dmg (HP left: " + target.getHP() + ")");
 
             if (target.isDead()) {
                 field[targetPos[0]][targetPos[1]] = null;
-                System.out.println("Unit " + target.getId() + " is DEAD!");
             }
-        } else {
-            System.out.println("Shot missed - No target found.");
         }
     }
 
-    // --- 8. Query Commands ---
     public long query(String type, String direction) {
         if (type.equals("nearby")) {
             return calculateNearby(currentRow, currentCol, direction);
@@ -246,15 +211,11 @@ public class GameState {
         while (true) {
             int[] nextPos = calculateOffset(currentPos[0], currentPos[1], dir);
             if (nextPos == null) return null;
-
-            if (field[nextPos[0]][nextPos[1]] != null) {
-                return nextPos;
-            }
+            if (field[nextPos[0]][nextPos[1]] != null) return nextPos;
             currentPos = nextPos;
         }
     }
 
-    // --- 9. Hex Math ---
     public int[] calculateOffset(int r, int c, String dir) {
         int nr = r;
         int nc = c;
