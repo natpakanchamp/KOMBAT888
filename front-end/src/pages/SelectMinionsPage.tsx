@@ -2,7 +2,6 @@
 import { useNavigate } from 'react-router-dom'
 import {Center, Group, Title, Stack, Box, UnstyledButton, Image} from '@mantine/core';
 import { UnitCard } from '../components/UnitCard';
-import cardBack from '../assets/black.jfif';
 import goBackBtn from "../assets/goBack.png";
 import saber from "../assets/saber.png"
 import archer from "../assets/archer.png"
@@ -11,6 +10,9 @@ import caster from "../assets/caster.png"
 import berserker from "../assets/berserker.png"
 import sword from "../assets/sword.png"
 import bow from "../assets/bow.png"
+import lancer_card from "../assets/lancer_card.png"
+import berserker_card from "../assets/berserker_card.png"
+import caster_card from "../assets/caster_card.png"
 
 export default function SelectMinionsPage() {
 
@@ -50,19 +52,19 @@ export default function SelectMinionsPage() {
                         name="Lancer"
                         description=""
                         charImg={lancer}
-                        backImg={cardBack}
+                        backImg={lancer_card}
                     />
                     <UnitCard
                         name="Caster"
                         description=""
                         charImg={caster}
-                        backImg={cardBack}
+                        backImg={caster_card}
                     />
                     <UnitCard
                         name="Berserker"
                         description=""
                         charImg={berserker}
-                        backImg={cardBack}
+                        backImg={berserker_card}
                     />
                 </Group>
             </Stack>
