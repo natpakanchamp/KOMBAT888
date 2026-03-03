@@ -14,10 +14,8 @@ public record MoveStatement(String directionStr) implements Statement {
 
     @Override
     public void execute(Map<String, Long> localVars, Map<String, Long> globalVars) throws EvalError {
-        // ขั้นตอน 1: Adapt ข้อมูล
         DIRECTION dir = adapter.adapt(directionStr);
 
-        // ขั้นตอน 2: Business Logic
         GameState.pay(1L);
         GameState.move(dir.name());
     }
