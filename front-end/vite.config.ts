@@ -1,7 +1,25 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-})
+  define: { global: "globalThis" },
+  optimizeDeps: {
+    esbuildOptions: { define: { global: "globalThis" } },
+  },
+  server: {
+    proxy: {
+      // REST API
+      "/api": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
+      // WebSocket/SockJS endpoint
+      "/ws": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+        ws: true,
+      },
+    },
+  },
+});
