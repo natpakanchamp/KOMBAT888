@@ -1,5 +1,6 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.LoginRequest;
 import com.example.backend.model.GameState;
 import com.example.backend.service.GameService;
 import lombok.RequiredArgsConstructor;

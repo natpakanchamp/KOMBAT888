@@ -19,6 +19,8 @@ public class GameService {
     // ใช้ส่งข้อมูลผ่าน  Websocket
     private final SimpMessagingTemplate messagingTemplate;
     private  GameEngine engine  ;
+
+
     // start new game(){
     public void startGame() {
         engine = new GameEngine() ;
@@ -48,5 +50,24 @@ public class GameService {
     public boolean isGameOver() {
         return engine.isGameOver();
     }
+
+    /*
+     * ใช้สำหรับ login ผู้เล่น
+     */
+    public String login(String username) {
+
+        // ตรวจสอบข้อมูลเบื้องต้น
+        if (username == null || username.length() < 3) {
+            throw new IllegalArgumentException("Username must be at least 3 characters");
+        }
+
+        // ตรงนี้สามารถเพิ่ม logic เช่น
+        // - บันทึกผู้เล่น
+        // - เซ็ตค่าใน GameState
+        // - ตรวจสอบซ้ำชื่อ
+
+        return "Welcome " + username;
+    }
+
 
 }
