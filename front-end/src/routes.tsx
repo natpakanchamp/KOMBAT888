@@ -16,8 +16,8 @@ export const router = createBrowserRouter([
             {index: true, element: <HomePage/>},
             {path: "login", element: <LoginPage/>},
             {path: "select", element: <SelectMinionsPage/>},
-            // {path: "waitingRoom", element: <WaitingRoomPage/>}
             {path: "battle", element: <BattlePage/>},
+            // {path: "waitingRoom", element: <WaitingRoomPage/>}
         ],
     }
 ])
