@@ -35,5 +35,10 @@ public class GameController {
     public boolean gameOver(){
         return gameService.isGameOver() ;
     }
+
+    @PostMapping("/login")
+    public String login(@RequestBody LoginRequest request) {
+        return gameService.login(request.getUsername());
+    }
 }
 
