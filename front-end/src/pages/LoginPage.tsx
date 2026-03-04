@@ -12,12 +12,25 @@ export default function LoginPage() {
     const [userName, setUserName] = useState("");
     const navigate = useNavigate();
 
-    const handleStart = () => {
-        if (userName.trim().length > 2) {
-            const roomId = Math.random().toString(36).slice(2, 8); // สุ่ม 6 ตัว
-            navigate(`/waitingRoom/${roomId}`, { state: { user: userName } });
-        } else {
+    const handleStart = async () => {
+        if (userName.trim().length <= 2) {
             alert("กรุณากรอกชื่ออย่างน้อย 3 ตัวอักษร");
+            return;
+        }
+
+        try {
+            const res = await fetch("/api/room", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: userName }),
+            });
+
+            if (!res.ok) throw new Error(`Create room failed (${res.status})`);
+
+            const room = await res.json(); // ต้องมี roomId กลับมา
+            navigate(`/waitingRoom/${room.roomId}`, { state: { user: userName } });
+        } catch (e: any) {
+            alert(e?.message ?? "Create room failed");
         }
     };
 
