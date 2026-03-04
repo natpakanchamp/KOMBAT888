@@ -16,10 +16,7 @@ type RoomState = {
     state: "waiting" | "starting" | "in_game" | "closed";
     maxPlayers: number;
     players: Player[];
-    gameSettings: {
-        map: string;
-        mode: string;
-    };
+    gameSettings: { map: string; mode: string };
     you?: { id: string };
 };
 
@@ -27,6 +24,9 @@ export default function WaitingRoomPage() {
     const { roomId } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
+
+    // ✅ มาจาก Login (create room) ไหม?
+    const created = (location.state as any)?.created === true;
 
     // ✅ รับชื่อจาก state + รองรับ refresh ด้วย localStorage
     const userName: string =
@@ -51,59 +51,65 @@ export default function WaitingRoomPage() {
         }
     }, [roomId]);
 
-    // ✅ join ห้องครั้งแรก (ครั้งเดียวต่อการเข้า roomId นี้)
+    // ✅ load/join room
     useEffect(() => {
         if (!roomId) return;
 
-        // ถ้าไม่มีชื่อ ให้เด้งกลับ login (หรือจะโชว์ error ก็ได้)
         if (!userName || userName.trim().length < 3) {
             setError("Missing username (please login again)");
             setLoading(false);
             return;
         }
 
-        // เก็บไว้กัน refresh
         localStorage.setItem("username", userName);
 
         let cancelled = false;
 
-        async function joinAndLoad() {
+        async function loadRoom() {
+            const roomRes = await fetch(`/api/room/${roomId}`);
+            if (!roomRes.ok) throw new Error(`Failed to load room (${roomRes.status})`);
+            const data: RoomState = await roomRes.json();
+            if (!cancelled) setRoomState(data);
+        }
+
+        async function joinThenLoad() {
+            const res = await fetch(`/api/room/${roomId}/join`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: userName }),
+            });
+            if (!res.ok) throw new Error(`Join failed (${res.status})`);
+            await loadRoom();
+        }
+
+        (async () => {
             try {
                 setLoading(true);
                 setError(null);
 
-                const res = await fetch(`/api/room/${roomId}/join`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name: userName }),
-                });
-                if (!res.ok) throw new Error(`Join failed (${res.status})`);
-
-                // โหลดสถานะห้องครั้งแรก
-                const roomRes = await fetch(`/api/room/${roomId}`);
-                if (!roomRes.ok) throw new Error(`Failed to load room (${roomRes.status})`);
-                const data: RoomState = await roomRes.json();
-
-                if (!cancelled) setRoomState(data);
+                // ✅ ถ้าเพิ่งสร้างห้องจาก Login: ไม่ join ซ้ำ
+                if (created) {
+                    await loadRoom();
+                } else {
+                    await joinThenLoad();
+                }
             } catch (e: any) {
-                if (!cancelled) setError(e?.message ?? "Join failed");
+                if (!cancelled) setError(e?.message ?? "Join/Load failed");
             } finally {
                 if (!cancelled) setLoading(false);
             }
-        }
+        })();
 
-        joinAndLoad();
         return () => {
             cancelled = true;
         };
-    }, [roomId, userName]);
+    }, [roomId, userName, created]);
 
-    // ✅ STOMP WebSocket subscribe: server push room state
+    // ✅ STOMP WebSocket subscribe
     useEffect(() => {
         if (!roomId) return;
 
         const client = new Client({
-            // ใช้ SockJS endpoint /ws (ตาม config ฝั่ง Spring)
             webSocketFactory: () => new SockJS("/ws"),
             reconnectDelay: 2000,
             onConnect: () => {
@@ -112,12 +118,9 @@ export default function WaitingRoomPage() {
                         const data: RoomState = JSON.parse(msg.body);
                         setRoomState(data);
                     } catch {
-                        // ignore parse errors
+                        // ignore
                     }
                 });
-            },
-            onStompError: (frame) => {
-                console.warn("STOMP error", frame.headers["message"], frame.body);
             },
         });
 
@@ -125,7 +128,7 @@ export default function WaitingRoomPage() {
         return () => client.deactivate();
     }, [roomId]);
 
-    // ✅ fallback polling ช้า ๆ (เผื่อ WS หลุด/ยังไม่พร้อม)
+    // ✅ polling fallback
     useEffect(() => {
         if (!roomId) return;
 
@@ -138,12 +141,12 @@ export default function WaitingRoomPage() {
             } catch {
                 // ignore
             }
-        }, 8000); // ✅ ทุก 8 วิพอ
+        }, 8000);
 
         return () => clearInterval(t);
     }, [roomId]);
 
-    // ถ้าเกมเริ่มแล้วให้เด้งไปหน้า battle
+    // ✅ ไปหน้า battle เมื่อเริ่มเกม
     useEffect(() => {
         if (!roomState || !roomId) return;
         if (roomState.state === "in_game") {
@@ -152,14 +155,21 @@ export default function WaitingRoomPage() {
     }, [roomState, roomId, navigate]);
 
     async function toggleReady() {
-        if (!roomId) return;
-        await fetch(`/api/room/${roomId}/ready`, { method: "POST" });
-        // ✅ ไม่ต้อง setState เอง เดี๋ยว WS push มา (fallback polling ก็จะอัปเดตให้)
+        if (!roomId || !roomState?.you?.id) return;
+        await fetch(`/api/room/${roomId}/ready`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ playerId: roomState.you.id }),
+        });
     }
 
     async function startGame() {
-        if (!roomId) return;
-        await fetch(`/api/room/${roomId}/start`, { method: "POST" });
+        if (!roomId || !roomState?.you?.id) return;
+        await fetch(`/api/room/${roomId}/start`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ playerId: roomState.you.id }),
+        });
     }
 
     function copyRoomLink() {

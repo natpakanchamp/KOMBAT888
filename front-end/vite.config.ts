@@ -4,9 +4,6 @@ import react from "@vitejs/plugin-react-swc";
 export default defineConfig({
   plugins: [react()],
   define: { global: "globalThis" },
-  optimizeDeps: {
-    esbuildOptions: { define: { global: "globalThis" } },
-  },
   server: {
     proxy: {
       // REST API

@@ -28,7 +28,7 @@ export default function LoginPage() {
             if (!res.ok) throw new Error(`Create room failed (${res.status})`);
 
             const room = await res.json(); // ต้องมี roomId กลับมา
-            navigate(`/waitingRoom/${room.roomId}`, { state: { user: userName } });
+            navigate(`/waitingRoom/${room.roomId}`, { state: { user: userName, created: true } });
         } catch (e: any) {
             alert(e?.message ?? "Create room failed");
         }
