@@ -20,4 +20,4 @@ export const router = createBrowserRouter([
             {path: "waitingRoom/:roomId", element: <WaitingRoomPage/>}
         ],
     }
-])git 
+])
