@@ -17,7 +17,7 @@ export default function HomePage() {
                     w={500}
                 />
 
-                <UnstyledButton onClick={() => navigate('/select')}>
+                <UnstyledButton onClick={() => navigate('/login')}>
                     <Image
                         src={playBtn}
                         w={400}

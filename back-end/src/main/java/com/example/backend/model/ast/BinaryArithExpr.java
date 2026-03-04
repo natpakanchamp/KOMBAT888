@@ -1,5 +1,6 @@
 package com.example.backend.model.ast;
 
+import com.example.backend.model.engine.GameState;
 import com.example.backend.model.exception.EvalError;
 
 import java.util.Map;
@@ -9,10 +10,10 @@ public record BinaryArithExpr(
         implements Expr {
 
     @Override
-    public long eval(Map<String, Long> localVars, Map<String, Long> globalVars) throws EvalError {
+    public long eval(GameState state, Map<String, Long> localVars, Map<String, Long> globalVars) throws EvalError {
         // ส่งต่อทั้ง localVars และ globalVars ลงไปยัง ast.Node ลูกทั้งสองข้าง
-        long lv = left.eval(localVars, globalVars);
-        long rv = right.eval(localVars, globalVars);
+        long lv = left.eval(state, localVars, globalVars);
+        long rv = right.eval(state, localVars, globalVars);
 
         return switch (op) {
             case "+" -> lv + rv;

@@ -2,279 +2,132 @@ package com.example.backend.model.engine;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.UtilityClass;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-@UtilityClass
+@Getter
+@Setter
 public class GameState {
-    public final int ROWS = 8;
-    public final int COLS = 8;
 
-    private Unit[][] field;
-    private double p1Budget;
-    private double p2Budget;
-    private int turnCount;
-    private int[] usedSpawns;
+    // ==========================================
+    // 1. ข้อมูลพื้นฐานของเกม (Game Data)
+    // ==========================================
+    private List<Unit> units;           // เก็บ Minion ทุกตัวบนกระดาน
+    private Map<String, Long> globalVars; // เก็บตัวแปร Global สำหรับระบบ AST Parser
 
-    // ลอมบอกจะสร้าง getCurrentPlayer() และ setCurrentPlayer(int) ให้แบบ static
-    @Getter @Setter
-    private int currentPlayer = 1;
+    private int p1Budget;               // เงินของ Player 1
+    private int p2Budget;               // เงินของ Player 2
 
-    // ลอมบอกจะสร้าง getCurrentRow() ให้แบบ static
-    @Getter
-    private int currentRow;
+    private int currentTurn;            // เทิร์นปัจจุบัน
+    private int maxTurns;               // จำนวนเทิร์นสูงสุดก่อนหมดเวลา (Time Out)
 
-    // ลอมบอกจะสร้าง getCurrentCol() ให้แบบ static
-    @Getter
-    private int currentCol;
+    // ข้อมูลขนาดกระดาน (ถ้าเกมคุณเป็น Hexagon หรือ Grid)
+    private int boardRows;
+    private int boardCols;
 
-    private Set<String> p1SpawnableHexes;
-    private Set<String> p2SpawnableHexes;
+    // ==========================================
+    // 2. Constructor (กำหนดค่าเริ่มต้นตอนเริ่มเกม)
+    // ==========================================
+    public GameState(int boardRows, int boardCols, int maxTurns, int startingBudget) {
+        this.boardRows = boardRows;
+        this.boardCols = boardCols;
+        this.maxTurns = maxTurns;
 
-    // --- 1. Initialization ---
-    public void initialize() {
-        Unit.resetId();
-        p1Budget = GameConfig.init_budget;
-        p2Budget = GameConfig.init_budget;
-        turnCount = 1;
-        usedSpawns = new int[]{0, 0, 0};
-        field = new Unit[ROWS][COLS];
-        currentPlayer = 1;
+        this.p1Budget = startingBudget;
+        this.p2Budget = startingBudget;
+        this.currentTurn = 1;
 
-        p1SpawnableHexes = new HashSet<>(Arrays.asList("0,0", "0,1", "0,2", "1,0", "1,1"));
-        p2SpawnableHexes = new HashSet<>(Arrays.asList("7,7", "7,6", "7,5", "6,7", "6,6"));
+        this.units = new ArrayList<>();
+        this.globalVars = new HashMap<>();
     }
 
-    // --- 2. State Management (Custom Getters/Setters) ---
-    // เมธอดเหล่านี้มี Logic พิเศษ จึงใช้ Lombok สร้างให้ไม่ได้ ต้องเขียนเอง
-    public void advanceGlobalTurn() { turnCount++; }
+    // ==========================================
+    // 3. ฟังก์ชันจัดการ Minion (Helper Methods)
+    // ==========================================
 
-    public long getPlayerBudget() {
-        return (long) ((currentPlayer == 1) ? p1Budget : p2Budget);
+    // เพิ่ม Minion ลงกระดาน
+    public void addUnit(Unit unit) {
+        this.units.add(unit);
     }
 
-    public void setMinionPos(int r, int c) {
-        currentRow = r;
-        currentCol = c;
+    // ลบ Minion ที่ตายแล้วออกจากกระดาน (เอาไว้เรียกใช้ตอนจบรอบ)
+    public void cleanUpDeadUnits() {
+        this.units.removeIf(Unit::isDead);
     }
 
-    public long getMaxTurns() { return GameConfig.max_turns; }
-    public int getMaxBudget() { return (int) GameConfig.max_budget; }
-    public int getInterestRate() { return (int) GameConfig.interest_pct; }
-
-    public int getRemainingSpawns() {
-        return (int) (GameConfig.max_spawns - usedSpawns[currentPlayer]);
-    }
-
-    public void pay(long amount) {
-        if (currentPlayer == 1) p1Budget = Math.max(0, p1Budget - amount);
-        else p2Budget = Math.max(0, p2Budget - amount);
-    }
-
-    // --- 3. Income & Interest ---
-    public void processTurnIncome() {
-        if (turnCount == 1) return;
-
-        double currentB = (currentPlayer == 1) ? p1Budget : p2Budget;
-        double m = GameConfig.max_budget;
-        double t = turnCount;
-        double r = GameConfig.interest_pct;
-
-        double interest = currentB * (r / 100.0) * Math.log10(m) * Math.log(t);
-
-        if (currentPlayer == 1) {
-            p1Budget = Math.min(GameConfig.max_budget, p1Budget + interest);
-        } else {
-            p2Budget = Math.min(GameConfig.max_budget, p2Budget + interest);
+    // ค้นหาว่าในช่อง (row, col) มี Minion ยืนอยู่ไหม (มีประโยชน์มากเวลาทำคำสั่ง Move หรือ Shoot)
+    public Unit getUnitAt(int row, int col) {
+        for (Unit u : units) {
+            if (u.isAlive() && u.getRow() == row && u.getCol() == col) {
+                return u;
+            }
         }
+        return null; // ถ้าไม่มีใครยืนอยู่ คืนค่า null
     }
 
-    // --- 4. Hex Purchase ---
-    public boolean buyHex(int r, int c) {
-        if (!isValidPos(r, c)) return false;
-        if (getPlayerBudget() < GameConfig.hex_purchase_cost) return false;
+    // ==========================================
+    // 4. ระบบตัดสินผลแพ้ชนะ (Win Conditions)
+    // ==========================================
 
-        Set<String> currentHexes = (currentPlayer == 1) ? p1SpawnableHexes : p2SpawnableHexes;
-        String key = r + "," + c;
+    /**
+     * ฟังก์ชันที่ 1: ใช้เช็คทุกครั้งหลังจบเทิร์นปกติ (หาคนตายยกแผง)
+     */
+    public MatchResult checkNormalWin() {
+        boolean p1HasUnits = false;
+        boolean p2HasUnits = false;
 
-        if (currentHexes.contains(key)) return false;
-
-        boolean isAdjacent = false;
-        String[] directions = {"up", "down", "upleft", "upright", "downleft", "downright"};
-        for (String dir : directions) {
-            int[] neighbor = calculateOffset(r, c, dir);
-            if (neighbor != null && currentHexes.contains(neighbor[0] + "," + neighbor[1])) {
-                isAdjacent = true;
-                break;
+        for (Unit unit : this.units) {
+            if (unit.isAlive()) {
+                if (unit.getOwner() == 1) p1HasUnits = true;
+                if (unit.getOwner() == 2) p2HasUnits = true;
             }
         }
 
-        if (isAdjacent) {
-            pay(GameConfig.hex_purchase_cost);
-            currentHexes.add(key);
-            System.out.println("Player " + currentPlayer + " successfully bought hex (" + r + "," + c + ")");
-            return true;
-        }
+        if (p1HasUnits && !p2HasUnits) return MatchResult.PLAYER1_WINS;
+        if (!p1HasUnits && p2HasUnits) return MatchResult.PLAYER2_WINS;
+        if (!p1HasUnits && !p2HasUnits) return MatchResult.DRAW;
 
-        System.out.println("Cannot buy hex (" + r + "," + c + ") - Not adjacent to your territory.");
-        return false;
+        return MatchResult.ONGOING; // ยังรอดทั้งคู่ เล่นต่อไป
     }
 
-    // --- 5. Unit Spawning ---
-    public void spawnUnit(int r, int c, long hp, long def, int type) {
-        if (!isValidPos(r, c)) return;
+    /**
+     * ฟังก์ชันที่ 2: ใช้เช็ค "เฉพาะตอนเทิร์นหมด (Time Out)"
+     * ลำดับการตัดสิน: จำนวน Minion -> HP รวม -> Budget
+     */
+    public MatchResult evaluateTimeOutWinner() {
+        int p1MinionCount = 0;
+        int p2MinionCount = 0;
+        int p1TotalHp = 0;
+        int p2TotalHp = 0;
 
-        Set<String> myHexes = (currentPlayer == 1) ? p1SpawnableHexes : p2SpawnableHexes;
-        if (!myHexes.contains(r + "," + c)) {
-            System.out.println("Cannot spawn at (" + r + "," + c + ") - Not your designated area.");
-            return;
-        }
-
-        if (field[r][c] != null) {
-            System.out.println("Cannot spawn - Hex occupied.");
-            return;
-        }
-
-        if (getPlayerBudget() < GameConfig.spawn_cost) {
-            System.out.println("Cannot spawn - Not enough budget.");
-            return;
-        }
-
-        pay(GameConfig.spawn_cost);
-        field[r][c] = new Unit(hp, def, currentPlayer, type);
-        usedSpawns[currentPlayer]++;
-        System.out.println("Player " + currentPlayer + " spawned Type " + type + " at (" + r + "," + c + ")");
-    }
-
-    // --- 6. Unit Retrieval ---
-    public List<Unit> getPlayerUnitsSortedById(int player) {
-        List<Unit> units = new ArrayList<>();
-        for (int r = 0; r < ROWS; r++) {
-            for (int c = 0; c < COLS; c++) {
-                if (field[r][c] != null && field[r][c].getOwner() == player) {
-                    units.add(field[r][c]);
+        for (Unit unit : this.units) {
+            if (unit.isAlive()) {
+                if (unit.getOwner() == 1) {
+                    p1MinionCount++;
+                    p1TotalHp += unit.getHP();
+                } else if (unit.getOwner() == 2) {
+                    p2MinionCount++;
+                    p2TotalHp += unit.getHP();
                 }
             }
         }
-        units.sort(Comparator.comparingInt(Unit::getId));
-        return units;
-    }
 
-    public int[] getUnitPosition(Unit u) {
-        for (int r = 0; r < ROWS; r++) {
-            for (int c = 0; c < COLS; c++) {
-                if (field[r][c] == u) return new int[]{r, c};
-            }
-        }
-        return null;
-    }
+        // ด่านที่ 1: ใครเหลือ Minion น้อยกว่า... แพ้
+        if (p1MinionCount > p2MinionCount) return MatchResult.PLAYER1_WINS;
+        if (p2MinionCount > p1MinionCount) return MatchResult.PLAYER2_WINS;
 
-    public Unit getUnitAt(int r, int c) {
-        if(!isValidPos(r, c)) return null;
-        return field[r][c];
-    }
+        // ด่านที่ 2: (ถ้าจำนวนเท่ากัน) HP รวมใครน้อยกว่า... แพ้
+        if (p1TotalHp > p2TotalHp) return MatchResult.PLAYER1_WINS;
+        if (p2TotalHp > p1TotalHp) return MatchResult.PLAYER2_WINS;
 
-    // --- 7. Action Commands ---
-    public void move(String direction) {
-        pay(1);
-        int[] nextPos = calculateOffset(currentRow, currentCol, direction);
-        if (nextPos != null) {
-            int nr = nextPos[0];
-            int nc = nextPos[1];
-            if (field[nr][nc] == null) {
-                field[nr][nc] = field[currentRow][currentCol];
-                field[currentRow][currentCol] = null;
-                currentRow = nr;
-                currentCol = nc;
-                System.out.println("Unit moved " + direction + " to (" + nr + "," + nc + ")");
-            } else {
-                System.out.println("Cannot move - Blocked.");
-            }
-        }
-    }
+        // ด่านที่ 3: (ถ้า HP รวมเท่ากันอีก) Budget ใครน้อยกว่า... แพ้
+        if (this.p1Budget > this.p2Budget) return MatchResult.PLAYER1_WINS;
+        if (this.p2Budget > this.p1Budget) return MatchResult.PLAYER2_WINS;
 
-    public void shoot(String direction, long expenditure) {
-        long cost = 1 + expenditure;
-        pay(cost);
-
-        int[] targetPos = findClosest(currentRow, currentCol, direction);
-        if (targetPos != null) {
-            Unit target = field[targetPos[0]][targetPos[1]];
-            long damage = expenditure;
-            target.takeDamage(damage);
-            System.out.println("Shot " + direction + " hitting Unit " + target.getId() + " for " + damage + " dmg (HP left: " + target.getHP() + ")");
-
-            if (target.isDead()) {
-                field[targetPos[0]][targetPos[1]] = null;
-                System.out.println("Unit " + target.getId() + " is DEAD!");
-            }
-        } else {
-            System.out.println("Shot missed - No target found.");
-        }
-    }
-
-    // --- 8. Query Commands ---
-    public long query(String type, String direction) {
-        if (type.equals("nearby")) {
-            return calculateNearby(currentRow, currentCol, direction);
-        }
-        return 0;
-    }
-
-    private int calculateNearby(int r, int c, String dir) {
-        int dist = 1;
-        int[] currentPos = {r, c};
-
-        while (dist < Math.max(ROWS, COLS)) {
-            int[] nextPos = calculateOffset(currentPos[0], currentPos[1], dir);
-            if (nextPos == null) break;
-
-            Unit found = field[nextPos[0]][nextPos[1]];
-            if (found != null) {
-                if (found.getOwner() == currentPlayer) return -dist;
-                else return dist;
-            }
-            currentPos = nextPos;
-            dist++;
-        }
-        return 0;
-    }
-
-    private int[] findClosest(int r, int c, String dir) {
-        int[] currentPos = {r, c};
-        while (true) {
-            int[] nextPos = calculateOffset(currentPos[0], currentPos[1], dir);
-            if (nextPos == null) return null;
-
-            if (field[nextPos[0]][nextPos[1]] != null) {
-                return nextPos;
-            }
-            currentPos = nextPos;
-        }
-    }
-
-    // --- 9. Hex Math ---
-    public int[] calculateOffset(int r, int c, String dir) {
-        int nr = r;
-        int nc = c;
-        boolean evenRow = (r % 2 == 0);
-
-        switch (dir) {
-            case "up" -> nr--;
-            case "down" -> nr++;
-            case "upleft" -> { if(evenRow) { nr--; nc--; } else { nr--; } }
-            case "upright" -> { if(evenRow) { nr--; } else { nr--; nc++; } }
-            case "downleft" -> { if(evenRow) { nr++; nc--; } else { nr++; } }
-            case "downright" -> { if(evenRow) { nr++; } else { nr++; nc++; } }
-            default -> { return null; }
-        }
-
-        if (isValidPos(nr, nc)) return new int[]{nr, nc};
-        return null;
-    }
-
-    private boolean isValidPos(int r, int c) {
-        return r >= 0 && r < ROWS && c >= 0 && c < COLS;
+        // ถ้าเท่ากันหมดให้เสมอ
+        return MatchResult.DRAW;
     }
 }
