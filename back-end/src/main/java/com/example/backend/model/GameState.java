@@ -20,6 +20,7 @@ public class GameState {
     // ถูกเรียกจาก game engine
     public void nextTurn()
     {
+
         turnCount++;
     }
 }

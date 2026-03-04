@@ -130,4 +130,5 @@ public class GameState {
         // ถ้าเท่ากันหมดให้เสมอ
         return MatchResult.DRAW;
     }
+
 }
