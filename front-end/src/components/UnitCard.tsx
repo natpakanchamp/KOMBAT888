@@ -4,13 +4,14 @@ import { keyframes } from '@emotion/react';
 import { useEffect, useState } from 'react';
 import type { UnitCardProps } from "../Props/UnitCardProps.tsx";
 
-const Shake = keyframes({
-    '0%':   { transform: 'translateX(0px)' },
-    '25%':  { transform: 'translateX(-20px)' },
-    '50%':  { transform: 'translateX(20px)' },
-    '75%':  { transform: 'translateX(-20px)' },
-    '100%': { transform: 'translateX(0px)' },
-});
+// 1. เปลี่ยนการเขียน Keyframes เป็นแบบ Template Literal ของ Emotion
+const Shake = keyframes`
+    0% { transform: translateX(0px); }
+    25% { transform: translateX(-20px); }
+    50% { transform: translateX(20px); }
+    75% { transform: translateX(-20px); }
+    100% { transform: translateX(0px); }
+`;
 
 export function UnitCard({ name, description, charImg, backImg }: UnitCardProps) {
     const [isFlipped, setIsFlipped] = useState(false);
@@ -23,22 +24,20 @@ export function UnitCard({ name, description, charImg, backImg }: UnitCardProps)
         return () => clearTimeout(t);
     }, [isFlipped]);
 
-    const flip = isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
-    const shakeX = (x: number) => `${flip} translateX(${x}px)`;
-
     return (
+        // กล่องชั้นนอกสุด: กำหนดมิติความลึก (Perspective)
         <Box style={{ perspective: '1000px', width: 200, height: 280 }}>
+
+            {/* กล่องชั้นกลาง: รับหน้าที่ "สั่น" อย่างเดียว (ดึง keyframes มาใช้ตรงๆ) */}
             <Box
                 style={{
-                    perspective: '1000px',
                     width: '100%',
                     height: '100%',
-                    animation: shake ? `${Shake} 450ms ease-in-out` : undefined,
+                    animation: shake ? `${Shake} 450ms ease-in-out` : 'none',
                     willChange: 'transform',
-                    // keyframes แบบ inline (Mantine รองรับ)
-                    // @ts-ignore
                 }}
             >
+                {/* กล่องชั้นในสุด: รับหน้าที่ "พลิก 3D" อย่างเดียว */}
                 <Box
                     style={{
                         position: 'relative',
@@ -48,19 +47,8 @@ export function UnitCard({ name, description, charImg, backImg }: UnitCardProps)
                         transformStyle: 'preserve-3d',
                         transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
                         willChange: 'transform',
-                        animationName: shake
-                            ? {
-                                '0%': { transform: shakeX(0) },
-                                '25%': { transform: shakeX(-20) },
-                                '50%': { transform: shakeX(20) },
-                                '75%': { transform: shakeX(-20) },
-                                '100%': { transform: shakeX(0) },
-                            }
-                            : undefined,
-                        animationDuration: shake ? '450ms' : undefined,
-                        animationTimingFunction: shake ? 'ease-in-out' : undefined,
                     }}
-                     >
+                >
                     {/* --- 🔹 ด้านหลังการ์ด --- */}
                     <UnstyledButton
                         onClick={() => setIsFlipped(true)}
@@ -92,7 +80,7 @@ export function UnitCard({ name, description, charImg, backImg }: UnitCardProps)
                             flexDirection: 'column',
                             color: 'white'
                         }}
-                        >
+                    >
                         <Image src={charImg} h={150} fit="cover" />
 
                         <Stack p="md" gap="xs" style={{ flex: 1 }}>
@@ -109,7 +97,7 @@ export function UnitCard({ name, description, charImg, backImg }: UnitCardProps)
                                     fullWidth
                                     size="xs"
                                     onClick={(e) => {
-                                        e.stopPropagation(); // ⚠️ สำคัญมาก: กันไม่ให้กดปุ่มแล้วการ์ดพลิกกลับ
+                                        e.stopPropagation(); // ⚠️ กันไม่ให้กดปุ่มแล้วการ์ดพลิกกลับ
                                         alert(`คุณเลือกใช้งาน: ${name}`);
                                     }}
                                 >
