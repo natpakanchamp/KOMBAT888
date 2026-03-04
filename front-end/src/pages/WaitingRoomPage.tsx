@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 
 type Player = {
     id: string;
@@ -23,7 +25,14 @@ type RoomState = {
 
 export default function WaitingRoomPage() {
     const { roomId } = useParams();
+    const location = useLocation();
     const navigate = useNavigate();
+
+    // ✅ รับชื่อจาก state + รองรับ refresh ด้วย localStorage
+    const userName: string =
+        ((location.state as any)?.user as string | undefined) ??
+        localStorage.getItem("username") ??
+        "";
 
     const [roomState, setRoomState] = useState<RoomState | null>(null);
     const [loading, setLoading] = useState(true);
@@ -34,40 +43,89 @@ export default function WaitingRoomPage() {
         return roomState.players.find((p) => p.id === roomState.you!.id) ?? null;
     }, [roomState]);
 
-    // โหลดสถานะห้องครั้งแรก
+    // ✅ guard: roomId ต้องมี
     useEffect(() => {
         if (!roomId) {
-            setError("Invalid room ID");
+            setError("Missing roomId in URL (expected /waitingRoom/:roomId)");
+            setLoading(false);
+        }
+    }, [roomId]);
+
+    // ✅ join ห้องครั้งแรก (ครั้งเดียวต่อการเข้า roomId นี้)
+    useEffect(() => {
+        if (!roomId) return;
+
+        // ถ้าไม่มีชื่อ ให้เด้งกลับ login (หรือจะโชว์ error ก็ได้)
+        if (!userName || userName.trim().length < 3) {
+            setError("Missing username (please login again)");
             setLoading(false);
             return;
         }
 
+        // เก็บไว้กัน refresh
+        localStorage.setItem("username", userName);
+
         let cancelled = false;
 
-        async function load() {
+        async function joinAndLoad() {
             try {
                 setLoading(true);
                 setError(null);
 
-                const res = await fetch(`/api/room/${roomId}`);
-                if (!res.ok) throw new Error(`Failed to load room (${res.status})`);
-                const data: RoomState = await res.json();
+                const res = await fetch(`/api/room/${roomId}/join`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: userName }),
+                });
+                if (!res.ok) throw new Error(`Join failed (${res.status})`);
+
+                // โหลดสถานะห้องครั้งแรก
+                const roomRes = await fetch(`/api/room/${roomId}`);
+                if (!roomRes.ok) throw new Error(`Failed to load room (${roomRes.status})`);
+                const data: RoomState = await roomRes.json();
 
                 if (!cancelled) setRoomState(data);
             } catch (e: any) {
-                if (!cancelled) setError(e?.message ?? "Failed to load room");
+                if (!cancelled) setError(e?.message ?? "Join failed");
             } finally {
                 if (!cancelled) setLoading(false);
             }
         }
 
-        load();
+        joinAndLoad();
         return () => {
             cancelled = true;
         };
+    }, [roomId, userName]);
+
+    // ✅ STOMP WebSocket subscribe: server push room state
+    useEffect(() => {
+        if (!roomId) return;
+
+        const client = new Client({
+            // ใช้ SockJS endpoint /ws (ตาม config ฝั่ง Spring)
+            webSocketFactory: () => new SockJS("/ws"),
+            reconnectDelay: 2000,
+            onConnect: () => {
+                client.subscribe(`/topic/room/${roomId}`, (msg) => {
+                    try {
+                        const data: RoomState = JSON.parse(msg.body);
+                        setRoomState(data);
+                    } catch {
+                        // ignore parse errors
+                    }
+                });
+            },
+            onStompError: (frame) => {
+                console.warn("STOMP error", frame.headers["message"], frame.body);
+            },
+        });
+
+        client.activate();
+        return () => client.deactivate();
     }, [roomId]);
 
-    // (ตัวเลือก) polling กันข้อมูลค้าง ถ้ายังไม่ทำ websocket
+    // ✅ fallback polling ช้า ๆ (เผื่อ WS หลุด/ยังไม่พร้อม)
     useEffect(() => {
         if (!roomId) return;
 
@@ -80,17 +138,9 @@ export default function WaitingRoomPage() {
             } catch {
                 // ignore
             }
-        }, 1200);
+        }, 8000); // ✅ ทุก 8 วิพอ
 
         return () => clearInterval(t);
-    }, [roomId]);
-
-    // TODO: WebSocket subscribe (ใส่ทีหลัง)
-    useEffect(() => {
-        // ตัวอย่าง:
-        // const ws = new WebSocket(`ws://.../rooms/${roomId}`);
-        // ws.onmessage = (ev) => setRoomState(JSON.parse(ev.data));
-        // return () => ws.close();
     }, [roomId]);
 
     // ถ้าเกมเริ่มแล้วให้เด้งไปหน้า battle
@@ -104,13 +154,12 @@ export default function WaitingRoomPage() {
     async function toggleReady() {
         if (!roomId) return;
         await fetch(`/api/room/${roomId}/ready`, { method: "POST" });
-        // รอ websocket/poll อัปเดต state
+        // ✅ ไม่ต้อง setState เอง เดี๋ยว WS push มา (fallback polling ก็จะอัปเดตให้)
     }
 
     async function startGame() {
         if (!roomId) return;
         await fetch(`/api/room/${roomId}/start`, { method: "POST" });
-        // รอ websocket/poll อัปเดต state
     }
 
     function copyRoomLink() {
@@ -121,6 +170,7 @@ export default function WaitingRoomPage() {
             .catch(() => alert("Failed to copy room link."));
     }
 
+    // ✅ render states
     if (loading) return <div style={{ padding: 16 }}>Loading room...</div>;
     if (error) return <div style={{ padding: 16, color: "red" }}>{error}</div>;
     if (!roomState) return <div style={{ padding: 16 }}>No room data!!</div>;

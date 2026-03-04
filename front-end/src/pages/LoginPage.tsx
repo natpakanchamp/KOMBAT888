@@ -14,7 +14,8 @@ export default function LoginPage() {
 
     const handleStart = () => {
         if (userName.trim().length > 2) {
-            navigate("/select", { state: { user: userName } });
+            const roomId = Math.random().toString(36).slice(2, 8); // สุ่ม 6 ตัว
+            navigate(`/waitingRoom/${roomId}`, { state: { user: userName } });
         } else {
             alert("กรุณากรอกชื่ออย่างน้อย 3 ตัวอักษร");
         }

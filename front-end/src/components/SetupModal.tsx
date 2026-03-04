@@ -1,6 +1,6 @@
 import { Modal, Stack, Title, Group, Button, Box, Text, Divider, Textarea } from "@mantine/core"
 import { useState, useEffect } from "react";
-import type { SetupModalProps } from "../Props/SetupModalProps"
+import type { SetupModalProps } from "../props/SetupModalProps"
 
 export function SetupModal({ opened, onClose, onSave, unitType }: SetupModalProps) {
     const [strategy, setStrategy] = useState('');

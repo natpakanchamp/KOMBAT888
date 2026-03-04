@@ -1,7 +1,7 @@
 // src/components/UnitCard.tsx
 import { Box, Image, Text, Stack, Button } from '@mantine/core';
 import { useState } from 'react';
-import type { UnitCardProps } from "../Props/UnitCardProps.tsx";
+import type { UnitCardProps } from "../props/UnitCardProps.tsx";
 
 export function UnitCard({ strategy, description, charImg, backImg, onSelect }: UnitCardProps) {
     const [isFlipped, setIsFlipped] = useState(false);
