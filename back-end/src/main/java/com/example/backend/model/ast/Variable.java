@@ -1,6 +1,7 @@
 package com.example.backend.model.ast;
 
 import com.example.backend.model.engine.GameState;
+import com.example.backend.model.engine.Unit;
 import com.example.backend.model.exception.EvalError;
 
 import java.util.Map;
@@ -9,16 +10,26 @@ import java.util.Random;
 public record Variable(String name) implements Expr {
     private static final Random randomGen = new Random();
 
-    public long eval(GameState state, Map<String, Long> localVars, Map<String, Long> globalVars) throws EvalError {
+    @Override
+    public long eval(GameState state, Unit currentUnit, Map<String, Long> localVars, Map<String, Long> globalVars) throws EvalError {
         // 1. จัดการ Special Variables (Read-only)
         switch (name) {
-            case "row": return state.getCurrentRow(); // ดึงแถวปัจจุบันของ Minion
-            case "col": return state.getCurrentCol(); // ดึงคอลัมน์ปัจจุบันของ Minion
-            case "random": return randomGen.nextInt(1000); // สุ่มค่า 0-999
-            case "Budget": return state.getPlayerBudget(); // งบประมาณที่เหลือ
-            case "Int": return state.getInterestRate(); // อัตราดอกเบี้ย
-            case "MaxBudget": return state.getMaxBudget(); // งบสูงสุด
-            case "SpawnsLeft": return state.getRemainingSpawns(); // จำนวนที่เกิดได้อีก
+            case "row":
+                return currentUnit.getRow(); // ดึงจากยูนิตที่กำลังรันคำสั่ง
+            case "col":
+                return currentUnit.getCol(); // ดึงจากยูนิตที่กำลังรันคำสั่ง
+            case "random":
+                return randomGen.nextInt(1000);
+            case "Budget":
+                // เช็คว่าเป็นของใครแล้วดึงกระเป๋าเงินให้ถูกคน
+                return currentUnit.getOwner() == 1 ? state.getP1Budget() : state.getP2Budget();
+            case "Int":
+                return state.getInterestRate();
+            case "MaxBudget":
+                return state.getMaxBudget();
+            case "SpawnsLeft":
+                // แยกโควต้าการเกิดตามทีม
+                return currentUnit.getOwner() == 1 ? state.getP1RemainingSpawns() : state.getP2RemainingSpawns();
         }
 
         // 2. จัดการตัวแปรทั่วไป (คืนค่า 0 หากยังไม่มีการกำหนดค่า)
