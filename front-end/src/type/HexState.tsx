@@ -1,0 +1,1 @@
+export type HexState = 'LIGHT' | 'DARK' | 'NEUTRAL' | 'TURNING_LIGHT' | 'TURNING_DARK';

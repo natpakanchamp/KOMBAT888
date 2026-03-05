@@ -1,11 +1,11 @@
 package com.example.backend.model.engine;
 
+import com.example.backend.model.ast.Statement;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter // สร้าง Getter (เช่น getDefense, getOwner, getId, getType, getRole) ให้อัตโนมัติ
+@Getter
 public class Unit {
-    // 1. ประกาศค่าคงที่อาชีพ
     public static final int TYPE_SABER = 1;
     public static final int TYPE_ARCHER = 2;
     public static final int TYPE_LANCER = 3;
@@ -13,56 +13,79 @@ public class Unit {
     public static final int TYPE_BERSERKER = 5;
 
     private long hp;
+    private final long maxHp; // เป็น final ไปเลยเพราะล็อกไว้ที่ 100
     private long defense;
     private final int owner;
     private final int id;
     private final int type;
 
-    @Setter // สร้าง setRole(long role) ให้อัตโนมัติแค่ตัวแปรนี้
+    @Setter
     private long role;
+
+    @Setter
+    private int row;
+    @Setter
+    private int col;
+
+    @Getter
+    @Setter
+    private Statement strategy;
 
     static int nextUnitId = 1;
 
-    // Constructor รับ type เข้ามาด้วย (ต้องเขียนเองเพราะมี Logic ภายใน)
-    public Unit(long hp, long defense, int owner, int type) {
+    // 💡 ปรับปรุง: ถอด parameter 'hp' ออกจาก Constructor เพราะเราจะล็อกเป็น 100 เสมอ
+    public Unit(long defense, int owner, int type) {
+        this(defense, owner, type, -1, -1);
+    }
+
+    public Unit(long defense, int owner, int type, int row, int col) {
         this.owner = (owner % 2 == 0) ? 2 : 1;
         this.type = type;
         this.id = nextUnitId++;
         this.role = 0;
+        this.row = row;
+        this.col = col;
 
-        // 2. ปรับค่าพลังตามอาชีพ (Base Stats + Class Bonus)
-        this.hp = hp;
+        // 🌟 ล็อกเลือดเริ่มต้นและเลือดสูงสุดไว้ที่ 100 เท่ากันทุกอาชีพ
+        this.maxHp = 100;
+        this.hp = 100;
+
         this.defense = defense;
 
+        // 🌟 ปรับปรุง: switch-case จะเหลือแค่การจัดการค่าเกราะ (defense) หรือค่าอื่นๆ แทน
         switch (type) {
             case TYPE_SABER -> {
-                // สมดุล (ค่าเดิม)
+                // สมดุล
             }
             case TYPE_ARCHER -> {
-                this.hp = Math.max(1, this.hp - 20);     // เลือดน้อย
+                // อาชีพยิงไกล อาจจะไม่มีโบนัสเกราะ
             }
             case TYPE_LANCER -> {
-                this.hp = Math.max(1, this.hp - 30);     // เลือดน้อยมาก
-                this.defense = Math.max(0, this.defense - 1); // เกราะบาง
+                this.defense = Math.max(0, this.defense - 1); // เกราะบางลงนิดหน่อย
             }
             case TYPE_CASTER -> {
-                this.hp = Math.max(1, this.hp - 40);     // เลือดน้อยที่สุด
+                this.defense = Math.max(0, this.defense - 2); // นักเวทย์เกราะบางสุด
             }
             case TYPE_BERSERKER -> {
-                this.hp += 50;     // เลือดเยอะ
-                this.defense += 5; // เกราะหนา
+                this.defense += 5; // เกราะหนามาก (ชดเชยที่ไม่ได้บวกเลือดแล้ว)
             }
         }
     }
 
-    // --- Custom Methods ---
-
-    // หมายเหตุ: ลอมบอกจะสร้าง getHp() ให้ แต่เพื่อไม่ให้โค้ดเก่าพัง เราจึงเขียน getHP() ครอบไว้ด้วย
     public long getHP() { return hp; }
 
-    public void takeDamage(long d) { hp -= d; }
+    // โดนตี: เลือดลดแต่ไม่ต่ำกว่า 0
+    public void takeDamage(long d) {
+        this.hp = Math.max(0, this.hp - d);
+    }
+
+    // 🌟 เพิ่มฟังก์ชันฮีล: เผื่อมีคำสั่งบัฟเลือด เลือดจะได้ไม่ทะลุ 100
+    public void heal(long amount) {
+        this.hp = Math.min(this.maxHp, this.hp + amount);
+    }
 
     public boolean isDead() { return hp <= 0; }
+    public boolean isAlive() { return hp > 0; }
 
     public static void resetId() { nextUnitId = 1; }
 }

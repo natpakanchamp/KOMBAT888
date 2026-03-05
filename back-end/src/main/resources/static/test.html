@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+
+    <!-- โหลด SockJS -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+
+    <!-- โหลด STOMP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+</head>
+
+<body>
+
+<h2>WebSocket Test</h2>
+
+<button onclick="connect()">Connect</button>
+<button onclick="startGame()">Start Game</button>
+<button onclick="nextTurn()">Next Turn</button>
+
+<pre id="output"></pre>
+
+<script>
+
+let stompClient = null;
+
+function connect() {
+    let socket = new SockJS('http://localhost:8080/ws');
+    stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, function () {
+
+        console.log("Connected to WebSocket");
+
+        stompClient.subscribe('/topic/game-state', function (message) {
+
+            document.getElementById("output").innerText = message.body;
+        });
+
+    });
+}
+
+function startGame() {
+    fetch('http://localhost:8080/api/game/start', {
+        method: 'POST'
+    });
+}
+
+function nextTurn() {
+    fetch('http://localhost:8080/api/game/next-turn', {
+        method: 'POST'
+    });
+}
+
+</script>
+
+</body>
+</html>

@@ -3,239 +3,225 @@ package com.example.backend.model.engine;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
 public class GameState {
-    public final int ROWS = 8;
-    public final int COLS = 8;
 
-    private Unit[][] field;
-    private double p1Budget;
-    private double p2Budget;
-    private int turnCount;
-    private int[] usedSpawns;
-    private int currentPlayer = 1;
-    private int currentRow;
-    private int currentCol;
+    // ==========================================
+    // 1. ข้อมูลพื้นฐานของเกม (Game Data)
+    // ==========================================
+    private List<Unit> units;
+    private Map<String, Long> globalVars;
 
-    private Set<String> p1SpawnableHexes;
-    private Set<String> p2SpawnableHexes;
+    private int p1Budget;
+    private int p2Budget;
 
-    // Constructor สร้างกระดานใหม่ของแต่ละห้อง
-    public GameState() {
-        p1Budget = GameConfig.init_budget;
-        p2Budget = GameConfig.init_budget;
-        turnCount = 1;
-        usedSpawns = new int[]{0, 0, 0};
-        field = new Unit[ROWS][COLS];
-        currentPlayer = 1;
+    private int currentTurn;
+    private int maxTurns;
 
-        p1SpawnableHexes = new HashSet<>(Arrays.asList("0,0", "0,1", "0,2", "1,0", "1,1"));
-        p2SpawnableHexes = new HashSet<>(Arrays.asList("7,7", "7,6", "7,5", "6,7", "6,6"));
+    private int boardRows;
+    private int boardCols;
+
+    // 🌟 2. ตัวแปรใหม่สำหรับระบบ AST (Variables)
+    private int interestRate;       // อัตราดอกเบี้ย
+    private int maxBudget;          // งบสูงสุดที่เก็บได้
+    private int p1RemainingSpawns;  // โควต้าเกิดใหม่ของ P1
+    private int p2RemainingSpawns;  // โควต้าเกิดใหม่ของ P2
+
+    // ==========================================
+    // 3. Constructor
+    // ==========================================
+    public GameState(int boardRows, int boardCols, int maxTurns, int startingBudget) {
+        this.boardRows = boardRows;
+        this.boardCols = boardCols;
+        this.maxTurns = maxTurns;
+
+        this.p1Budget = startingBudget;
+        this.p2Budget = startingBudget;
+        this.currentTurn = 1;
+
+        this.units = new ArrayList<>();
+        this.globalVars = new HashMap<>();
+
+        // กำหนดค่าเริ่มต้นให้กับตัวแปรพิเศษ (ปรับเปลี่ยนตัวเลขได้ตามต้องการครับ)
+        this.interestRate = 5;
+        this.maxBudget = 20000;
+        this.p1RemainingSpawns = 10;
+        this.p2RemainingSpawns = 10;
     }
 
-    public void advanceGlobalTurn() { turnCount++; }
-
-    public long getPlayerBudget() {
-        return (long) ((currentPlayer == 1) ? p1Budget : p2Budget);
+    // ==========================================
+    // 4. ฟังก์ชันจัดการ Minion และระบบเงิน
+    // ==========================================
+    public void addUnit(Unit unit) {
+        this.units.add(unit);
     }
 
-    public void setMinionPos(int r, int c) {
-        currentRow = r;
-        currentCol = c;
+    public void cleanUpDeadUnits() {
+        this.units.removeIf(Unit::isDead);
     }
 
-    public long getMaxTurns() { return GameConfig.max_turns; }
-    public int getMaxBudget() { return (int) GameConfig.max_budget; }
-    public int getInterestRate() { return (int) GameConfig.interest_pct; }
-
-    public int getRemainingSpawns() {
-        return (int) (GameConfig.max_spawns - usedSpawns[currentPlayer]);
-    }
-
-    public void pay(long amount) {
-        if (currentPlayer == 1) p1Budget = Math.max(0, p1Budget - amount);
-        else p2Budget = Math.max(0, p2Budget - amount);
-    }
-
-    public void processTurnIncome() {
-        if (turnCount == 1) return;
-
-        double currentB = (currentPlayer == 1) ? p1Budget : p2Budget;
-        double m = GameConfig.max_budget;
-        double t = turnCount;
-        double r = GameConfig.interest_pct;
-
-        double interest = currentB * (r / 100.0) * Math.log10(m) * Math.log(t);
-
-        if (currentPlayer == 1) {
-            p1Budget = Math.min(GameConfig.max_budget, p1Budget + interest);
-        } else {
-            p2Budget = Math.min(GameConfig.max_budget, p2Budget + interest);
-        }
-    }
-
-    public boolean buyHex(int r, int c) {
-        if (!isValidPos(r, c)) return false;
-        if (getPlayerBudget() < GameConfig.hex_purchase_cost) return false;
-
-        Set<String> currentHexes = (currentPlayer == 1) ? p1SpawnableHexes : p2SpawnableHexes;
-        String key = r + "," + c;
-
-        if (currentHexes.contains(key)) return false;
-
-        boolean isAdjacent = false;
-        String[] directions = {"up", "down", "upleft", "upright", "downleft", "downright"};
-        for (String dir : directions) {
-            int[] neighbor = calculateOffset(r, c, dir);
-            if (neighbor != null && currentHexes.contains(neighbor[0] + "," + neighbor[1])) {
-                isAdjacent = true;
-                break;
+    public Unit getUnitAt(int row, int col) {
+        for (Unit u : units) {
+            if (u.isAlive() && u.getRow() == row && u.getCol() == col) {
+                return u;
             }
         }
+        return null;
+    }
 
-        if (isAdjacent) {
-            pay(GameConfig.hex_purchase_cost);
-            currentHexes.add(key);
-            System.out.println("Player " + currentPlayer + " successfully bought hex (" + r + "," + c + ")");
+    public boolean isWithinBounds(int row, int col) {
+        return row >= 0 && row < boardRows && col >= 0 && col < boardCols;
+    }
+
+    // 🌟 ฟังก์ชันจ่ายเงินที่ฉลาดขึ้น หักเงินให้ถูกกระเป๋า
+    public boolean pay(Unit unit, int cost) {
+        if (unit.getOwner() == 1 && this.p1Budget >= cost) {
+            this.p1Budget -= cost;
+            return true;
+        } else if (unit.getOwner() == 2 && this.p2Budget >= cost) {
+            this.p2Budget -= cost;
             return true;
         }
         return false;
     }
 
-    public void spawnUnit(int r, int c, long hp, long def, int type) {
-        if (!isValidPos(r, c)) return;
-
-        Set<String> myHexes = (currentPlayer == 1) ? p1SpawnableHexes : p2SpawnableHexes;
-        if (!myHexes.contains(r + "," + c)) {
-            System.out.println("Cannot spawn at (" + r + "," + c + ") - Not your designated area.");
-            return;
-        }
-
-        if (field[r][c] != null) return;
-        if (getPlayerBudget() < GameConfig.spawn_cost) return;
-
-        pay(GameConfig.spawn_cost);
-        field[r][c] = new Unit(hp, def, currentPlayer, type);
-        usedSpawns[currentPlayer]++;
+    // ==========================================
+    // 5. ฟังก์ชันสำหรับ AST (Move, Shoot, Query)
+    // ==========================================
+    private int[] getDirectionOffset(String direction) {
+        return switch (direction.toLowerCase()) {
+            case "up" -> new int[]{-1, 0};
+            case "down" -> new int[]{1, 0};
+            case "left" -> new int[]{0, -1};
+            case "right" -> new int[]{0, 1};
+            case "upleft" -> new int[]{-1, -1};
+            case "upright" -> new int[]{-1, 1};
+            case "downleft" -> new int[]{1, -1};
+            case "downright" -> new int[]{1, 1};
+            default -> new int[]{0, 0};
+        };
     }
 
-    public List<Unit> getPlayerUnitsSortedById(int player) {
-        List<Unit> units = new ArrayList<>();
-        for (int r = 0; r < ROWS; r++) {
-            for (int c = 0; c < COLS; c++) {
-                if (field[r][c] != null && field[r][c].getOwner() == player) {
-                    units.add(field[r][c]);
+    public void move(Unit currentUnit, String direction) {
+        int[] offset = getDirectionOffset(direction);
+        int newRow = currentUnit.getRow() + offset[0];
+        int newCol = currentUnit.getCol() + offset[1];
+
+        if (isWithinBounds(newRow, newCol) && getUnitAt(newRow, newCol) == null) {
+            currentUnit.setRow(newRow);
+            currentUnit.setCol(newCol);
+        }
+    }
+
+    public void shoot(Unit currentUnit, String direction, long expenditure) {
+        int[] offset = getDirectionOffset(direction);
+        int targetRow = currentUnit.getRow() + (offset[0] * (int)expenditure);
+        int targetCol = currentUnit.getCol() + (offset[1] * (int)expenditure);
+
+        if (isWithinBounds(targetRow, targetCol)) {
+            Unit target = getUnitAt(targetRow, targetCol);
+            if (target != null) {
+                long damage = 10;
+                long finalDamage = Math.max(1, damage - target.getDefense());
+                target.takeDamage(finalDamage);
+            }
+        }
+    }
+
+    public long query(Unit currentUnit, String type, String direction) {
+        long shortestDistance = Long.MAX_VALUE;
+        boolean found = false;
+
+        if (type.equals("ally") || type.equals("opponent")) {
+            for (Unit other : units) {
+                if (!other.isAlive() || other == currentUnit) continue;
+
+                boolean isAlly = (other.getOwner() == currentUnit.getOwner());
+                if ((type.equals("ally") && isAlly) || (type.equals("opponent") && !isAlly)) {
+                    long dist = Math.abs(currentUnit.getRow() - other.getRow()) +
+                            Math.abs(currentUnit.getCol() - other.getCol());
+                    if (dist < shortestDistance) {
+                        shortestDistance = dist;
+                        found = true;
+                    }
+                }
+            }
+            return found ? shortestDistance : 0;
+
+        } else if (type.equals("nearby") && direction != null) {
+            int[] offset = getDirectionOffset(direction);
+            int checkRow = currentUnit.getRow() + offset[0];
+            int checkCol = currentUnit.getCol() + offset[1];
+
+            long distance = 1;
+            while (isWithinBounds(checkRow, checkCol)) {
+                if (getUnitAt(checkRow, checkCol) != null) {
+                    return distance;
+                }
+                checkRow += offset[0];
+                checkCol += offset[1];
+                distance++;
+            }
+            return 0;
+        }
+        return 0;
+    }
+
+    // ==========================================
+    // 6. ระบบตัดสินผลแพ้ชนะ (Win Conditions)
+    // ==========================================
+    public MatchResult checkNormalWin() {
+        boolean p1HasUnits = false;
+        boolean p2HasUnits = false;
+
+        for (Unit unit : this.units) {
+            if (unit.isAlive()) {
+                if (unit.getOwner() == 1) p1HasUnits = true;
+                if (unit.getOwner() == 2) p2HasUnits = true;
+            }
+        }
+
+        if (p1HasUnits && !p2HasUnits) return MatchResult.PLAYER1_WINS;
+        if (!p1HasUnits && p2HasUnits) return MatchResult.PLAYER2_WINS;
+        if (!p1HasUnits && !p2HasUnits) return MatchResult.DRAW;
+
+        return MatchResult.ONGOING;
+    }
+
+    public MatchResult evaluateTimeOutWinner() {
+        int p1MinionCount = 0;
+        int p2MinionCount = 0;
+        int p1TotalHp = 0;
+        int p2TotalHp = 0;
+
+        for (Unit unit : this.units) {
+            if (unit.isAlive()) {
+                if (unit.getOwner() == 1) {
+                    p1MinionCount++;
+                    p1TotalHp += unit.getHP();
+                } else if (unit.getOwner() == 2) {
+                    p2MinionCount++;
+                    p2TotalHp += unit.getHP();
                 }
             }
         }
-        units.sort(Comparator.comparingInt(Unit::getId));
-        return units;
+
+        if (p1MinionCount > p2MinionCount) return MatchResult.PLAYER1_WINS;
+        if (p2MinionCount > p1MinionCount) return MatchResult.PLAYER2_WINS;
+
+        if (p1TotalHp > p2TotalHp) return MatchResult.PLAYER1_WINS;
+        if (p2TotalHp > p1TotalHp) return MatchResult.PLAYER2_WINS;
+
+        if (this.p1Budget > this.p2Budget) return MatchResult.PLAYER1_WINS;
+        if (this.p2Budget > this.p1Budget) return MatchResult.PLAYER2_WINS;
+
+        return MatchResult.DRAW;
     }
 
-    public int[] getUnitPosition(Unit u) {
-        for (int r = 0; r < ROWS; r++) {
-            for (int c = 0; c < COLS; c++) {
-                if (field[r][c] == u) return new int[]{r, c};
-            }
-        }
-        return null;
-    }
-
-    public Unit getUnitAt(int r, int c) {
-        if(!isValidPos(r, c)) return null;
-        return field[r][c];
-    }
-
-    public void move(String direction) {
-        pay(1);
-        int[] nextPos = calculateOffset(currentRow, currentCol, direction);
-        if (nextPos != null) {
-            int nr = nextPos[0];
-            int nc = nextPos[1];
-            if (field[nr][nc] == null) {
-                field[nr][nc] = field[currentRow][currentCol];
-                field[currentRow][currentCol] = null;
-                currentRow = nr;
-                currentCol = nc;
-            }
-        }
-    }
-
-    public void shoot(String direction, long expenditure) {
-        long cost = 1 + expenditure;
-        pay(cost);
-
-        int[] targetPos = findClosest(currentRow, currentCol, direction);
-        if (targetPos != null) {
-            Unit target = field[targetPos[0]][targetPos[1]];
-            long damage = expenditure;
-            target.takeDamage(damage);
-
-            if (target.isDead()) {
-                field[targetPos[0]][targetPos[1]] = null;
-            }
-        }
-    }
-
-    public long query(String type, String direction) {
-        if (type.equals("nearby")) {
-            return calculateNearby(currentRow, currentCol, direction);
-        }
-        return 0;
-    }
-
-    private int calculateNearby(int r, int c, String dir) {
-        int dist = 1;
-        int[] currentPos = {r, c};
-
-        while (dist < Math.max(ROWS, COLS)) {
-            int[] nextPos = calculateOffset(currentPos[0], currentPos[1], dir);
-            if (nextPos == null) break;
-
-            Unit found = field[nextPos[0]][nextPos[1]];
-            if (found != null) {
-                if (found.getOwner() == currentPlayer) return -dist;
-                else return dist;
-            }
-            currentPos = nextPos;
-            dist++;
-        }
-        return 0;
-    }
-
-    private int[] findClosest(int r, int c, String dir) {
-        int[] currentPos = {r, c};
-        while (true) {
-            int[] nextPos = calculateOffset(currentPos[0], currentPos[1], dir);
-            if (nextPos == null) return null;
-            if (field[nextPos[0]][nextPos[1]] != null) return nextPos;
-            currentPos = nextPos;
-        }
-    }
-
-    public int[] calculateOffset(int r, int c, String dir) {
-        int nr = r;
-        int nc = c;
-        boolean evenRow = (r % 2 == 0);
-
-        switch (dir) {
-            case "up" -> nr--;
-            case "down" -> nr++;
-            case "upleft" -> { if(evenRow) { nr--; nc--; } else { nr--; } }
-            case "upright" -> { if(evenRow) { nr--; } else { nr--; nc++; } }
-            case "downleft" -> { if(evenRow) { nr++; nc--; } else { nr++; } }
-            case "downright" -> { if(evenRow) { nr++; } else { nr++; nc++; } }
-            default -> { return null; }
-        }
-
-        if (isValidPos(nr, nc)) return new int[]{nr, nc};
-        return null;
-    }
-
-    private boolean isValidPos(int r, int c) {
-        return r >= 0 && r < ROWS && c >= 0 && c < COLS;
-    }
 }

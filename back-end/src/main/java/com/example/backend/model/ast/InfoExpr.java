@@ -1,6 +1,7 @@
 package com.example.backend.model.ast;
 
 import com.example.backend.model.engine.GameState;
+import com.example.backend.model.engine.Unit;
 import com.example.backend.model.exception.EvalError;
 
 import java.util.Map;
@@ -12,17 +13,17 @@ import java.util.Map;
 public record InfoExpr(String type, String direction) implements Expr {
 
     @Override
-    public long eval(GameState state, Map<String, Long> localVars, Map<String, Long> globalVars) throws EvalError {
+    public long eval(GameState state, Unit currentUnit, Map<String, Long> localVars, Map<String, Long> globalVars) throws EvalError {
 
         return switch (type) {
             case "ally" ->
-                    state.query("ally", null);
+                    state.query(currentUnit, "ally", null);
 
             case "opponent" ->
-                    state.query("opponent", null);
+                    state.query(currentUnit, "opponent", null);
 
             case "nearby" ->
-                    state.query("nearby", direction);
+                    state.query(currentUnit, "nearby", direction);
 
             default ->
                     throw new EvalError("Unknown info type: " + type);

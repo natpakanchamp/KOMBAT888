@@ -1,111 +1,101 @@
 // src/components/UnitCard.tsx
-import { Box, Image, UnstyledButton, Text, Stack, Button } from '@mantine/core';
-import { keyframes } from '@emotion/react';
-import { useEffect, useState } from 'react';
-import type { UnitCardProps } from "../Props/UnitCardProps.tsx";
+import { Box, Image, Text, Stack, Button } from '@mantine/core';
+import { useState } from 'react';
+import type { UnitCardProps } from "../props/UnitCardProps.tsx";
 
-// 1. เปลี่ยนการเขียน Keyframes เป็นแบบ Template Literal ของ Emotion
-const Shake = keyframes`
-    0% { transform: translateX(0px); }
-    25% { transform: translateX(-20px); }
-    50% { transform: translateX(20px); }
-    75% { transform: translateX(-20px); }
-    100% { transform: translateX(0px); }
-`;
-
-export function UnitCard({ name, description, charImg, backImg }: UnitCardProps) {
+export function UnitCard({ strategy, description, charImg, backImg, onSelect }: UnitCardProps) {
     const [isFlipped, setIsFlipped] = useState(false);
-    const [shake, setShake] = useState(false);
 
-    useEffect(() => {
-        if (!isFlipped) return;
-        setShake(true);
-        const t = setTimeout(() => setShake(false), 450);
-        return () => clearTimeout(t);
-    }, [isFlipped]);
+    // ฟังก์ชันสลับสถานะการพลิก
+    const handleFlip = () => setIsFlipped(!isFlipped);
 
     return (
-        // กล่องชั้นนอกสุด: กำหนดมิติความลึก (Perspective)
-        <Box style={{ perspective: '1000px', width: 200, height: 280 }}>
+        <Box
+            style={{
+                perspective: '1000px',
+                width: 190,
+                height: 266,
+                transition: 'transform 0.3s',
+                cursor: 'pointer' // เปลี่ยนเมาส์เป็นรูปมือให้รู้ว่าคลิกได้
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-15px)')}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+            onClick={handleFlip} // 👈 คลิกตรงไหนของการ์ดก็ได้เพื่อพลิก
+        >
+            <Box style={{
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                transformStyle: 'preserve-3d',
+                transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+            }}>
 
-            {/* กล่องชั้นกลาง: รับหน้าที่ "สั่น" อย่างเดียว (ดึง keyframes มาใช้ตรงๆ) */}
-            <Box
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    animation: shake ? `${Shake} 450ms ease-in-out` : 'none',
-                    willChange: 'transform',
-                }}
-            >
-                {/* กล่องชั้นในสุด: รับหน้าที่ "พลิก 3D" อย่างเดียว */}
-                <Box
-                    style={{
-                        position: 'relative',
-                        width: '100%',
-                        height: '100%',
-                        transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-                        transformStyle: 'preserve-3d',
-                        transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-                        willChange: 'transform',
-                    }}
-                >
-                    {/* --- 🔹 ด้านหลังการ์ด --- */}
-                    <UnstyledButton
-                        onClick={() => setIsFlipped(true)}
-                        style={{
-                            position: 'absolute',
-                            inset: 0,
-                            backfaceVisibility: 'hidden',
-                            borderRadius: '16px',
-                            overflow: 'hidden',
-                            boxShadow: '0 8px 20px rgba(0,0,0,0.3)',
-                        }}
-                    >
-                        <Image src={backImg} w="100%" h="100%" fit="cover" />
-                    </UnstyledButton>
+                {/* --- ด้านหลังการ์ด --- */}
+                <Box style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backfaceVisibility: 'hidden',
+                    borderRadius: '14px',
+                    overflow: 'hidden',
+                    boxShadow: '0 8px 20px rgba(0,0,0,0.3)'
+                }}>
+                    <Image src={backImg} w="100%" h="100%" fit="cover" />
+                </Box>
 
-                    {/* --- 🔹 ด้านหน้าการ์ด (มีข้อมูล + ปุ่ม) --- */}
-                    <Box
-                        onClick={() => setIsFlipped(false)}
-                        style={{
-                            position: 'absolute',
-                            inset: 0,
-                            backfaceVisibility: 'hidden',
-                            transform: 'rotateY(180deg)',
-                            borderRadius: '16px',
-                            backgroundColor: '#1A1B1E',
-                            border: '2px solid #373A40',
-                            overflow: 'hidden',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            color: 'white'
-                        }}
-                    >
-                        <Image src={charImg} h={150} fit="cover" />
+                {/* --- ด้านหน้าการ์ด --- */}
+                <Box style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backfaceVisibility: 'hidden',
+                    transform: 'rotateY(180deg)',
+                    borderRadius: '14px',
+                    backgroundColor: '#1A1B1E',
+                    border: '2px solid #373A40',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}>
+                    <Image src={charImg} h={135} fit="cover" />
+                    <Stack p="sm" gap={4} style={{ flex: 1, justifyContent: 'space-between' }}>
+                        {/* ใช้ space-between เพื่อดันปุ่มลงล่างสุดแต่ไม่ให้ทับขอบ */}
 
-                        <Stack p="md" gap="xs" style={{ flex: 1 }}>
-                            <Text fw={700} size="lg" c="yellow.4">{name}</Text>
-                            <Text size="xs" c="dimmed" lineClamp={3}>
+                        <Box>
+                            <Text fw={700} size="md" c="yellow.4" style={{ lineHeight: 1.2 }}>{strategy}</Text>
+                            <Text size="xs" c="dimmed" lineClamp={2} style={{ fontSize: '11px', marginTop: 4 }}>
                                 {description}
                             </Text>
+                        </Box>
 
-                            {/* ส่วนของปุ่มกดบนหน้าการ์ด */}
-                            <Stack mt="auto" gap={5}>
-                                <Button
-                                    variant="filled"
-                                    color="blue"
-                                    fullWidth
-                                    size="xs"
-                                    onClick={(e) => {
-                                        e.stopPropagation(); // ⚠️ กันไม่ให้กดปุ่มแล้วการ์ดพลิกกลับ
-                                        alert(`คุณเลือกใช้งาน: ${name}`);
-                                    }}
-                                >
-                                    setup
-                                </Button>
-                            </Stack>
-                        </Stack>
-                    </Box>
+                        <Box style={{ paddingBottom: '8px' }}> {/* 👈 เพิ่ม Padding ล่างเพื่อไม่ให้ปุ่มตกขอบ */}
+                            <Button
+                                w={130} // ปรับความกว้างให้พอดี
+                                h={30}  // ปรับความสูงให้เพรียวขึ้น
+                                mx="auto"
+                                display="block" // ช่วยให้ mx="auto" ทำงานได้แม่นยำขึ้น
+                                variant="outline"
+                                color="yellow.6"
+                                styles={{
+                                    root: {
+                                        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                                        border: '1.5px solid #FAB005',
+                                        borderRadius: '20px',
+                                    },
+                                    inner: {
+                                        fontSize: '10px',
+                                        fontWeight: 800,
+                                        letterSpacing: '1px'
+                                    }
+                                }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onSelect();
+                                }}
+                            >
+                                SETUP
+                            </Button>
+                        </Box>
+                    </Stack>
                 </Box>
             </Box>
         </Box>
