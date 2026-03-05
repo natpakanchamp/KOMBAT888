@@ -1,11 +1,30 @@
-# =========================
-# System & IDE
-# =========================
 .DS_Store
-.idea/
-*.iml
-*.log
+.AppleDouble
+.LSOverride
 
-# Dependencies
-front-end/node_modules
-back-end/target/
+node_modules/
+build/
+dist/
+.env
+.env.*
+!.env.example
+
+*.class
+*.jar
+*.war
+target/
+out/
+.gradle/
+
+*.o
+*.out
+*.exe
+*.dylib
+build/
+.cache/
+
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj.claude/
