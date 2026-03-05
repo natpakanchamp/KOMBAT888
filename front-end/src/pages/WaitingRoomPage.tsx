@@ -5,8 +5,6 @@ import SockJS from "sockjs-client";
 import { Box, Center, Title, Text, Button, Stack, Group, Paper, Loader, Tooltip } from "@mantine/core";
 
 import background_LightDark from "../assets/background_LightDark.png";
-import saber from "../assets/Light_Saber.png";
-import archer from "../assets/Light_Archer.png";
 import CloseButton from "../components/CloseButton";
 
 type Player = {
@@ -43,10 +41,39 @@ export default function WaitingRoomPage() {
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
 
+    // Read selected minions from localStorage
+    const storageKey = `minions_${roomId}`;
+    const [selectedMinions, setSelectedMinions] = useState<{ type: string; strategy: string }[]>(() => {
+        try {
+            const saved = localStorage.getItem(storageKey);
+            return saved ? JSON.parse(saved) : [];
+        } catch { return []; }
+    });
+
+    // Re-read from localStorage when returning from select page
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem(storageKey);
+            if (saved) setSelectedMinions(JSON.parse(saved));
+        } catch { /* ignore */ }
+    }, [storageKey]);
+
+    const hasMinions = selectedMinions.length > 0;
+
+    // Persist playerId to localStorage when first received, use as fallback
+    const playerIdKey = `playerId_${roomId}`;
+    const playerId = useMemo(() => {
+        if (roomState?.you?.id) {
+            localStorage.setItem(playerIdKey, roomState.you.id);
+            return roomState.you.id;
+        }
+        return localStorage.getItem(playerIdKey);
+    }, [roomState, playerIdKey]);
+
     const you = useMemo(() => {
-        if (!roomState?.you?.id) return null;
-        return roomState.players.find((p) => p.id === roomState.you!.id) ?? null;
-    }, [roomState]);
+        if (!playerId) return null;
+        return roomState?.players.find((p) => p.id === playerId) ?? null;
+    }, [roomState, playerId]);
 
     // guard: roomId required
     useEffect(() => {
@@ -151,20 +178,20 @@ export default function WaitingRoomPage() {
     }, [roomState, roomId, navigate]);
 
     async function toggleReady() {
-        if (!roomId || !roomState?.you?.id) return;
+        if (!roomId || !playerId) return;
         await fetch(`/api/room/${roomId}/ready`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ playerId: roomState.you.id }),
+            body: JSON.stringify({ playerId }),
         });
     }
 
     async function startGame() {
-        if (!roomId || !roomState?.you?.id) return;
+        if (!roomId || !playerId) return;
         await fetch(`/api/room/${roomId}/start`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ playerId: roomState.you.id }),
+            body: JSON.stringify({ playerId }),
         });
     }
 
@@ -305,45 +332,6 @@ export default function WaitingRoomPage() {
                     background:
                         "radial-gradient(ellipse at center, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.75) 100%)",
                     zIndex: 2,
-                }}
-            />
-
-            {/* Left character silhouette */}
-            <Box
-                style={{
-                    position: "fixed",
-                    bottom: 0,
-                    left: "-2%",
-                    width: "28%",
-                    height: "85%",
-                    backgroundImage: `url(${saber})`,
-                    backgroundSize: "contain",
-                    backgroundPosition: "bottom center",
-                    backgroundRepeat: "no-repeat",
-                    opacity: 0.15,
-                    filter: "brightness(0.6) contrast(1.2)",
-                    zIndex: 2,
-                    pointerEvents: "none",
-                }}
-            />
-
-            {/* Right character silhouette */}
-            <Box
-                style={{
-                    position: "fixed",
-                    bottom: 0,
-                    right: "-2%",
-                    width: "28%",
-                    height: "85%",
-                    backgroundImage: `url(${archer})`,
-                    backgroundSize: "contain",
-                    backgroundPosition: "bottom center",
-                    backgroundRepeat: "no-repeat",
-                    opacity: 0.15,
-                    filter: "brightness(0.6) contrast(1.2)",
-                    zIndex: 2,
-                    pointerEvents: "none",
-                    transform: "scaleX(-1)",
                 }}
             />
 
@@ -489,7 +477,7 @@ export default function WaitingRoomPage() {
                         )}
 
                         {roomState.players.map((p, i) => {
-                            const isYou = p.id === roomState.you?.id;
+                            const isYou = p.id === playerId;
                             return (
                                 <Box
                                     key={p.id}
@@ -597,6 +585,53 @@ export default function WaitingRoomPage() {
                         })}
                     </Box>
 
+                    {/* ── Your Minions Summary ── */}
+                    <Box
+                        style={{
+                            padding: "12px 28px",
+                            borderTop: "1px solid rgba(255,255,255,0.06)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: 12,
+                            flexShrink: 0,
+                            background: hasMinions ? "rgba(250,176,5,0.04)" : "rgba(255,100,100,0.04)",
+                        }}
+                    >
+                        <Box>
+                            <Text size="xs" style={{ color: "rgba(230,230,230,0.4)", letterSpacing: 1, textTransform: "uppercase" }}>
+                                Your Minions
+                            </Text>
+                            {hasMinions ? (
+                                <Text size="sm" fw={600} style={{ color: "rgba(250,176,5,0.9)", marginTop: 2 }}>
+                                    {selectedMinions.map(m => m.type).join(", ")}
+                                </Text>
+                            ) : (
+                                <Text size="sm" style={{ color: "rgba(255,100,100,0.7)", marginTop: 2 }}>
+                                    No minions selected — select before readying up
+                                </Text>
+                            )}
+                        </Box>
+                        <Button
+                            variant="subtle"
+                            size="xs"
+                            onClick={() => navigate("/select", { state: { roomId, fromRoom: true } })}
+                            styles={{
+                                root: {
+                                    color: hasMinions ? "rgba(230,230,230,0.7)" : "rgba(250,176,5,0.85)",
+                                    border: hasMinions ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(250,176,5,0.3)",
+                                    background: hasMinions ? "rgba(255,255,255,0.04)" : "rgba(250,176,5,0.08)",
+                                    letterSpacing: 1,
+                                    textTransform: "uppercase" as const,
+                                    fontWeight: 600,
+                                    fontSize: 11,
+                                },
+                            }}
+                        >
+                            {hasMinions ? "CHANGE" : "SELECT MINIONS"}
+                        </Button>
+                    </Box>
+
                     {/* ── Bottom Action Bar ── */}
                     <Box
                         style={{
@@ -611,32 +646,38 @@ export default function WaitingRoomPage() {
                             flexShrink: 0,
                         }}
                     >
-                        {/* Ready / Unready button */}
-                        <Button
-                            size="md"
-                            radius="md"
-                            onClick={toggleReady}
-                            styles={{
-                                root: {
-                                    minWidth: 160,
-                                    height: 46,
-                                    letterSpacing: 3,
-                                    textTransform: "uppercase" as const,
-                                    fontWeight: 700,
-                                    fontSize: 14,
-                                    background: you?.isReady
-                                        ? "linear-gradient(180deg, rgba(100,100,100,0.8), rgba(60,60,60,0.8))"
-                                        : "linear-gradient(180deg, rgba(210,145,80,1) 0%, rgba(120,70,35,1) 100%)",
-                                    border: you?.isReady
-                                        ? "1px solid rgba(255,255,255,0.15)"
-                                        : "1px solid rgba(255,215,170,0.18)",
-                                    boxShadow: "0 10px 30px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(0,0,0,0.3)",
-                                    transition: "all 0.25s ease",
-                                },
-                            }}
-                        >
-                            {you?.isReady ? "UNREADY" : "READY"}
-                        </Button>
+                        {/* Ready / Unready button — disabled if no minions selected */}
+                        <Tooltip label="Select minions first" disabled={hasMinions} withArrow>
+                            <Button
+                                size="md"
+                                radius="md"
+                                onClick={toggleReady}
+                                disabled={!hasMinions && !you?.isReady}
+                                styles={{
+                                    root: {
+                                        minWidth: 160,
+                                        height: 46,
+                                        letterSpacing: 3,
+                                        textTransform: "uppercase" as const,
+                                        fontWeight: 700,
+                                        fontSize: 14,
+                                        background: you?.isReady
+                                            ? "linear-gradient(180deg, rgba(100,100,100,0.8), rgba(60,60,60,0.8))"
+                                            : "linear-gradient(180deg, rgba(210,145,80,1) 0%, rgba(120,70,35,1) 100%)",
+                                        border: you?.isReady
+                                            ? "1px solid rgba(255,255,255,0.15)"
+                                            : "1px solid rgba(255,215,170,0.18)",
+                                        boxShadow: "0 10px 30px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(0,0,0,0.3)",
+                                        opacity: (!hasMinions && !you?.isReady) ? 0.45 : 1,
+                                        filter: (!hasMinions && !you?.isReady) ? "grayscale(0.3) brightness(0.8)" : "none",
+                                        cursor: (!hasMinions && !you?.isReady) ? "not-allowed" : "pointer",
+                                        transition: "all 0.25s ease",
+                                    },
+                                }}
+                            >
+                                {you?.isReady ? "UNREADY" : "READY"}
+                            </Button>
+                        </Tooltip>
 
                         {/* Host: Start Game */}
                         {isHost && (
