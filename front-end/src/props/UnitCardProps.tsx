@@ -4,4 +4,8 @@ export interface UnitCardProps {
     charImg: string;
     backImg: string;
     onSelect: () => void;
+    onFlip?: (flipped: boolean) => void;
+    isSelected?: boolean;
+    hasStrategy?: boolean;
+    initialFlipped?: boolean;
 }

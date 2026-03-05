@@ -3,11 +3,24 @@ import { Box, Image, Text, Stack, Button } from '@mantine/core';
 import { useState } from 'react';
 import type { UnitCardProps } from "../props/UnitCardProps.tsx";
 
-export function UnitCard({ strategy, description, charImg, backImg, onSelect }: UnitCardProps) {
-    const [isFlipped, setIsFlipped] = useState(false);
+export function UnitCard({
+    strategy,
+    description,
+    charImg,
+    backImg,
+    onSelect,
+    onFlip,
+    isSelected = false,
+    hasStrategy = false,
+    initialFlipped = false,
+}: UnitCardProps) {
+    const [isFlipped, setIsFlipped] = useState(initialFlipped);
 
-    // ฟังก์ชันสลับสถานะการพลิก
-    const handleFlip = () => setIsFlipped(!isFlipped);
+    const handleFlip = () => {
+        const next = !isFlipped;
+        setIsFlipped(next);
+        onFlip?.(next);
+    };
 
     return (
         <Box
@@ -15,12 +28,17 @@ export function UnitCard({ strategy, description, charImg, backImg, onSelect }: 
                 perspective: '1000px',
                 width: 190,
                 height: 266,
-                transition: 'transform 0.3s',
-                cursor: 'pointer' // เปลี่ยนเมาส์เป็นรูปมือให้รู้ว่าคลิกได้
+                cursor: 'pointer',
+                borderRadius: 16,
+                border: isSelected ? '2px solid rgba(250,176,5,0.85)' : '2px solid transparent',
+                boxShadow: isSelected
+                    ? '0 0 20px rgba(250,176,5,0.45), 0 8px 24px rgba(0,0,0,0.4)'
+                    : '0 8px 20px rgba(0,0,0,0.3)',
+                transition: 'transform 0.3s, border-color 0.3s, box-shadow 0.3s',
             }}
             onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-15px)')}
             onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
-            onClick={handleFlip} // 👈 คลิกตรงไหนของการ์ดก็ได้เพื่อพลิก
+            onClick={handleFlip}
         >
             <Box style={{
                 position: 'relative',
@@ -38,7 +56,6 @@ export function UnitCard({ strategy, description, charImg, backImg, onSelect }: 
                     backfaceVisibility: 'hidden',
                     borderRadius: '14px',
                     overflow: 'hidden',
-                    boxShadow: '0 8px 20px rgba(0,0,0,0.3)'
                 }}>
                     <Image src={backImg} w="100%" h="100%" fit="cover" />
                 </Box>
@@ -58,8 +75,6 @@ export function UnitCard({ strategy, description, charImg, backImg, onSelect }: 
                 }}>
                     <Image src={charImg} h={135} fit="cover" />
                     <Stack p="sm" gap={4} style={{ flex: 1, justifyContent: 'space-between' }}>
-                        {/* ใช้ space-between เพื่อดันปุ่มลงล่างสุดแต่ไม่ให้ทับขอบ */}
-
                         <Box>
                             <Text fw={700} size="md" c="yellow.4" style={{ lineHeight: 1.2 }}>{strategy}</Text>
                             <Text size="xs" c="dimmed" lineClamp={2} style={{ fontSize: '11px', marginTop: 4 }}>
@@ -67,12 +82,12 @@ export function UnitCard({ strategy, description, charImg, backImg, onSelect }: 
                             </Text>
                         </Box>
 
-                        <Box style={{ paddingBottom: '8px' }}> {/* 👈 เพิ่ม Padding ล่างเพื่อไม่ให้ปุ่มตกขอบ */}
+                        <Box style={{ paddingBottom: '8px' }}>
                             <Button
-                                w={130} // ปรับความกว้างให้พอดี
-                                h={30}  // ปรับความสูงให้เพรียวขึ้น
+                                w={130}
+                                h={30}
                                 mx="auto"
-                                display="block" // ช่วยให้ mx="auto" ทำงานได้แม่นยำขึ้น
+                                display="block"
                                 variant="outline"
                                 color="yellow.6"
                                 styles={{
@@ -94,6 +109,19 @@ export function UnitCard({ strategy, description, charImg, backImg, onSelect }: 
                             >
                                 SETUP
                             </Button>
+                            {!hasStrategy && (
+                                <Text
+                                    ta="center"
+                                    style={{
+                                        color: 'rgba(250,176,5,0.75)',
+                                        fontSize: 10,
+                                        marginTop: 5,
+                                        letterSpacing: '0.5px',
+                                    }}
+                                >
+                                    ⚠ Fill in your setup
+                                </Text>
+                            )}
                         </Box>
                     </Stack>
                 </Box>
