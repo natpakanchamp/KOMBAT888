@@ -137,7 +137,7 @@ export default function WaitingRoomPage() {
         if (!roomId) return;
 
         const client = new Client({
-            webSocketFactory: () => new SockJS("/ws"),
+            webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
             reconnectDelay: 2000,
             onConnect: () => {
                 client.subscribe(`/topic/room/${roomId}`, (msg) => {

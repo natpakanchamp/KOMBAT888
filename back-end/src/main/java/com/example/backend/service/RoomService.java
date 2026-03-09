@@ -1,14 +1,15 @@
 package com.example.backend.service;
 
 import com.example.backend.dto.RoomDtos;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
+@RequiredArgsConstructor
 @Service
 public class RoomService {
-
+    private final GameService gameService;
     private final Map<String, Room> rooms = new ConcurrentHashMap<>();
     private int playerSeq = 1;
 
@@ -78,6 +79,7 @@ public class RoomService {
         if (!allReady) throw new IllegalStateException("Not all players are ready");
 
         room.state = "in_game";
+        gameService.startGame();
         return toDto(room, playerId);
     }
 
