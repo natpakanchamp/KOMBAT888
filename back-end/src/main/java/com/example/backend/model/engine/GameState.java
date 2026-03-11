@@ -27,14 +27,17 @@ public class GameState {
     private int boardRows;
     private int boardCols;
 
-    // 🌟 2. ตัวแปรใหม่สำหรับระบบ AST (Variables)
+    // 🌟 2. ตัวแปรสำหรับระบบ AST (Variables)
     private int interestRate;       // อัตราดอกเบี้ย
     private int maxBudget;          // งบสูงสุดที่เก็บได้
     private int p1RemainingSpawns;  // โควต้าเกิดใหม่ของ P1
     private int p2RemainingSpawns;  // โควต้าเกิดใหม่ของ P2
 
+    // 🌟 3. ระบบโฉนดที่ดิน (0 = ว่าง, 1 = ของ P1, 2 = ของ P2)
+    private int[][] hexOwnership;
+
     // ==========================================
-    // 3. Constructor
+    // 4. Constructor (กำหนดค่าเริ่มต้นตอนเริ่มเกม)
     // ==========================================
     public GameState(int boardRows, int boardCols, int maxTurns, int startingBudget) {
         this.boardRows = boardRows;
@@ -48,15 +51,89 @@ public class GameState {
         this.units = new ArrayList<>();
         this.globalVars = new HashMap<>();
 
-        // กำหนดค่าเริ่มต้นให้กับตัวแปรพิเศษ (ปรับเปลี่ยนตัวเลขได้ตามต้องการครับ)
+        // กำหนดค่าเริ่มต้นให้กับตัวแปรพิเศษ
         this.interestRate = 5;
         this.maxBudget = 20000;
         this.p1RemainingSpawns = 10;
         this.p2RemainingSpawns = 10;
+
+        // 🌟 สร้างกระดานและแจกพื้นที่ 5 ช่องแรกตามดีไซน์
+        this.hexOwnership = new int[boardRows][boardCols];
+
+        // แจกพื้นที่ Player 1 (ซ้ายบน 5 ช่อง)
+        if (boardRows > 1 && boardCols > 2) {
+            this.hexOwnership[0][0] = 1;
+            this.hexOwnership[0][1] = 1;
+            this.hexOwnership[0][2] = 1;
+            this.hexOwnership[1][0] = 1;
+            this.hexOwnership[1][1] = 1;
+        }
+
+        // แจกพื้นที่ Player 2 (ขวาล่าง 5 ช่อง)
+        if (boardRows > 1 && boardCols > 2) {
+            int lastRow = boardRows - 1;
+            int lastCol = boardCols - 1;
+            this.hexOwnership[lastRow - 1][lastCol - 2] = 2;
+            this.hexOwnership[lastRow - 1][lastCol - 1] = 2;
+            this.hexOwnership[lastRow][lastCol - 2] = 2;
+            this.hexOwnership[lastRow][lastCol - 1] = 2;
+            this.hexOwnership[lastRow][lastCol] = 2;
+        }
     }
 
     // ==========================================
-    // 4. ฟังก์ชันจัดการ Minion และระบบเงิน
+    // 5. ฟังก์ชันจัดการพื้นที่ (Hex)
+    // ==========================================
+
+    // ค้นหาช่องว่างที่อยู่ติดกับพื้นที่ของตัวเอง
+    public List<int[]> getPurchasableHexes(int player) {
+        List<int[]> purchasable = new ArrayList<>();
+        boolean[][] visited = new boolean[boardRows][boardCols];
+
+        for (int r = 0; r < boardRows; r++) {
+            for (int c = 0; c < boardCols; c++) {
+                if (hexOwnership[r][c] == player) {
+
+                    // 🌟 ลอจิกแบบ Hexagon (Odd-R Layout: แถวคี่เยื้องขวา)
+                    int[][] dirs;
+                    if (r % 2 == 0) {
+                        // ถ้าเป็นแถวคู่ (0, 2, 4...)
+                        dirs = new int[][]{{-1, -1}, {-1, 0}, {0, -1}, {0, 1}, {1, -1}, {1, 0}};
+                    } else {
+                        // ถ้าเป็นแถวคี่ (1, 3, 5...)
+                        dirs = new int[][]{{-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, 0}, {1, 1}};
+                    }
+
+                    for (int[] d : dirs) {
+                        int nr = r + d[0];
+                        int nc = c + d[1];
+                        if (isWithinBounds(nr, nc) && hexOwnership[nr][nc] == 0 && !visited[nr][nc]) {
+                            purchasable.add(new int[]{nr, nc});
+                            visited[nr][nc] = true;
+                        }
+                    }
+                }
+            }
+        }
+        return purchasable;
+    }
+
+    // ฟังก์ชันสำหรับซื้อพื้นที่
+    public boolean buyHex(int row, int col, int player, int cost) {
+        if (player == 1 && p1Budget >= cost) {
+            p1Budget -= cost;
+            hexOwnership[row][col] = player;
+            return true;
+        } else if (player == 2 && p2Budget >= cost) {
+            p2Budget -= cost;
+            hexOwnership[row][col] = player;
+            return true;
+        }
+        return false; // เงินไม่พอ
+    }
+
+    // ==========================================
+    // 6. ฟังก์ชันจัดการ Minion และระบบเงิน
     // ==========================================
     public void addUnit(Unit unit) {
         this.units.add(unit);
@@ -79,7 +156,6 @@ public class GameState {
         return row >= 0 && row < boardRows && col >= 0 && col < boardCols;
     }
 
-    // 🌟 ฟังก์ชันจ่ายเงินที่ฉลาดขึ้น หักเงินให้ถูกกระเป๋า
     public boolean pay(Unit unit, int cost) {
         if (unit.getOwner() == 1 && this.p1Budget >= cost) {
             this.p1Budget -= cost;
@@ -92,7 +168,7 @@ public class GameState {
     }
 
     // ==========================================
-    // 5. ฟังก์ชันสำหรับ AST (Move, Shoot, Query)
+    // 7. ฟังก์ชันสำหรับ AST (Move, Shoot, Query)
     // ==========================================
     private int[] getDirectionOffset(String direction) {
         return switch (direction.toLowerCase()) {
@@ -174,7 +250,7 @@ public class GameState {
     }
 
     // ==========================================
-    // 6. ระบบตัดสินผลแพ้ชนะ (Win Conditions)
+    // 8. ระบบตัดสินผลแพ้ชนะ (Win Conditions)
     // ==========================================
     public MatchResult checkNormalWin() {
         boolean p1HasUnits = false;
@@ -223,5 +299,4 @@ public class GameState {
 
         return MatchResult.DRAW;
     }
-
 }
