@@ -8,39 +8,52 @@ import java.util.Scanner;
 
 public class TerminalGameRunner {
 
+    // โซนตั้งค่า Minion ที่อนุญาตให้เล่น
+    private static final List<Integer> ALLOWED_MINIONS = List.of(1, 2, 3, 4, 5);
+    private static final String MINION_MENU_TEXT = "[ 1=Saber, 2=Archer, 3=Lancer, 4=Caster, 5=Berserker ]";
+
     public static void main(String[] args) {
-        GameState state = new GameState(8, 8, 50, 100);
+        System.out.println("=== 🚀 KOMBAT AUTO-BATTLER STARTED ===");
+
+        // 🌟 1. โหลด Config จากไฟล์
+        GameConfig config = GameConfig.loadFromFile("config.txt");
+
+        // 🌟 2. โยน Config ให้ GameState
+        GameState state = new GameState(8, 8, config);
         Unit.resetId();
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("=== 🚀 KOMBAT AUTO-BATTLER STARTED ===");
-
-        // 🌟 1. สร้างตัวเริ่มต้น และ "ยัดสมอง (Strategy)" ให้มันทันที
-        Unit p1Starter = new Unit(10, 1, Unit.TYPE_SABER, 0, 0);
-        p1Starter.setStrategy(getMockStrategyForType(Unit.TYPE_SABER, 1));
+        // 🌟 3. สร้างตัวเริ่มต้น โดยดึงเลือดเริ่มต้นจาก Config
+        Unit p1Starter = new Unit(config.getInitHp(), 1, Unit.TYPE_SABER, 0, 0);
+        p1Starter.setStrategy(StrategyFactory.createStrategy(Unit.TYPE_SABER, 1));
         state.addUnit(p1Starter);
 
-        Unit p2Starter = new Unit(10, 2, Unit.TYPE_ARCHER, 7, 7); // สมมติ Archer เลือด 10 เท่ากันก่อน
-        p2Starter.setStrategy(getMockStrategyForType(Unit.TYPE_ARCHER, 2));
+        Unit p2Starter = new Unit(config.getInitHp(), 2, Unit.TYPE_ARCHER, 7, 7);
+        p2Starter.setStrategy(StrategyFactory.createStrategy(Unit.TYPE_ARCHER, 2));
         state.addUnit(p2Starter);
 
-        while (state.checkNormalWin() == MatchResult.ONGOING && state.getCurrentTurn() <= state.getMaxTurns()) {
+        while (state.checkNormalWin() == MatchResult.ONGOING && state.getCurrentTurn() <= config.getMaxTurns()) {
+
+            // 🌟 แจกเงินรายเทิร์น + ดอกเบี้ย (เริ่มแจกตั้งแต่เทิร์นที่ 2 เป็นต้นไป)
+            if (state.getCurrentTurn() > 1) {
+                state.applyTurnIncome(config);
+            }
+
             state.cleanUpDeadUnits();
             printBoard(state);
 
             System.out.println("\n=================================");
             System.out.println("           Turn: " + state.getCurrentTurn()      );
             System.out.println("=================================");
-
             System.out.println("\n[ Phase 1: ผู้เล่นจัดการทรัพยากร ]");
 
             for (int player = 1; player <= 2; player++) {
                 System.out.println("\n--- 🎮 สิทธิ์ของ Player " + player + " ---");
-                int currentBudget = (player == 1) ? state.getP1Budget() : state.getP2Budget();
+                long currentBudget = (player == 1) ? state.getP1Budget() : state.getP2Budget();
                 System.out.println("💰 งบประมาณที่มี: $" + currentBudget);
 
-                // --- ขั้นตอนที่ 1: ซื้อ Hex ---
-                int hexCost = 15;
+                // 🌟 ดึงราคา Hex จาก Config
+                long hexCost = config.getHexPurchaseCost();
                 System.out.print("ต้องการซื้อพื้นที่ 1 ช่อง (Hex ราคา $" + hexCost + ") หรือไม่? (y/n): ");
                 String wantToBuyHex = scanner.nextLine().trim().toLowerCase();
 
@@ -69,9 +82,7 @@ public class TerminalGameRunner {
 
                             boolean isValid = false;
                             for (int[] hex : availableHexes) {
-                                if (hex[0] == row && hex[1] == col) {
-                                    isValid = true; break;
-                                }
+                                if (hex[0] == row && hex[1] == col) { isValid = true; break; }
                             }
 
                             if (isValid) {
@@ -110,14 +121,16 @@ public class TerminalGameRunner {
                             break;
                         }
 
-                        int budget = (player == 1) ? state.getP1Budget() : state.getP2Budget();
+                        currentBudget = (player == 1) ? state.getP1Budget() : state.getP2Budget();
                         System.out.print("📍 พื้นที่ที่วางได้: ");
                         for (int[] hex : validSpawnHexes) {
                             System.out.print("[" + hex[0] + "," + hex[1] + "] ");
                         }
 
-                        System.out.println("\n(งบเหลือ: $" + budget + ", ราคาเกิด: $20)");
-                        System.out.println("ตัวเลือกอาชีพ: [ 1 = Saber, 2 = Archer ]");
+                        // 🌟 ดึงราคา Spawn จาก Config
+                        long spawnCost = config.getSpawnCost();
+                        System.out.println("\n(งบเหลือ: $" + currentBudget + ", ราคาเกิด: $" + spawnCost + ")");
+                        System.out.println("ตัวเลือกอาชีพ: " + MINION_MENU_TEXT);
                         System.out.print(">> ป้อนข้อมูล (หมายเลขอาชีพ row col) เช่น '1 1 0' หรือพิมพ์ 'done': ");
 
                         String minionInput = scanner.nextLine().trim().toLowerCase();
@@ -129,27 +142,28 @@ public class TerminalGameRunner {
                                 int type = Integer.parseInt(tokens[0]);
                                 int row = Integer.parseInt(tokens[1]);
                                 int col = Integer.parseInt(tokens[2]);
-                                int spawnCost = 20;
+
+                                if (!ALLOWED_MINIONS.contains(type)) {
+                                    System.out.println("❌ อาชีพเบอร์ " + type + " ไม่มีให้เลือกในแมตช์นี้ครับ!");
+                                    continue;
+                                }
 
                                 boolean isValidSpawn = false;
                                 for (int[] hex : validSpawnHexes) {
-                                    if (hex[0] == row && hex[1] == col) {
-                                        isValidSpawn = true; break;
-                                    }
+                                    if (hex[0] == row && hex[1] == col) { isValidSpawn = true; break; }
                                 }
 
                                 if (isValidSpawn) {
-                                    if (budget >= spawnCost) {
-                                        Unit newUnit = new Unit(10, player, type, row, col);
-
-                                        // 🌟 2. ยัดสมองให้ Minion ตัวใหม่ตามอาชีพที่เลือก
-                                        newUnit.setStrategy(getMockStrategyForType(type, player));
+                                    if (currentBudget >= spawnCost) {
+                                        // 🌟 ใช้ config.getInitHp() ในการสร้างตัวละคร
+                                        Unit newUnit = new Unit(config.getInitHp(), player, type, row, col);
+                                        newUnit.setStrategy(StrategyFactory.createStrategy(type, player));
 
                                         state.addUnit(newUnit);
-                                        if (player == 1) state.setP1Budget(budget - spawnCost);
-                                        else state.setP2Budget(budget - spawnCost);
+                                        if (player == 1) state.setP1Budget(currentBudget - spawnCost);
+                                        else state.setP2Budget(currentBudget - spawnCost);
 
-                                        System.out.println("✅ P" + player + " สร้าง Minion พร้อมติดตั้งสมองกลสำเร็จ!");
+                                        System.out.println("✅ P" + player + " สร้าง Minion (คลาส " + type + ") พร้อมติดตั้งสมองกลสำเร็จ!");
                                         break;
                                     } else {
                                         System.out.println("❌ เงินไม่พอ!");
@@ -177,7 +191,6 @@ public class TerminalGameRunner {
                     Statement strategy = currentUnit.getStrategy();
                     if (strategy != null) {
                         try {
-                            // ให้ Minion รันสมองของตัวเอง
                             strategy.execute(state, currentUnit, new HashMap<>(), state.getGlobalVars());
                         } catch (Exception e) {
                             System.out.println("⚠️ AST Error: " + e.getMessage());
@@ -193,36 +206,6 @@ public class TerminalGameRunner {
         printBoard(state);
         System.out.println("\n=== 🏁 GAME OVER ===");
         System.out.println("ผลการแข่งขัน: " + (state.checkNormalWin() == MatchResult.ONGOING ? state.evaluateTimeOutWinner() : state.checkNormalWin()));
-    }
-
-    // ==========================================
-    // 🌟 ฟังก์ชันสร้าง Mock AST ฝังในโค้ด (Lambda Expression)
-    // ==========================================
-    private static Statement getMockStrategyForType(int type, int player) {
-        return (state, currentUnit, localVars, globalVars) -> {
-
-            // กำหนดทิศทางบุก: P1 บุกตะวันออกเฉียงใต้ (downright), P2 บุกตะวันตกเฉียงเหนือ (upleft)
-            String forwardDir = (player == 1) ? "downright" : "upleft";
-
-            if (type == Unit.TYPE_SABER) {
-                // สมอง Saber: ถ้ามีเงิน 1 บาท ให้เดินหน้า 1 ช่อง
-                if (state.pay(currentUnit, 1)) {
-                    state.move(currentUnit, forwardDir);
-                    System.out.println("⚔️ [AST] Saber (P" + player + ") เดินหน้าไปทาง " + forwardDir + " เสีย 1 บาท");
-                } else {
-                    System.out.println("💤 [AST] Saber (P" + player + ") เงินไม่พอเดิน ยืนนิ่ง");
-                }
-            }
-            else if (type == Unit.TYPE_ARCHER) {
-                // สมอง Archer: ยิงสาดไปข้างหน้า ระยะ 2 ช่อง (สมมติว่าใช้เงิน 3 บาท)
-                if (state.pay(currentUnit, 3)) {
-                    state.shoot(currentUnit, forwardDir, 2);
-                    System.out.println("🏹 [AST] Archer (P" + player + ") ยิงธนูไปทาง " + forwardDir + " ระยะ 2 ช่อง เสีย 3 บาท!");
-                } else {
-                    System.out.println("💤 [AST] Archer (P" + player + ") เงินไม่พอยิง ยืนนิ่ง");
-                }
-            }
-        };
     }
 
     private static void printBoard(GameState state) {
