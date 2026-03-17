@@ -15,15 +15,15 @@ public class TerminalGameRunner {
     public static void main(String[] args) {
         System.out.println("=== 🚀 KOMBAT AUTO-BATTLER STARTED ===");
 
-        // 🌟 1. โหลด Config จากไฟล์
+        // โหลด Config จากไฟล์
         GameConfig config = GameConfig.loadFromFile("config.txt");
 
-        // 🌟 2. โยน Config ให้ GameState
+        // โยน Config ให้ GameState
         GameState state = new GameState(8, 8, config);
         Unit.resetId();
         Scanner scanner = new Scanner(System.in);
 
-        // 🌟 3. สร้างตัวเริ่มต้น โดยดึงเลือดเริ่มต้นจาก Config
+        // สร้างตัวเริ่มต้น โดยดึงเลือดเริ่มต้นจาก Config
         Unit p1Starter = new Unit(config.getInitHp(), 1, Unit.TYPE_SABER, 0, 0);
         p1Starter.setStrategy(StrategyFactory.createStrategy(Unit.TYPE_SABER, 1));
         state.addUnit(p1Starter);
@@ -52,7 +52,7 @@ public class TerminalGameRunner {
                 long currentBudget = (player == 1) ? state.getP1Budget() : state.getP2Budget();
                 System.out.println("💰 งบประมาณที่มี: $" + currentBudget);
 
-                // 🌟 ดึงราคา Hex จาก Config
+                // ดึงราคา Hex จาก Config
                 long hexCost = config.getHexPurchaseCost();
                 System.out.print("ต้องการซื้อพื้นที่ 1 ช่อง (Hex ราคา $" + hexCost + ") หรือไม่? (y/n): ");
                 String wantToBuyHex = scanner.nextLine().trim().toLowerCase();
@@ -127,7 +127,7 @@ public class TerminalGameRunner {
                             System.out.print("[" + hex[0] + "," + hex[1] + "] ");
                         }
 
-                        // 🌟 ดึงราคา Spawn จาก Config
+                        // ดึงราคา Spawn จาก Config
                         long spawnCost = config.getSpawnCost();
                         System.out.println("\n(งบเหลือ: $" + currentBudget + ", ราคาเกิด: $" + spawnCost + ")");
                         System.out.println("ตัวเลือกอาชีพ: " + MINION_MENU_TEXT);
@@ -155,7 +155,7 @@ public class TerminalGameRunner {
 
                                 if (isValidSpawn) {
                                     if (currentBudget >= spawnCost) {
-                                        // 🌟 ใช้ config.getInitHp() ในการสร้างตัวละคร
+                                        // ใช้ config.getInitHp() ในการสร้างตัวละคร
                                         Unit newUnit = new Unit(config.getInitHp(), player, type, row, col);
                                         newUnit.setStrategy(StrategyFactory.createStrategy(type, player));
 
@@ -163,7 +163,7 @@ public class TerminalGameRunner {
                                         if (player == 1) state.setP1Budget(currentBudget - spawnCost);
                                         else state.setP2Budget(currentBudget - spawnCost);
 
-                                        System.out.println("✅ P" + player + " สร้าง Minion (คลาส " + type + ") พร้อมติดตั้งสมองกลสำเร็จ!");
+                                        System.out.println("P" + player + " สร้าง Minion (คลาส " + type + ") พร้อมติดตั้งสมองกลสำเร็จ!");
                                         break;
                                     } else {
                                         System.out.println("❌ เงินไม่พอ!");
@@ -193,7 +193,7 @@ public class TerminalGameRunner {
                         try {
                             strategy.execute(state, currentUnit, new HashMap<>(), state.getGlobalVars());
                         } catch (Exception e) {
-                            System.out.println("⚠️ AST Error: " + e.getMessage());
+                            System.out.println("AST Error: " + e.getMessage());
                         }
                     }
                 }
@@ -204,7 +204,7 @@ public class TerminalGameRunner {
 
         state.cleanUpDeadUnits();
         printBoard(state);
-        System.out.println("\n=== 🏁 GAME OVER ===");
+        System.out.println("\n=== GAME OVER ===");
         System.out.println("ผลการแข่งขัน: " + (state.checkNormalWin() == MatchResult.ONGOING ? state.evaluateTimeOutWinner() : state.checkNormalWin()));
     }
 
