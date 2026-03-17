@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
-import { Box, Center, Title, Text, Button, Stack, Group, Paper, Loader, Tooltip } from "@mantine/core";
+import { Box, Center, Title, Text, Button, Stack, Group, Paper, Loader, Tooltip, TextInput } from "@mantine/core";
 
 import background_LightDark from "../assets/background_LightDark.png";
 import CloseButton from "../components/CloseButton";
@@ -31,13 +31,14 @@ export default function WaitingRoomPage() {
 
     const created = (location.state as any)?.created === true;
 
-    const userName: string =
-        ((location.state as any)?.user as string | undefined) ??
-        localStorage.getItem("username") ??
-        "";
+    const stateUser = (location.state as any)?.user as string | undefined;
+    const [userName, setUserName] = useState<string>(stateUser ?? "");
+    const [nameInput, setNameInput] = useState("");
+    const [nameSubmitted, setNameSubmitted] = useState(!!stateUser || created);
+    const needsName = !nameSubmitted;
 
     const [roomState, setRoomState] = useState<RoomState | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!needsName);
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
 
@@ -50,13 +51,13 @@ export default function WaitingRoomPage() {
         } catch { return []; }
     });
 
-    // Re-read from localStorage when returning from select page
+    // Re-read from localStorage whenever the route changes (e.g. returning from select page)
     useEffect(() => {
         try {
             const saved = localStorage.getItem(storageKey);
             if (saved) setSelectedMinions(JSON.parse(saved));
         } catch { /* ignore */ }
-    }, [storageKey]);
+    }, [storageKey, location.key]);
 
     const hasMinions = selectedMinions.length > 0;
 
@@ -86,12 +87,7 @@ export default function WaitingRoomPage() {
     // load/join room
     useEffect(() => {
         if (!roomId) return;
-
-        if (!userName || userName.trim().length < 3) {
-            setError("Missing username (please login again)");
-            setLoading(false);
-            return;
-        }
+        if (needsName) return;
 
         localStorage.setItem("username", userName);
         let cancelled = false;
@@ -130,14 +126,14 @@ export default function WaitingRoomPage() {
         })();
 
         return () => { cancelled = true; };
-    }, [roomId, userName, created]);
+    }, [roomId, userName, created, needsName]);
 
     // STOMP WebSocket subscribe
     useEffect(() => {
         if (!roomId) return;
 
         const client = new Client({
-            webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+            webSocketFactory: () => new SockJS(`${window.location.origin}/ws`),
             reconnectDelay: 2000,
             onConnect: () => {
                 client.subscribe(`/topic/room/${roomId}`, (msg) => {
@@ -197,13 +193,123 @@ export default function WaitingRoomPage() {
 
     function copyRoomLink() {
         const link = `${window.location.origin}/waitingRoom/${roomId}`;
-        navigator.clipboard
-            .writeText(link)
-            .then(() => {
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-            })
-            .catch(() => alert("Failed to copy room link."));
+
+        // navigator.clipboard requires HTTPS or localhost
+        if (navigator.clipboard?.writeText) {
+            navigator.clipboard
+                .writeText(link)
+                .then(() => {
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                })
+                .catch(() => fallbackCopy(link));
+        } else {
+            fallbackCopy(link);
+        }
+    }
+
+    function fallbackCopy(text: string) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+            document.execCommand("copy");
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch {
+            // last resort: show the link so user can copy manually
+            prompt("Copy this link:", text);
+        }
+        document.body.removeChild(ta);
+    }
+
+    // ── Name input (Player 2 via invite link) ──
+    if (needsName) {
+        return (
+            <Box
+                style={{
+                    height: "100dvh",
+                    width: "100%",
+                    overflow: "hidden",
+                    position: "relative",
+                    backgroundImage: `url(${background_LightDark})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                }}
+            >
+                <Box style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(12px)", zIndex: 1 }} />
+                <Center style={{ height: "100%", position: "relative", zIndex: 2 }}>
+                    <Paper
+                        style={{
+                            background: "rgba(10,12,16,0.80)",
+                            backdropFilter: "blur(8px)",
+                            border: "1px solid rgba(255,255,255,0.10)",
+                            padding: "40px 48px",
+                            borderRadius: 16,
+                            width: "min(380px, 90vw)",
+                        }}
+                    >
+                        <Stack gap="lg">
+                            <Title order={3} ta="center" style={{ color: "rgba(235,235,235,0.95)", letterSpacing: 3, textTransform: "uppercase" }}>
+                                JOIN ROOM
+                            </Title>
+                            <Text size="xs" ta="center" style={{ color: "rgba(230,230,230,0.45)", letterSpacing: 1 }}>
+                                Room: <span style={{ color: "rgba(250,176,5,0.9)", fontFamily: "monospace" }}>{roomId}</span>
+                            </Text>
+                            <TextInput
+                                placeholder="Enter your name"
+                                value={nameInput}
+                                onChange={(e) => setNameInput(e.currentTarget.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && nameInput.trim().length >= 3) {
+                                        localStorage.setItem("username", nameInput.trim());
+                                        setUserName(nameInput.trim());
+                                        setNameSubmitted(true);
+                                        setLoading(true);
+                                    }
+                                }}
+                                styles={{
+                                    input: {
+                                        height: 44,
+                                        backgroundColor: "rgba(255,255,255,0.06)",
+                                        border: "1px solid rgba(255,255,255,0.14)",
+                                        color: "rgba(245,245,245,0.95)",
+                                    },
+                                }}
+                            />
+                            <Button
+                                size="md"
+                                radius="md"
+                                fullWidth
+                                disabled={nameInput.trim().length < 3}
+                                onClick={() => {
+                                    localStorage.setItem("username", nameInput.trim());
+                                    setUserName(nameInput.trim());
+                                    setNameSubmitted(true);
+                                    setLoading(true);
+                                }}
+                                styles={{
+                                    root: {
+                                        height: 46,
+                                        letterSpacing: 3,
+                                        textTransform: "uppercase" as const,
+                                        fontWeight: 700,
+                                        background: "linear-gradient(180deg, rgba(210,145,80,1) 0%, rgba(120,70,35,1) 100%)",
+                                        border: "1px solid rgba(255,215,170,0.18)",
+                                        opacity: nameInput.trim().length < 3 ? 0.5 : 1,
+                                    },
+                                }}
+                            >
+                                ENTER
+                            </Button>
+                        </Stack>
+                    </Paper>
+                </Center>
+            </Box>
+        );
     }
 
     // ── Loading state ──

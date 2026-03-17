@@ -4,7 +4,9 @@ import react from "@vitejs/plugin-react-swc";
 export default defineConfig({
   plugins: [react()],
   define: { global: "globalThis" },
+  appType: "spa",
   server: {
+    host: true,
     proxy: {
       // REST API
       "/api": {

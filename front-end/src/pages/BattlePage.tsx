@@ -1,5 +1,6 @@
 // src/pages/BattlePage.tsx
 import { Center, Box } from '@mantine/core';
+import { useParams } from 'react-router-dom';
 import { Hexagon } from '../components/Hexagon';
 import type { HexState } from '../type/HexState'
 
@@ -8,6 +9,7 @@ import goldenGrass from "../assets/golden_grass.png";
 import archer from "../assets/archer.png";
 
 export default function BattlePage() {
+    const { roomId } = useParams<{ roomId: string }>();
     const rows = 8;
     const cols = 8;
 
