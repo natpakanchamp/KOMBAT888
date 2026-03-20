@@ -3,12 +3,14 @@ package com.example.backend.service;
 import com.example.backend.dto.RoomDtos;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 @Service
 public class RoomService {
+    private final SimpMessagingTemplate broker;
     private final GameService gameService;
     private final Map<String, Room> rooms = new ConcurrentHashMap<>();
     private int playerSeq = 1;
@@ -33,25 +35,32 @@ public class RoomService {
         return toDto(room, host.id);
     }
 
-    // join existing room
-    public RoomDtos.RoomStateDto joinRoom(String roomId, String name) {
+    // join existing room (synchronized กัน race condition ป้องกัน join ซ้ำ)
+    public synchronized RoomDtos.RoomStateDto joinRoom(String roomId, String name) {
         Room room = mustGet(roomId);
 
         if (!"waiting".equals(room.state)) {
             throw new IllegalStateException("Room not joinable (state=" + room.state + ")");
         }
+
+        // เช็ค rejoin ก่อน maxPlayers — ถ้าชื่อซ้ำ = คนเดิมกลับมา
+        Optional<RoomPlayer> existing = room.players.stream()
+                .filter(p -> p.name.equalsIgnoreCase(name))
+                .findFirst();
+        if (existing.isPresent()) {
+            return toDto(room, existing.get().id);  // rejoin — คืน state เดิม
+        }
+
         if (room.players.size() >= room.maxPlayers) {
             throw new IllegalStateException("Room is full");
-        }
-        // กันชื่อซ้ำแบบง่าย (เลือกได้)
-        boolean nameDup = room.players.stream().anyMatch(p -> p.name.equalsIgnoreCase(name));
-        if (nameDup) {
-            throw new IllegalStateException("Name already exists in room");
         }
 
         RoomPlayer p = new RoomPlayer(nextPlayerId(), name, new ArrayList<>(), false, false);
         room.players.add(p);
-        return toDto(room, p.id);
+        RoomDtos.RoomStateDto dto = toDto(room, p.id);
+        // Broadcast ให้ทุกคนที่อยู่ใน {roomId} รู้ว่าใคร join
+        broker.convertAndSend("/topic/room/" + roomId, toDto(room, null));
+        return dto;
     }
 
     public RoomDtos.RoomStateDto getRoom(String roomId) {
@@ -64,7 +73,9 @@ public class RoomService {
         Room room = mustGet(roomId);
         RoomPlayer p = mustFindPlayer(room, playerId);
         p.isReady = !p.isReady;
-        return toDto(room, playerId);
+        RoomDtos.RoomStateDto dto = toDto(room, p.id);
+        broker.convertAndSend("/topic/room/" + roomId, toDto(room, null));
+        return dto;
     }
 
     public RoomDtos.RoomStateDto startGame(String roomId, String playerId) {
@@ -79,8 +90,25 @@ public class RoomService {
         if (!allReady) throw new IllegalStateException("Not all players are ready");
 
         room.state = "in_game";
-        gameService.startGame();
+        gameService.startGame(roomId);
+        broker.convertAndSend("/topic/room/" + roomId, toDto(room, null));
         return toDto(room, playerId);
+    }
+
+    public void leaveRoom(String roomId, String playerId){
+        Room room = rooms.get(roomId);
+        if(room == null) return;
+        room.players.removeIf(p -> p.id.equals(playerId));
+        // ถ้าไม่มีคนอยู่ในห้องเลย ให้ลบห้อง
+        if(room.players.isEmpty()){
+            rooms.remove(roomId);
+            return;
+        }
+        // ถ้า Host คนแรกออก ให้อีกคนเป็น Host แทน
+        boolean hasHost = room.players.stream().anyMatch(p -> p.isHost);
+        if(!hasHost) room.players.get(0).isHost = true; // ถ้าไม่มี Host ให้คนถัดไปเป็น Host แทน
+        // Broadcast ไปทุกคนที่อยู่ในหห้อง
+        broker.convertAndSend("/topic/room/" + roomId, toDto(room, null));
     }
 
     // -------- helpers --------

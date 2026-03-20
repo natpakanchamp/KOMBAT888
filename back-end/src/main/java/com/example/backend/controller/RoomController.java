@@ -33,6 +33,23 @@ public class RoomController {
         return roomService.joinRoom(roomId, req.name().trim());
     }
 
+    /**
+     * ออกห้องตอนอยู่ใน Waiting room
+     * ถ้าหา player ไม่เจอให้ส่งไปหน้า Bad req "Missing Player ID"
+     * @param roomId
+     * @param req
+     * @return
+     */
+    @PostMapping("/{roomId}/leave")
+    public ResponseEntity<?> leave(@PathVariable String roomId, @RequestBody RoomDtos.PlayerActionRequest req) {
+        // กรณีหา Player ไม่ได้
+        if(req == null || req.playerId() == null || req.playerId().isBlank()){
+            return ResponseEntity.badRequest().body(new ErrorBody("Missing Player ID"));
+        }
+        roomService.leaveRoom(roomId, req.playerId());
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/{roomId}")
     public RoomDtos.RoomStateDto get(@PathVariable String roomId) {
         return roomService.getRoom(roomId);

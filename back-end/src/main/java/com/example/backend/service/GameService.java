@@ -1,4 +1,3 @@
-// for test
 package com.example.backend.service;
 
 import com.example.backend.engine.GameEngine;
@@ -7,67 +6,62 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.concurrent.ConcurrentHashMap;
 
-@Service // business logic layer
-@RequiredArgsConstructor //  for create Constructor
+@Service
+@RequiredArgsConstructor
 public class GameService {
-    // for test
-//    public String startgame() {
-//        return "Game start" ;
-//    }
 
-    // ใช้ส่งข้อมูลผ่าน  Websocket
     private final SimpMessagingTemplate messagingTemplate;
-    private  GameEngine engine  ;
 
+    // แยก GameEngine ตาม roomId
+    private final Map<String, GameEngine> engines = new ConcurrentHashMap<>();
 
-    // start new game(){
-    public void startGame() {
-        engine = new GameEngine() ;
+    // เริ่มเกมของห้องนั้นๆ
+    public void startGame(String roomId) {
+        GameEngine engine = new GameEngine();
         engine.initial();
-        // broadcast สถานะเกมให้ client ทันที
-        broadcastState();
-
+        engines.put(roomId, engine);
+        broadcastState(roomId);
     }
-    public void nextTurn() {
-        if (engine == null) {
-            throw new IllegalStateException("Game has not started yet.");
-        }
 
+    // execute turn ถัดไป
+    public void nextTurn(String roomId) {
+        GameEngine engine = mustGetEngine(roomId);
         engine.executeTurn();
-        broadcastState();
-    }
-        // send game state to /topic/game-state
-        // for only client subscribe
-    private void broadcastState() {
-        messagingTemplate.convertAndSend("/topic/game-state", engine.getGameState());
-    }
-    // get status game , for Rest GET/state
-    public GameState getState() {
-        return engine.getGameState();
+        broadcastState(roomId);
     }
 
-    public boolean isGameOver() {
-        return engine.isGameOver();
+    // ดึง state ปัจจุบัน
+    public GameState getState(String roomId) {
+        return mustGetEngine(roomId).getGameState();
     }
 
-    /*
-     * ใช้สำหรับ login ผู้เล่น
-     */
-    public String login(String username) {
+    // เช็คว่าเกมจบหรือยัง
+    public boolean isGameOver(String roomId) {
+        return mustGetEngine(roomId).isGameOver();
+    }
 
-        // ตรวจสอบข้อมูลเบื้องต้น
-        if (username == null || username.length() < 3) {
-            throw new IllegalArgumentException("Username must be at least 3 characters");
+    // ลบเกมของห้อง (เมื่อเกมจบ หรือห้องถูกลบ)
+    public void removeGame(String roomId) {
+        engines.remove(roomId);
+    }
+
+    // broadcast สถานะเกมไปที่ /topic/game/{roomId}
+    private void broadcastState(String roomId) {
+        GameEngine engine = engines.get(roomId);
+        if (engine != null) {
+            messagingTemplate.convertAndSend("/topic/game/" + roomId, engine.getGameState());
         }
-
-        // ตรงนี้สามารถเพิ่ม logic เช่น
-        // - บันทึกผู้เล่น
-        // - เซ็ตค่าใน GameState
-        // - ตรวจสอบซ้ำชื่อ
-
-        return "Welcome " + username;
     }
 
-
+    private GameEngine mustGetEngine(String roomId) {
+        GameEngine engine = engines.get(roomId);
+        if (engine == null) {
+            throw new NoSuchElementException("Game not found for room: " + roomId);
+        }
+        return engine;
+    }
 }

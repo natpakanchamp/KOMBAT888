@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
@@ -32,9 +32,10 @@ export default function WaitingRoomPage() {
     const created = (location.state as any)?.created === true;
 
     const stateUser = (location.state as any)?.user as string | undefined;
-    const [userName, setUserName] = useState<string>(stateUser ?? "");
+    const alreadyJoined = !!localStorage.getItem(`playerId_${roomId}`);
+    const [userName, setUserName] = useState<string>(stateUser ?? localStorage.getItem("username") ?? "");
     const [nameInput, setNameInput] = useState("");
-    const [nameSubmitted, setNameSubmitted] = useState(!!stateUser || created);
+    const [nameSubmitted, setNameSubmitted] = useState(!!stateUser || created || alreadyJoined);
     const needsName = !nameSubmitted;
 
     const [roomState, setRoomState] = useState<RoomState | null>(null);
@@ -63,12 +64,17 @@ export default function WaitingRoomPage() {
 
     // Persist playerId to localStorage when first received, use as fallback
     const playerIdKey = `playerId_${roomId}`;
+    const playerIdRef = useRef<string | null>(null);
+    const leavingRoomRef = useRef(true); // true = จะ leave ตอน unmount, false = ไปหน้า select (อย่า leave)
     const playerId = useMemo(() => {
         if (roomState?.you?.id) {
             localStorage.setItem(playerIdKey, roomState.you.id);
+            playerIdRef.current = roomState.you.id;
             return roomState.you.id;
         }
-        return localStorage.getItem(playerIdKey);
+        const stored = localStorage.getItem(playerIdKey);
+        if (stored) playerIdRef.current = stored;
+        return stored;
     }, [roomState, playerIdKey]);
 
     const you = useMemo(() => {
@@ -100,13 +106,26 @@ export default function WaitingRoomPage() {
         }
 
         async function joinThenLoad() {
+            // ถ้าเคย join แล้ว (มี playerId ใน localStorage) → loadRoom เฉยๆ ไม่ join ซ้ำ
+            const existingId = localStorage.getItem(`playerId_${roomId}`);
+            if (existingId) {
+                playerIdRef.current = existingId;
+                await loadRoom();
+                return;
+            }
             const res = await fetch(`/api/room/${roomId}/join`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name: userName }),
             });
             if (!res.ok) throw new Error(`Join failed (${res.status})`);
-            await loadRoom();
+            const joined: RoomState = await res.json();
+            // บันทึก playerId ลง localStorage ก่อนที่ polling จะทับด้วย you: null
+            if (joined.you?.id) {
+                localStorage.setItem(`playerId_${roomId}`, joined.you.id);
+                playerIdRef.current = joined.you.id;
+            }
+            if (!cancelled) setRoomState(joined);
         }
 
         (async () => {
@@ -128,14 +147,52 @@ export default function WaitingRoomPage() {
         return () => { cancelled = true; };
     }, [roomId, userName, created, needsName]);
 
-    // STOMP WebSocket subscribe
+    // leave room เมื่อปิดแท็บ หรือ navigate ออกจากหน้า (ยกเว้นไปหน้า select)
+    useEffect(() => {
+        if (!roomId) return;
+        leavingRoomRef.current = true; // reset ทุกครั้งที่ mount
+
+        const sendLeave = () => {
+            const id = playerIdRef.current;
+            if (!id) return;
+            navigator.sendBeacon(
+                `/api/room/${roomId}/leave`,
+                new Blob([JSON.stringify({ playerId: id })], { type: "application/json" })
+            );
+            // ลบ playerId ออกจาก localStorage เมื่อ leave จริง
+            localStorage.removeItem(`playerId_${roomId}`);
+        };
+
+        window.addEventListener("beforeunload", sendLeave);
+        return () => {
+            window.removeEventListener("beforeunload", sendLeave);
+            // ถ้าไปหน้า select → อย่า leave
+            if (leavingRoomRef.current) {
+                sendLeave();
+            }
+        };
+    }, [roomId]);
+
+    // STOMP WebSocket subscribe — ส่ง roomId + playerId เป็น header เพื่อให้ backend ตรวจจับ disconnect ได้
     useEffect(() => {
         if (!roomId) return;
 
         const client = new Client({
             webSocketFactory: () => new SockJS(`${window.location.origin}/ws`),
             reconnectDelay: 2000,
+            connectHeaders: {
+                roomId: roomId,
+                playerId: playerIdRef.current ?? localStorage.getItem(`playerId_${roomId}`) ?? "",
+            },
             onConnect: () => {
+                // อัพเดท header ด้วย playerId ล่าสุด (กรณี connect ก่อน join เสร็จ)
+                const latestId = playerIdRef.current ?? localStorage.getItem(`playerId_${roomId}`) ?? "";
+                if (latestId && client.connected) {
+                    client.publish({
+                        destination: "/app/room/register",
+                        body: JSON.stringify({ roomId, playerId: latestId }),
+                    });
+                }
                 client.subscribe(`/topic/room/${roomId}`, (msg) => {
                     try {
                         const data: RoomState = JSON.parse(msg.body);
@@ -721,7 +778,7 @@ export default function WaitingRoomPage() {
                         <Button
                             variant="subtle"
                             size="xs"
-                            onClick={() => navigate("/select", { state: { roomId, fromRoom: true } })}
+                            onClick={() => { leavingRoomRef.current = false; navigate("/select", { state: { roomId, fromRoom: true } }); }}
                             styles={{
                                 root: {
                                     color: hasMinions ? "rgba(230,230,230,0.7)" : "rgba(250,176,5,0.85)",
