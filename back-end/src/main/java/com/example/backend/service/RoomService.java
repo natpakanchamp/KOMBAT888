@@ -72,6 +72,7 @@ public class RoomService {
     public RoomDtos.RoomStateDto toggleReady(String roomId, String playerId) {
         Room room = mustGet(roomId);
         RoomPlayer p = mustFindPlayer(room, playerId);
+        if (p.isHost) throw new IllegalStateException("Host cannot toggle ready");
         p.isReady = !p.isReady;
         RoomDtos.RoomStateDto dto = toDto(room, p.id);
         broker.convertAndSend("/topic/room/" + roomId, toDto(room, null));
