@@ -50,7 +50,7 @@ export default function HomePage() {
                     }}
                 >
                     <Text size="xs">© 2026 KOMBAT888. All rights reserved.</Text>
-                    <Text size="xs">670610689 Natpakan Kanthasorn, 670610720 Phavit Wongdao, 670612122 Thanaphon Chunlahawanitch</Text>
+                    <Text size="xs">670610689 Natpakan Kanthasorn, 670610720 Phavit Wongdao, 670612122 Thanaphon Chunlahawanich</Text>
                 </Box>
 
             </Center>

@@ -10,8 +10,8 @@ import background_LightDark from "../assets/background_LightDark.png";
 import CloseButton from "../components/CloseButton";
 import SpectatorButton from "../components/SpectatorButton";
 import ManualWaitingPage from "./ManualWaitingPage.tsx";
-
 import type { RoomState } from "../type/RoomState.tsx"
+import HomePage from "./HomePage.tsx";
 
 export default function WaitingRoomPage() {
     const { roomId } = useParams();
@@ -43,6 +43,23 @@ export default function WaitingRoomPage() {
             return saved ? JSON.parse(saved) : [];
         } catch { return []; }
     });
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                if (showManual) {
+                    setShowManual(false);
+                } else {
+                    navigate("/login");
+                }
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+        window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [navigate, showManual]);
 
     useEffect(() => {
         try {
