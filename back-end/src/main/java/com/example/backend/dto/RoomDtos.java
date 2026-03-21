@@ -9,10 +9,13 @@ public class RoomDtos {
     public record PlayerActionRequest(String playerId) {}
     public record KickRequest(String hostId, String targetId) {}
 
+    public record SetMinionsRequest(String playerId, List<MinionDto> minions) {}
+    public record MinionDto(String type, String strategy) {}
+
     public record PlayerDto(
             String id,
             String name,
-            List<String> minions,
+            List<MinionDto> minions,
             boolean isHost,
             boolean isReady
     ) {}

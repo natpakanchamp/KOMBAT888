@@ -15,11 +15,8 @@ public class GameController {
 
     private final GameService gameService;
 
-    @PostMapping("/start")
-    public String startGame(@PathVariable String roomId) {
-        gameService.startGame(roomId);
-        return "Game Started";
-    }
+    // start ถูกเรียกผ่าน RoomController → RoomService.startGame() แทนแล้ว
+    // endpoint นี้ไม่ใช้แล้ว
 
     @PostMapping("/next-turn")
     public String nextTurn(@PathVariable String roomId) {

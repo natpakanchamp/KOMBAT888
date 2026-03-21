@@ -63,6 +63,14 @@ public class RoomController {
         return roomService.toggleReady(roomId, req.playerId());
     }
 
+    @PostMapping("/{roomId}/set-minions")
+    public RoomDtos.RoomStateDto setMinions(@PathVariable String roomId, @RequestBody RoomDtos.SetMinionsRequest req) {
+        if (req == null || req.playerId() == null || req.playerId().isBlank()) {
+            throw new IllegalStateException("Missing playerId");
+        }
+        return roomService.setMinions(roomId, req.playerId(), req.minions());
+    }
+
     @PostMapping("/{roomId}/start")
     public RoomDtos.RoomStateDto start(@PathVariable String roomId, @RequestBody RoomDtos.PlayerActionRequest req) {
         if (req == null || req.playerId() == null || req.playerId().isBlank()) {

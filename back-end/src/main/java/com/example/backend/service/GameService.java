@@ -1,11 +1,13 @@
 package com.example.backend.service;
 
+import com.example.backend.dto.RoomDtos;
 import com.example.backend.engine.GameEngine;
 import com.example.backend.model.engine.GameState;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,10 +21,10 @@ public class GameService {
     // แยก GameEngine ตาม roomId
     private final Map<String, GameEngine> engines = new ConcurrentHashMap<>();
 
-    // เริ่มเกมของห้องนั้นๆ
-    public void startGame(String roomId) {
+    // เริ่มเกมของห้องนั้นๆ โดยรับ minion ที่แต่ละ player เลือก
+    public void startGame(String roomId, Map<Integer, List<RoomDtos.MinionDto>> playerMinions) {
         GameEngine engine = new GameEngine();
-        engine.initial();
+        engine.initial(playerMinions);
         engines.put(roomId, engine);
         broadcastState(roomId);
     }

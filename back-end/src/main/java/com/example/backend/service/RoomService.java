@@ -79,6 +79,15 @@ public class RoomService {
         return dto;
     }
 
+    // ผู้เล่นส่ง minion ที่เลือกมาเก็บไว้ใน room
+    public RoomDtos.RoomStateDto setMinions(String roomId, String playerId, List<RoomDtos.MinionDto> minions) {
+        Room room = mustGet(roomId);
+        RoomPlayer p = mustFindPlayer(room, playerId);
+        p.minions = (minions != null) ? new ArrayList<>(minions) : new ArrayList<>();
+        broker.convertAndSend("/topic/room/" + roomId, toDto(room, null));
+        return toDto(room, playerId);
+    }
+
     public RoomDtos.RoomStateDto startGame(String roomId, String playerId) {
         Room room = mustGet(roomId);
         RoomPlayer p = mustFindPlayer(room, playerId);
@@ -90,8 +99,32 @@ public class RoomService {
 
         if (!allReady) throw new IllegalStateException("Not all players are ready");
 
+        // เช็คว่าผู้เล่น (ที่ไม่ใช่ bot) เลือก minion แล้ว
+        boolean allHaveMinions = room.players.stream()
+                .filter(x -> !x.name.startsWith("Bot_"))
+                .allMatch(x -> x.minions != null && !x.minions.isEmpty());
+        if (!allHaveMinions) throw new IllegalStateException("Not all players have selected minions");
+
+        // Bot ใช้ minion เดียวกับ Host
+        RoomPlayer host = room.players.stream().filter(x -> x.isHost).findFirst().orElse(null);
+        if (host != null) {
+            for (RoomPlayer bot : room.players) {
+                if (bot.name.startsWith("Bot_")) {
+                    bot.minions = new ArrayList<>(host.minions);
+                }
+            }
+        }
+
         room.state = "in_game";
-        gameService.startGame(roomId);
+
+        // รวม minion ของทุก player ส่งให้ GameEngine
+        Map<Integer, List<RoomDtos.MinionDto>> playerMinions = new LinkedHashMap<>();
+        int ownerIndex = 1;
+        for (RoomPlayer rp : room.players) {
+            playerMinions.put(ownerIndex++, rp.minions);
+        }
+        gameService.startGame(roomId, playerMinions);
+
         broker.convertAndSend("/topic/room/" + roomId, toDto(room, null));
         return toDto(room, playerId);
     }
@@ -237,11 +270,11 @@ public class RoomService {
     private static class RoomPlayer {
         String id;
         String name;
-        List<String> minions;
+        List<RoomDtos.MinionDto> minions;
         boolean isHost;
         boolean isReady;
 
-        RoomPlayer(String id, String name, List<String> minions, boolean isHost, boolean isReady) {
+        RoomPlayer(String id, String name, List<RoomDtos.MinionDto> minions, boolean isHost, boolean isReady) {
             this.id = id;
             this.name = name;
             this.minions = minions;

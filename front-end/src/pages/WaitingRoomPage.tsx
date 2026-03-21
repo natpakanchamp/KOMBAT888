@@ -88,6 +88,16 @@ export default function WaitingRoomPage() {
         }
     }, [playerId, playerIdKey]);
 
+    // ส่ง minions ที่เลือกไป backend ทุกครั้งที่เปลี่ยน
+    useEffect(() => {
+        if (!roomId || !playerId || selectedMinions.length === 0) return;
+        fetch(`/api/room/${roomId}/set-minions`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ playerId, minions: selectedMinions }),
+        }).catch(() => {});
+    }, [roomId, selectedMinions, playerId]);
+
     const you = useMemo(() => {
         if (!playerId) return null;
         return roomState?.players.find((p) => p.id === playerId) ?? null;
@@ -259,11 +269,17 @@ export default function WaitingRoomPage() {
 
     async function startGame() {
         if (!roomId || !playerId) return;
-        await fetch(`/api/room/${roomId}/start`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ playerId }),
-        });
+        // ถ้ายังไม่ได้เลือกมินเนี่ยนเลย ให้เตือนก่อน
+        if(!hasMinions) {
+            alert("Please select at least one minion before starting the game.");
+            // ถ้าเลือกแล้วก็ไปต่อได้เลย
+        }else{
+            await fetch(`/api/room/${roomId}/start`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ playerId }),
+            });
+        }
     }
 
     async function kickPlayer(targetId: string) {
