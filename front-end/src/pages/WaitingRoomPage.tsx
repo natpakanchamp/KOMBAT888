@@ -3,10 +3,13 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { Box, Center, Title, Text, Button, Stack, Group, Paper, Loader, Tooltip, TextInput } from "@mantine/core";
+import { FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import { faBookOpen } from "@fortawesome/free-solid-svg-icons";
 
 import background_LightDark from "../assets/background_LightDark.png";
 import CloseButton from "../components/CloseButton";
 import SpectatorButton from "../components/SpectatorButton";
+import ManualWaitingPage from "./ManualWaitingPage.tsx";
 
 import type { RoomState } from "../type/RoomState.tsx"
 
@@ -30,6 +33,7 @@ export default function WaitingRoomPage() {
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const [joinRoomInput, setJoinRoomInput] = useState("");
+    const [showManual, setShowManual] = useState(false);
 
     const storageKey = `minions_${roomId}`;
     const [selectedMinions, setSelectedMinions] = useState<{ type: string; strategy: string }[]>(() => {
@@ -414,6 +418,38 @@ export default function WaitingRoomPage() {
                     >
                         <CloseButton onClick={() => navigate("/login")} top={14} right={14} size={32} />
 
+                        {/* Manual / Guide Button — top-left, opposite of CloseButton */}
+                        <Box
+                            component="button"
+                            type="button"
+                            onClick={() => setShowManual(true)}
+                            style={{
+                                position: "absolute",
+                                top: 14,
+                                left: 14,
+                                width: 32,
+                                height: 32,
+                                borderRadius: 10,
+                                background: "none",
+                                border: "none",
+                                boxShadow: "none",
+                                outline: "none",
+                                cursor: "pointer",
+                                zIndex: 50,
+                                display: "grid",
+                                placeItems: "center",
+                                padding: 0,
+                                fontSize: 20,
+                                color: "rgba(255,255,255,255)",
+                                fontWeight: 700,
+                                transition: "all 0.2s ease",
+                            }}
+                            aria-label="Manual"
+                            title="Game Manual"
+                        >
+                            <FontAwesomeIcon icon={faBookOpen} />
+                        </Box>
+
                         <Box style={{ padding: "28px 32px 20px", borderBottom: "1px solid rgba(250,176,5,0.15)", background: "linear-gradient(180deg, rgba(250,176,5,0.06) 0%, transparent 100%)", flexShrink: 0 }}>
                             <Title order={2} ta="center" style={{ color: "rgba(235,235,235,0.95)", letterSpacing: 3, textTransform: "uppercase", textShadow: "0 3px 18px rgba(0,0,0,0.9)", fontSize: "clamp(1.2rem, 3vw, 1.6rem)" }}>
                                 WAITING ROOM
@@ -596,6 +632,8 @@ export default function WaitingRoomPage() {
                     )}
                 </Group>
             </Center>
+
+            {showManual && <ManualWaitingPage onClose={() => setShowManual(false)} />}
         </Box>
     );
 }

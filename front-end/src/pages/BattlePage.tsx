@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import { Hexagon } from '../components/Hexagon';
 import type { HexState } from '../type/HexState'
 
-// 👈 Import รูปตัวละครของคุณมาทดสอบ
+// Import รูปตัวละครมาทดสอบ
 import goldenGrass from "../assets/golden_grass.png";
 import archer from "../assets/archer.png";
 
