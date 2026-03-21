@@ -7,22 +7,7 @@ import { Box, Center, Title, Text, Button, Stack, Group, Paper, Loader, Tooltip,
 import background_LightDark from "../assets/background_LightDark.png";
 import CloseButton from "../components/CloseButton";
 
-type Player = {
-    id: string;
-    name: string;
-    minions: string[];
-    isHost: boolean;
-    isReady: boolean;
-};
-
-type RoomState = {
-    roomId: string;
-    state: "waiting" | "starting" | "in_game" | "closed";
-    maxPlayers: number;
-    players: Player[];
-    gameSettings: { map: string; mode: string };
-    you?: { id: string };
-};
+import type { RoomState } from "../type/RoomState.tsx"
 
 export default function WaitingRoomPage() {
     const { roomId } = useParams();
@@ -69,16 +54,20 @@ export default function WaitingRoomPage() {
     const playerIdKey = `playerId_${roomId}`;
     const playerIdRef = useRef<string | null>(null);
     const leavingRoomRef = useRef(true); // true = จะ leave ตอน unmount, false = ไปหน้า select (อย่า leave)
+
     const playerId = useMemo(() => {
         if (roomState?.you?.id) {
-            sessionStorage.setItem(playerIdKey, roomState.you.id);
-            playerIdRef.current = roomState.you.id;
             return roomState.you.id;
         }
-        const stored = sessionStorage.getItem(playerIdKey);
-        if (stored) playerIdRef.current = stored;
-        return stored;
-    }, [roomState, playerIdKey]);
+        return sessionStorage.getItem(playerIdKey);
+    }, [roomState?.you?.id, playerIdKey]);
+
+    useEffect(() => {
+        if (playerId) {
+            sessionStorage.setItem(playerIdKey, playerId);
+            playerIdRef.current = playerId;
+        }
+    }, [playerId, playerIdKey]);
 
     const you = useMemo(() => {
         if (!playerId) return null;
@@ -260,6 +249,19 @@ export default function WaitingRoomPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ playerId }),
         });
+    }
+
+    async function addBot() {
+        if (!roomId || !playerId) return;
+        try {
+            await fetch(`/api/room/${roomId}/add-bot`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ hostId: playerId }),
+            });
+        } catch (e) {
+            console.error("Failed to add bot", e);
+        }
     }
 
     function copyRoomLink() {
@@ -920,6 +922,42 @@ export default function WaitingRoomPage() {
                                 </Box>
                             );
                         })}
+
+                        {/* ── Add Bot Button (Position 1) ── */}
+                        {isHost && roomState.players.length < roomState.maxPlayers && (
+                            <Box
+                                component="button"
+                                onClick={addBot}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    padding: "14px 20px",
+                                    borderRadius: 12,
+                                    background: "rgba(255,255,255,0.015)",
+                                    border: "1px dashed rgba(255,255,255,0.15)",
+                                    cursor: "pointer",
+                                    transition: "all 0.2s ease",
+                                    width: "100%",
+                                    minHeight: 70,
+                                }}
+                                onMouseEnter={(e: any) => {
+                                    e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+                                    e.currentTarget.style.border = "1px dashed rgba(250,176,5,0.4)";
+                                }}
+                                onMouseLeave={(e: any) => {
+                                    e.currentTarget.style.background = "rgba(255,255,255,0.015)";
+                                    e.currentTarget.style.border = "1px dashed rgba(255,255,255,0.15)";
+                                }}
+                            >
+                                <Group gap="sm">
+                                    <Text size="lg" style={{ color: "rgba(250,176,5,0.7)", fontWeight: 300 }}>+</Text>
+                                    <Text size="sm" fw={600} style={{ color: "rgba(230,230,230,0.4)", letterSpacing: 2, textTransform: "uppercase" }}>
+                                        ADD BOT
+                                    </Text>
+                                </Group>
+                            </Box>
+                        )}
                     </Box>
 
                     {/* ── Your Minions Summary ── */}
