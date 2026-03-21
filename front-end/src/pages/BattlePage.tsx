@@ -32,7 +32,10 @@ export default function BattlePage() {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 padding: '0 40px',
-                position: 'relative' // 👈 สำคัญ: เพื่อให้ปุ่มอ้างอิงตำแหน่งได้ถูกต้อง
+                position: 'fixed', // 👈 สำคัญ: เพื่อให้ปุ่มอ้างอิงตำแหน่งได้ถูกต้อง
+                backdropFilter: "blur(5px)",
+                inset: 0,
+                zIndex: 1,
             }}
         >
             {/* 👈 แผงข้อมูลด้านซ้าย (Player 1) */}
@@ -45,7 +48,7 @@ export default function BattlePage() {
                 isActive={currentTurn === 1}
             />
 
-            {/* 🎯 กระดานเกมตรงกลาง */}
+            {/* กระดานเกมตรงกลาง */}
             <Box style={{ display: 'flex', flexDirection: 'row' }}>
                 {Array.from({ length: cols }).map((_, c) => (
                     <Box
@@ -70,7 +73,7 @@ export default function BattlePage() {
                 ))}
             </Box>
 
-            {/* 👉 แผงข้อมูลด้านขวา (Player 2) */}
+            {/* แผงข้อมูลด้านขวา (Player 2) */}
             <PlayerPanel
                 playerName="Player 2 (Dark)"
                 themeColor="violet"
