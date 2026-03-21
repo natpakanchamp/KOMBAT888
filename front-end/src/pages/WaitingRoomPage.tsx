@@ -7,6 +7,7 @@ import { FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import { faBookOpen } from "@fortawesome/free-solid-svg-icons";
 
 import background_LightDark from "../assets/background_LightDark.png";
+import frameWaitingRoom from "../assets/frameWaitingRoom.png";
 import CloseButton from "../components/CloseButton";
 import SpectatorButton from "../components/SpectatorButton";
 import ManualWaitingPage from "./ManualWaitingPage.tsx";
@@ -479,9 +480,7 @@ export default function WaitingRoomPage() {
                             width: "min(680px, 90vw)",
                             maxHeight: "min(88vh, 700px)",
                             borderRadius: 18,
-                            overflow: "hidden",
                             boxShadow: "0 30px 90px rgba(0,0,0,0.75)",
-                            border: "1px solid rgba(255,255,255,0.10)",
                             background: "rgba(10, 12, 16, 0.72)",
                             backdropFilter: "blur(16px)",
                             animation: "floatIn 0.5s ease-out",
@@ -489,6 +488,22 @@ export default function WaitingRoomPage() {
                             flexDirection: "column",
                         }}
                     >
+                        {/* ── กรอบตกแต่ง ── */}
+                        <img
+                            src={frameWaitingRoom}
+                            alt=""
+                            style={{
+                                position: "absolute",
+                                top: "50%",
+                                left: "50%",
+                                transform: "translate(-52%, -47%)",
+                                width: "calc(100% + 170px)",
+                                height: "calc(100% + 200px)",
+                                pointerEvents: "none",
+                                zIndex: 100,
+                                objectFit: "fill",
+                            }}
+                        />
                         <CloseButton onClick={() => navigate("/login")} top={14} right={14} size={32} />
 
                         {/* Manual / Guide Button — top-left, opposite of CloseButton */}
