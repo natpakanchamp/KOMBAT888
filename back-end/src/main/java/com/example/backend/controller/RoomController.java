@@ -72,6 +72,16 @@ public class RoomController {
     }
 
 
+    @PostMapping("/{roomId}/kick")
+    public ResponseEntity<?> kick(@PathVariable String roomId, @RequestBody RoomDtos.KickRequest req) {
+        if (req == null || req.hostId() == null || req.hostId().isBlank()
+                || req.targetId() == null || req.targetId().isBlank()) {
+            return ResponseEntity.badRequest().body(new ErrorBody("Missing hostId or targetId"));
+        }
+        RoomDtos.RoomStateDto dto = roomService.kickPlayer(roomId, req.hostId(), req.targetId());
+        return ResponseEntity.ok(dto);
+    }
+
     @PostMapping("/{roomId}/add-bot")
     public ResponseEntity<?> addBot(@PathVariable String roomId) {
         try {

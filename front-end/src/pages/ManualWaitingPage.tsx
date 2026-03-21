@@ -1,4 +1,4 @@
-import { Box, Text, Title, ScrollArea } from "@mantine/core";
+import {Box, Text, Title, ScrollArea, Divider} from "@mantine/core";
 import CloseButton from "../components/CloseButton";
 import { useEffect } from "react";
 
@@ -89,6 +89,12 @@ export default function ManualWaitingPage({ onClose }: ManualWaitingPageProps) {
                     <Section title="DUEL Mode">
                         <li><a>หากผู้เล่นต้องการเล่นกับผู้เล่นอื่น ผู้เล่นที่เป็น Host จะต้องรอให้มีผู้เล่นคนอื่นเข้ามาในห้องจนครบ 2 คน</a></li>
                         <li><a>ผู้เล่นที่จะเข้ามาเล่นกับ Host สามารถเข้าร่วมได้ทั้งแบบ Copy Link หรือกรอกรหัสห้องที่ช่องก็ได้</a></li>
+                    </Section>
+                    <Section>
+                        <Divider />
+                    </Section>
+                    <Section title="การเลือก Minion">
+                        <a>เมื่อผู้เล่นเลือกโหมดการเล่นได้แล้ว ผู้เล่นจะต้องเลือก Minion ที่จะใช้ในการเล่น โดยผู้เล่นสามารถเลือกได้จากตัวเลือกที่มีอยู่ในหน้าจอ และสามารถดูรายละเอียดของแต่ละ Minion ได้ก่อนที่จะทำการเลือก ซึ่งทั้งสองผู้เล่นจะต้องเลือกตัวละครให้เหมือนกันทั้งสองฝั่ง</a>
                     </Section>
                 </ScrollArea>
             </Box>
