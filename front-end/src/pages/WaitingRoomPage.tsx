@@ -42,6 +42,7 @@ export default function WaitingRoomPage() {
     const [loading, setLoading] = useState(!needsName);
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
+    const [joinRoomInput, setJoinRoomInput] = useState("");
 
     // Read selected minions from localStorage
     const storageKey = `minions_${roomId}`;
@@ -148,9 +149,16 @@ export default function WaitingRoomPage() {
     }, [roomId, userName, created, needsName]);
 
     // leave room เมื่อปิดแท็บ หรือ navigate ออกจากหน้า (ยกเว้นไปหน้า select)
+    const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     useEffect(() => {
         if (!roomId) return;
         leavingRoomRef.current = true; // reset ทุกครั้งที่ mount
+
+        // ยกเลิก pending leave จาก StrictMode cleanup ก่อนหน้า
+        if (leaveTimerRef.current) {
+            clearTimeout(leaveTimerRef.current);
+            leaveTimerRef.current = null;
+        }
 
         const sendLeave = () => {
             const id = playerIdRef.current;
@@ -166,9 +174,13 @@ export default function WaitingRoomPage() {
         window.addEventListener("beforeunload", sendLeave);
         return () => {
             window.removeEventListener("beforeunload", sendLeave);
-            // ถ้าไปหน้า select → อย่า leave
+            // ใช้ setTimeout เพื่อแยก StrictMode cleanup (remount ทันที) ออกจาก real unmount
+            // ถ้า remount เกิดขึ้น timer จะถูก clear ข้างบน
             if (leavingRoomRef.current) {
-                sendLeave();
+                leaveTimerRef.current = setTimeout(() => {
+                    sendLeave();
+                    leaveTimerRef.current = null;
+                }, 200);
             }
         };
     }, [roomId]);
@@ -281,6 +293,106 @@ export default function WaitingRoomPage() {
             prompt("Copy this link:", text);
         }
         document.body.removeChild(ta);
+    }
+
+    // ── Join by Room ID (ไม่มี roomId ใน URL) ──
+    const [roomIdInput, setRoomIdInput] = useState("");
+
+    if (!roomId) {
+        return (
+            <Box
+                style={{
+                    height: "100dvh",
+                    width: "100%",
+                    overflow: "hidden",
+                    position: "relative",
+                    backgroundImage: `url(${background_LightDark})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                }}
+            >
+                <Box style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(12px)", zIndex: 1 }} />
+                <Center style={{ height: "100%", position: "relative", zIndex: 2 }}>
+                    <Paper
+                        style={{
+                            background: "rgba(10,12,16,0.80)",
+                            backdropFilter: "blur(8px)",
+                            border: "1px solid rgba(255,255,255,0.10)",
+                            padding: "40px 48px",
+                            borderRadius: 16,
+                            width: "min(380px, 90vw)",
+                        }}
+                    >
+                        <Stack gap="lg">
+                            <Title order={3} ta="center" style={{ color: "rgba(235,235,235,0.95)", letterSpacing: 3, textTransform: "uppercase" }}>
+                                JOIN ROOM
+                            </Title>
+                            <Text size="xs" ta="center" style={{ color: "rgba(230,230,230,0.45)", letterSpacing: 1 }}>
+                                Enter the room ID to join
+                            </Text>
+                            <TextInput
+                                placeholder="Room ID"
+                                value={roomIdInput}
+                                onChange={(e) => setRoomIdInput(e.currentTarget.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && roomIdInput.trim().length > 0) {
+                                        navigate(`/waitingRoom/${roomIdInput.trim()}`);
+                                    }
+                                }}
+                                styles={{
+                                    input: {
+                                        height: 44,
+                                        backgroundColor: "rgba(255,255,255,0.06)",
+                                        border: "1px solid rgba(255,255,255,0.14)",
+                                        color: "rgba(250,176,5,0.95)",
+                                        fontFamily: "monospace",
+                                        fontSize: 16,
+                                        textAlign: "center",
+                                        letterSpacing: 3,
+                                    },
+                                }}
+                            />
+                            <Button
+                                size="md"
+                                radius="md"
+                                fullWidth
+                                disabled={roomIdInput.trim().length === 0}
+                                onClick={() => navigate(`/waitingRoom/${roomIdInput.trim()}`)}
+                                styles={{
+                                    root: {
+                                        height: 46,
+                                        letterSpacing: 3,
+                                        textTransform: "uppercase" as const,
+                                        fontWeight: 700,
+                                        background: "linear-gradient(180deg, rgba(210,145,80,1) 0%, rgba(120,70,35,1) 100%)",
+                                        border: "1px solid rgba(255,215,170,0.18)",
+                                        opacity: roomIdInput.trim().length === 0 ? 0.5 : 1,
+                                    },
+                                }}
+                            >
+                                JOIN
+                            </Button>
+                            <Button
+                                variant="subtle"
+                                size="sm"
+                                fullWidth
+                                onClick={() => navigate("/login")}
+                                styles={{
+                                    root: {
+                                        color: "rgba(230,230,230,0.45)",
+                                        letterSpacing: 1,
+                                        textTransform: "uppercase" as const,
+                                        fontSize: 11,
+                                    },
+                                }}
+                            >
+                                BACK TO LOGIN
+                            </Button>
+                        </Stack>
+                    </Paper>
+                </Center>
+            </Box>
+        );
     }
 
     // ── Name input (Player 2 via invite link) ──
@@ -620,6 +732,66 @@ export default function WaitingRoomPage() {
                         </Tooltip>
                     </Box>
 
+                    {/* ── Join Room Bar ── */}
+                    <Box
+                        style={{
+                            padding: "10px 32px",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            borderBottom: "1px solid rgba(255,255,255,0.06)",
+                            flexShrink: 0,
+                        }}
+                    >
+                        <Text size="xs" style={{ color: "rgba(230,230,230,0.4)", letterSpacing: 1, textTransform: "uppercase", flexShrink: 0 }}>
+                            Join Room
+                        </Text>
+                        <input
+                            type="text"
+                            placeholder="Enter Room ID"
+                            value={joinRoomInput}
+                            onChange={(e) => setJoinRoomInput(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" && joinRoomInput.trim()) {
+                                    navigate(`/waitingRoom/${joinRoomInput.trim()}`);
+                                }
+                            }}
+                            style={{
+                                height: 30,
+                                flex: 1,
+                                minWidth: 0,
+                                fontSize: 12,
+                                backgroundColor: "rgba(255,255,255,0.06)",
+                                border: "1px solid rgba(255,255,255,0.14)",
+                                color: "rgba(245,245,245,0.95)",
+                                fontFamily: "monospace",
+                                borderRadius: 6,
+                                padding: "0 10px",
+                                outline: "none",
+                            }}
+                        />
+                        <Button
+                            variant="subtle"
+                            size="xs"
+                            disabled={!joinRoomInput.trim()}
+                            onClick={() => navigate(`/waitingRoom/${joinRoomInput.trim()}`)}
+                            styles={{
+                                root: {
+                                    color: "rgba(112,72,232,0.85)",
+                                    border: "1px solid rgba(112,72,232,0.25)",
+                                    background: "rgba(112,72,232,0.06)",
+                                    letterSpacing: 1,
+                                    textTransform: "uppercase" as const,
+                                    fontWeight: 600,
+                                    fontSize: 11,
+                                    flexShrink: 0,
+                                },
+                            }}
+                        >
+                            JOIN
+                        </Button>
+                    </Box>
+
                     {/* ── Player List ── */}
                     <Box
                         style={{
@@ -809,38 +981,40 @@ export default function WaitingRoomPage() {
                             flexShrink: 0,
                         }}
                     >
-                        {/* Ready / Unready button — disabled if no minions selected */}
-                        <Tooltip label="Select minions first" disabled={hasMinions} withArrow>
-                            <Button
-                                size="md"
-                                radius="md"
-                                onClick={toggleReady}
-                                disabled={!hasMinions && !you?.isReady}
-                                styles={{
-                                    root: {
-                                        minWidth: 160,
-                                        height: 46,
-                                        letterSpacing: 3,
-                                        textTransform: "uppercase" as const,
-                                        fontWeight: 700,
-                                        fontSize: 14,
-                                        background: you?.isReady
-                                            ? "linear-gradient(180deg, rgba(100,100,100,0.8), rgba(60,60,60,0.8))"
-                                            : "linear-gradient(180deg, rgba(210,145,80,1) 0%, rgba(120,70,35,1) 100%)",
-                                        border: you?.isReady
-                                            ? "1px solid rgba(255,255,255,0.15)"
-                                            : "1px solid rgba(255,215,170,0.18)",
-                                        boxShadow: "0 10px 30px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(0,0,0,0.3)",
-                                        opacity: (!hasMinions && !you?.isReady) ? 0.45 : 1,
-                                        filter: (!hasMinions && !you?.isReady) ? "grayscale(0.3) brightness(0.8)" : "none",
-                                        cursor: (!hasMinions && !you?.isReady) ? "not-allowed" : "pointer",
-                                        transition: "all 0.25s ease",
-                                    },
-                                }}
-                            >
-                                {you?.isReady ? "UNREADY" : "READY"}
-                            </Button>
-                        </Tooltip>
+                        {/* Joiner: Ready / Unready button */}
+                        {!isHost && (
+                            <Tooltip label="Select minions first" disabled={hasMinions} withArrow>
+                                <Button
+                                    size="md"
+                                    radius="md"
+                                    onClick={toggleReady}
+                                    disabled={!hasMinions && !you?.isReady}
+                                    styles={{
+                                        root: {
+                                            minWidth: 160,
+                                            height: 46,
+                                            letterSpacing: 3,
+                                            textTransform: "uppercase" as const,
+                                            fontWeight: 700,
+                                            fontSize: 14,
+                                            background: you?.isReady
+                                                ? "linear-gradient(180deg, rgba(100,100,100,0.8), rgba(60,60,60,0.8))"
+                                                : "linear-gradient(180deg, rgba(210,145,80,1) 0%, rgba(120,70,35,1) 100%)",
+                                            border: you?.isReady
+                                                ? "1px solid rgba(255,255,255,0.15)"
+                                                : "1px solid rgba(255,215,170,0.18)",
+                                            boxShadow: "0 10px 30px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(0,0,0,0.3)",
+                                            opacity: (!hasMinions && !you?.isReady) ? 0.45 : 1,
+                                            filter: (!hasMinions && !you?.isReady) ? "grayscale(0.3) brightness(0.8)" : "none",
+                                            cursor: (!hasMinions && !you?.isReady) ? "not-allowed" : "pointer",
+                                            transition: "all 0.25s ease",
+                                        },
+                                    }}
+                                >
+                                    {you?.isReady ? "UNREADY" : "READY"}
+                                </Button>
+                            </Tooltip>
+                        )}
 
                         {/* Host: Start Game */}
                         {isHost && (
