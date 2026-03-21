@@ -161,6 +161,37 @@ public class RoomService {
         );
     }
 
+    public RoomDtos.RoomStateDto addBot(String roomId) {
+        // find room from room id , if dont find thorw excep
+        Room room = mustGet(roomId);
+
+        // ต้องอยู่ห้อง waitting ก่อนไม่งั้นเพิ่มบอทไม่ได้
+        if (!"waiting".equals(room.state) )
+            throw new IllegalStateException("Room state not found");
+
+        // check ว่าห้องยังไม่เต็ม
+        if (room.players.size() >= room.maxPlayers) {
+            throw new IllegalStateException("Room full ");
+        }
+
+        // create bot
+        RoomPlayer bot = new RoomPlayer(
+                nextPlayerId() ,
+                "Bot_" + (room.players.size() + 1) ,
+                new ArrayList<>() ,
+                false,
+                true
+        );
+
+        room.players.add(bot);
+        // broadcast to everyone in this room
+        // convertAndSend: ส่ง msg ไป ยัง client แบบ realtime
+        broker.convertAndSend("/topic/room/" + roomId, toDto(room, null));
+
+
+        return toDto(room , bot.id) ;
+    }
+
     // -------- internal models --------
     private static class Room {
         String roomId;

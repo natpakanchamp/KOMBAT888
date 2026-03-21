@@ -71,6 +71,22 @@ public class RoomController {
         return roomService.startGame(roomId, req.playerId());
     }
 
+
+    @PostMapping("/{roomId}/add-bot")
+    public ResponseEntity<?> addBot(@PathVariable String roomId) {
+        try {
+            // ส่งต่อให้ RoomService จัดการ แล้วคืน state ห้องกลับไป
+            RoomDtos.RoomStateDto dto = roomService.addBot(roomId);
+            return ResponseEntity.ok(dto);
+        } catch (NoSuchElementException e) {
+            // ถ้าหาห้องไม่เจอ → 404
+            return ResponseEntity.status(404).body(e.getMessage());
+        } catch (IllegalStateException e) {
+            // ถ้าห้องเต็มหรือ state ไม่ใช่ waiting → 400
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
+    }
+
     // ---- simple error mapping (ให้ frontend อ่านง่าย) ----
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<?> notFound(NoSuchElementException e) {
