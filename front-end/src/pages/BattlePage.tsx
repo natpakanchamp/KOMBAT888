@@ -175,6 +175,7 @@ export default function BattlePage() {
                             marginTop: c % 2 === 0 ? '28px' : '0px'
                         }}
                     >
+
                         {/* วน rows ตาม boardRows จาก API (ไม่ hardcode) */}
                         {Array.from({ length: boardRows }).map((_, r) => (
                             <Hexagon
