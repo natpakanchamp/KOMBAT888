@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import { Hexagon } from '../components/Hexagon';
 import type { HexState } from '../type/HexState'
 
-// 👈 Import รูปตัวละครของคุณมาทดสอบ
+// Import รูปตัวละครมาทดสอบ
 import goldenGrass from "../assets/golden_grass.png";
 import archer from "../assets/archer.png";
 
@@ -25,7 +25,7 @@ export default function BattlePage() {
         return 'NEUTRAL';
     };
 
-    // 👇 1. แก้ฟังก์ชันนี้ให้รับค่า state แทนพิกัด
+    // แก้ฟังก์ชันนี้ให้รับค่า state แทนพิกัด
     const getUnitImage = (state: HexState) => {
         // ถ้าเป็นฝั่งแสง (สีเหลือง/เขียว) ให้แสดงรูป Saber
         if (state === 'LIGHT' || state === 'TURNING_LIGHT') {
@@ -52,7 +52,7 @@ export default function BattlePage() {
                         }}
                     >
                         {Array.from({ length: rows }).map((_, r) => {
-                            // 👇 2. ดึงสถานะของช่องนี้มาก่อน
+                            // ดึงสถานะของช่องนี้มาก่อน
                             const hexState = getInitialState(c, r);
 
                             return (
