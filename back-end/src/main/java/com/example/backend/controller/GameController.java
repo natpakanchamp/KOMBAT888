@@ -1,6 +1,6 @@
 package com.example.backend.controller;
 
-import com.example.backend.model.GameState;
+import com.example.backend.model.engine.GameState;
 import com.example.backend.service.GameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +26,8 @@ public class GameController {
         gameService.nextTurn(roomId);
         return "Turn executed";
     }
+
+
 
     @GetMapping("/state")
     public GameState getState(@PathVariable String roomId) {

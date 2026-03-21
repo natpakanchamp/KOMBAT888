@@ -1,7 +1,7 @@
 package com.example.backend.service;
 
 import com.example.backend.engine.GameEngine;
-import com.example.backend.model.GameState;
+import com.example.backend.model.engine.GameState;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
