@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * ตรวจจับ WebSocket connect/disconnect
- * เมื่อ client disconnect → ลบผู้เล่นออกจากห้องอัตโนมัติ
+ * disconnect จะแค่ log ไม่ลบผู้เล่นออก — การ leave จริงใช้ leave beacon (beforeunload) เท่านั้น
  */
 @Slf4j
 @Component
@@ -56,7 +56,8 @@ public class WebSocketEventListener {
     }
 
     /**
-     * เมื่อ STOMP client disconnect → ลบผู้เล่นออกจากห้อง
+     * เมื่อ STOMP client disconnect → แค่ log ไม่ลบผู้เล่น
+     * การ leave จริงจะใช้ leave beacon (POST /api/room/{id}/leave) ตอนปิด tab/browser
      */
     @EventListener
     public void handleDisconnect(SessionDisconnectEvent event) {
@@ -64,9 +65,8 @@ public class WebSocketEventListener {
         PlayerSession ps = sessions.remove(sessionId);
 
         if (ps != null) {
-            log.info("Disconnect: session={}, room={}, player={} → removing from room",
+            log.info("Disconnect: session={}, room={}, player={} (not removing — leave via beacon only)",
                     sessionId, ps.roomId(), ps.playerId());
-            roomService.leaveRoom(ps.roomId(), ps.playerId());
         }
     }
 }
