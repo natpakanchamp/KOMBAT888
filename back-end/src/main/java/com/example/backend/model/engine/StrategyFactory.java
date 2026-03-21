@@ -1,43 +1,48 @@
 package com.example.backend.model.engine;
 
 import com.example.backend.model.ast.Statement;
+import com.example.backend.model.ast.DoneStatement;
+import com.example.backend.model.parser.ExprParser;
+import com.example.backend.model.parser.ExprTokenizer;
+import com.example.backend.model.parser.Tokenizer;
 
 public class StrategyFactory {
 
     public static Statement createStrategy(int type, int player) {
 
-        // 1. ตัวแปรเก็บข้อความสคริปต์หลายบรรทัด (คลีนๆ ไม่มี #)
         String script = "";
 
-        // 2. กำหนดสคริปต์ให้แต่ละคลาสโดยใช้ Text Blocks (""")
+        // กำหนดทิศทางเดินหน้าตามฝั่งของผู้เล่น
+        // (P1 เดินลงขวา, P2 เดินขึ้นซ้าย)
+        String forward = (player == 1) ? "downright" : "upleft";
+
+        // กำหนดสคริปต์ให้แต่ละคลาส
         switch (type) {
             case Unit.TYPE_SABER:
-                script = """
-                         if (budget >= 1) then
-                             move downright
-                         else
-                             done
-                         """;
+                // ใช้ Budget (พิมพ์ใหญ่) แทน budget >= 1
+                // เพราะ Parser ตอนนี้รองรับเฉพาะคณิตศาสตร์ (ค่า > 0 ถือว่าเป็น True)
+                script = "if (Budget) then\n" +
+                        "    move " + forward + "\n" +
+                        "else\n" +
+                        "    done\n";
                 break;
 
             case Unit.TYPE_ARCHER:
-                script = """
-                         t = t + 1
-                         m = 0
-                         while (3 - m)
-                             move upleft
-                             m = m + 1
-                         shoot upleft 3
-                         """;
+                // เพิ่ม { } ครอบบล็อก while เพื่อให้ตัวแปร m ถูกบวกค่าป้องกัน Infinite Loop
+                script = "t = t + 1\n" +
+                        "m = 0\n" +
+                        "while (3 - m) {\n" +
+                        "    move " + forward + "\n" +
+                        "    m = m + 1\n" +
+                        "}\n" +
+                        "shoot " + forward + " 3\n";
                 break;
 
             case Unit.TYPE_LANCER:
-                script = """
-                         if (nearby downright) then
-                             shoot downright 2
-                         else
-                             move downright
-                         """;
+                script = "if (nearby " + forward + ") then\n" +
+                        "    shoot " + forward + " 2\n" +
+                        "else\n" +
+                        "    move " + forward + "\n";
                 break;
 
             default:
@@ -48,25 +53,20 @@ public class StrategyFactory {
         System.out.println("📜 โหลดสคริปต์ให้ P" + player + " (คลาส " + type + "):\n" + script);
 
         // =========================================================
-        // 🌟 3. จุดเชื่อมต่อ Parser ของจริง! 🌟
+        // 🌟 3. จุดเชื่อมต่อ Parser ของจริงเข้ากับ Game Engine 🌟
         // =========================================================
-        // ถ้าเอาโค้ด Parser (จากโปรเจกต์ AST) มาใส่เตรียมไว้แล้ว
-        // ให้เอา Comment 2 บรรทัดข้างล่างนี้ออก แล้วลบ Mock AST ด้านล่างทิ้งได้เลยครับ!
+        try {
+            // โยนข้อความสคริปต์เข้า Tokenizer
+            Tokenizer tokenizer = new ExprTokenizer(script);
+            // ให้ Parser แปลง Token เป็นโครงสร้าง AST (Statement)
+            ExprParser parser = new ExprParser(tokenizer);
 
-        // Statement realAST = Parser.parseString(script);
-        // return realAST;
+            return parser.parse();
 
-
-        // ⚠️ (ชั่วคราว) คืนค่าเป็น Mock AST ไปก่อน เพื่อไม่ให้เกมพังระหว่างรอต่อ Parser
-        return (state, currentUnit, localVars, globalVars) -> {
-            String forwardDir = (player == 1) ? "downright" : "upleft";
-            if (type == Unit.TYPE_SABER) {
-                if (state.pay(currentUnit, 1)) state.move(currentUnit, forwardDir);
-            } else if (type == Unit.TYPE_ARCHER) {
-                if (state.pay(currentUnit, 3)) state.shoot(currentUnit, forwardDir, 3);
-            } else if (type == Unit.TYPE_LANCER) {
-                if (state.pay(currentUnit, 2)) state.shoot(currentUnit, forwardDir, 2);
-            }
-        };
+        } catch (Exception e) {
+            System.err.println("🚨 Parse Error (P" + player + " / คลาส " + type + "): " + e.getMessage());
+            // ถ้าสคริปต์มีปัญหา ให้มินเนียนตัวนั้นยืนนิ่งๆ (done) แทนที่จะปล่อยให้เกมพัง
+            return new DoneStatement();
+        }
     }
 }
