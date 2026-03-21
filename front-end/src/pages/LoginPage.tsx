@@ -1,6 +1,6 @@
 // src/pages/LoginPage.tsx
 import { Box, Button, Center, Paper, Stack, Text, TextInput, Title } from "@mantine/core";
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
 
 import background_LightDark from "../assets/background_LightDark.png";
@@ -8,9 +8,28 @@ import caster from "../assets/caster.png";
 import berserker from "../assets/berserker.png";
 import CloseButton from "../components/CloseButton";
 
+
 export default function LoginPage() {
     const [userName, setUserName] = useState("");
     const navigate = useNavigate();
+    const [showManual, setShowManual] = useState(false);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Enter") {
+                if (showManual) {
+                    setShowManual(false);
+                } else {
+                    handleStart();
+                }
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [showManual, userName]);
 
     const handleStart = async () => {
         if (userName.trim().length <= 2) {
@@ -36,20 +55,19 @@ export default function LoginPage() {
         } catch (e: any) {
             alert(e?.message ?? "Create room failed");
         }
-    };
-
-    return (
-        <Box
-            style={{
-                height: "100dvh", // ✅ ล็อกความสูง = จอ
-                width: "100%",
-                overflow: "hidden", // ✅ ห้าม scroll
-                position: "relative",
-                backgroundImage: `url(${background_LightDark})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-            }}
-        >
+        };
+        return (
+            <Box
+                style={{
+                    height: "100dvh", // ✅ ล็อกความสูง = จอ
+                    width: "100%",
+                    overflow: "hidden", // ✅ ห้าม scroll
+                    position: "relative",
+                    backgroundImage: `url(${background_LightDark})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                }}
+            >
             {/* ✅ กระจกดำเต็มจอ */}
             <Box
                 style={{

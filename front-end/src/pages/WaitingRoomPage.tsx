@@ -12,7 +12,6 @@ import CloseButton from "../components/CloseButton";
 import SpectatorButton from "../components/SpectatorButton";
 import ManualWaitingPage from "./ManualWaitingPage.tsx";
 import type { RoomState } from "../type/RoomState.tsx"
-import HomePage from "./HomePage.tsx";
 
 export default function WaitingRoomPage() {
     const { roomId } = useParams();
@@ -106,8 +105,7 @@ export default function WaitingRoomPage() {
 
     useEffect(() => {
         if (!roomId) {
-            setError("Missing roomId in URL");
-            setLoading(false);
+            navigate("/not-found", { replace: true });
         }
     }, [roomId]);
 
@@ -156,7 +154,7 @@ export default function WaitingRoomPage() {
                     await joinThenLoad();
                 }
             } catch (e: any) {
-                if (!cancelled) setError(e?.message ?? "Join/Load failed");
+                if (!cancelled) navigate("/not-found", { replace: true });
             } finally {
                 if (!cancelled) setLoading(false);
             }
