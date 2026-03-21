@@ -30,9 +30,11 @@ export default function WaitingRoomPage() {
     const navigate = useNavigate();
 
     const created = (location.state as any)?.created === true;
+    const joining = (location.state as any)?.joining === true; // navigate มาจากปุ่ม JOIN → ต้องกรอกชื่อใหม่เสมอ
 
     const stateUser = (location.state as any)?.user as string | undefined;
-    const alreadyJoined = !!localStorage.getItem(`playerId_${roomId}`);
+    // alreadyJoined = true เฉพาะเมื่อมี playerId ใน localStorage และไม่ได้มาจากปุ่ม JOIN
+    const alreadyJoined = !joining && !!sessionStorage.getItem(`playerId_${roomId}`);
     const [userName, setUserName] = useState<string>(stateUser ?? localStorage.getItem("username") ?? "");
     const [nameInput, setNameInput] = useState("");
     const [nameSubmitted, setNameSubmitted] = useState(!!stateUser || created || alreadyJoined);
@@ -69,11 +71,11 @@ export default function WaitingRoomPage() {
     const leavingRoomRef = useRef(true); // true = จะ leave ตอน unmount, false = ไปหน้า select (อย่า leave)
     const playerId = useMemo(() => {
         if (roomState?.you?.id) {
-            localStorage.setItem(playerIdKey, roomState.you.id);
+            sessionStorage.setItem(playerIdKey, roomState.you.id);
             playerIdRef.current = roomState.you.id;
             return roomState.you.id;
         }
-        const stored = localStorage.getItem(playerIdKey);
+        const stored = sessionStorage.getItem(playerIdKey);
         if (stored) playerIdRef.current = stored;
         return stored;
     }, [roomState, playerIdKey]);
@@ -108,7 +110,7 @@ export default function WaitingRoomPage() {
 
         async function joinThenLoad() {
             // ถ้าเคย join แล้ว (มี playerId ใน localStorage) → loadRoom เฉยๆ ไม่ join ซ้ำ
-            const existingId = localStorage.getItem(`playerId_${roomId}`);
+            const existingId = sessionStorage.getItem(`playerId_${roomId}`);
             if (existingId) {
                 playerIdRef.current = existingId;
                 await loadRoom();
@@ -123,7 +125,7 @@ export default function WaitingRoomPage() {
             const joined: RoomState = await res.json();
             // บันทึก playerId ลง localStorage ก่อนที่ polling จะทับด้วย you: null
             if (joined.you?.id) {
-                localStorage.setItem(`playerId_${roomId}`, joined.you.id);
+                sessionStorage.setItem(`playerId_${roomId}`, joined.you.id);
                 playerIdRef.current = joined.you.id;
             }
             if (!cancelled) setRoomState(joined);
@@ -168,7 +170,7 @@ export default function WaitingRoomPage() {
                 new Blob([JSON.stringify({ playerId: id })], { type: "application/json" })
             );
             // ลบ playerId ออกจาก localStorage เมื่อ leave จริง
-            localStorage.removeItem(`playerId_${roomId}`);
+            sessionStorage.removeItem(`playerId_${roomId}`);
         };
 
         window.addEventListener("beforeunload", sendLeave);
@@ -194,11 +196,11 @@ export default function WaitingRoomPage() {
             reconnectDelay: 2000,
             connectHeaders: {
                 roomId: roomId,
-                playerId: playerIdRef.current ?? localStorage.getItem(`playerId_${roomId}`) ?? "",
+                playerId: playerIdRef.current ?? sessionStorage.getItem(`playerId_${roomId}`) ?? "",
             },
             onConnect: () => {
                 // อัพเดท header ด้วย playerId ล่าสุด (กรณี connect ก่อน join เสร็จ)
-                const latestId = playerIdRef.current ?? localStorage.getItem(`playerId_${roomId}`) ?? "";
+                const latestId = playerIdRef.current ?? sessionStorage.getItem(`playerId_${roomId}`) ?? "";
                 if (latestId && client.connected) {
                     client.publish({
                         destination: "/app/room/register",
@@ -753,7 +755,7 @@ export default function WaitingRoomPage() {
                             onChange={(e) => setJoinRoomInput(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === "Enter" && joinRoomInput.trim()) {
-                                    navigate(`/waitingRoom/${joinRoomInput.trim()}`);
+                                    navigate(`/waitingRoom/${joinRoomInput.trim()}`, { state: { joining: true } });
                                 }
                             }}
                             style={{
@@ -774,7 +776,7 @@ export default function WaitingRoomPage() {
                             variant="subtle"
                             size="xs"
                             disabled={!joinRoomInput.trim()}
-                            onClick={() => navigate(`/waitingRoom/${joinRoomInput.trim()}`)}
+                            onClick={() => navigate(`/waitingRoom/${joinRoomInput.trim()}`, { state: { joining: true } })}
                             styles={{
                                 root: {
                                     color: "rgba(112,72,232,0.85)",

@@ -28,9 +28,9 @@ export default function LoginPage() {
             if (!res.ok) throw new Error(`Create room failed (${res.status})`);
 
             const room = await res.json(); // ต้องมี roomId กลับมา
-            // เก็บ playerId ลง localStorage ก่อน navigate เพื่อให้ WaitingRoomPage รู้ว่าเราเป็นใคร
+            // เก็บ playerId ลง sessionStorage (แยกแต่ละ tab) เพื่อให้ WaitingRoomPage รู้ว่าเราเป็นใคร
             if (room.you?.id) {
-                localStorage.setItem(`playerId_${room.roomId}`, room.you.id);
+                sessionStorage.setItem(`playerId_${room.roomId}`, room.you.id);
             }
             navigate(`/waitingRoom/${room.roomId}`, { state: { user: userName, created: true } });
         } catch (e: any) {
