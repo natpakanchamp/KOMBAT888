@@ -27,6 +27,8 @@ public class GameController {
         return "Turn executed";
     }
 
+
+
     @GetMapping("/state")
     public GameState getState(@PathVariable String roomId) {
         return gameService.getState(roomId);
