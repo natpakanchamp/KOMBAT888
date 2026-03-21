@@ -34,6 +34,7 @@ export default function WaitingRoomPage() {
     const [copied, setCopied] = useState(false);
     const [joinRoomInput, setJoinRoomInput] = useState("");
     const [showManual, setShowManual] = useState(false);
+    const [kicked, setKicked] = useState(false);
 
     const storageKey = `minions_${roomId}`;
     const [selectedMinions, setSelectedMinions] = useState<{ type: string; strategy: string }[]>(() => {
@@ -221,6 +222,15 @@ export default function WaitingRoomPage() {
         }
     }, [roomState, roomId, navigate]);
 
+    useEffect(() => {
+        if(!roomState || !playerId) return;
+        if (!roomState.players.some(p => p.id === playerId)) {
+            setKicked(true);
+            sessionStorage.removeItem(`playerId_${roomId}`);
+            leavingRoomRef.current = false;
+        }
+    }, [roomState, playerId]);
+
     async function toggleReady() {
         if (!roomId || !playerId) return;
         await fetch(`/api/room/${roomId}/ready`, {
@@ -352,6 +362,23 @@ export default function WaitingRoomPage() {
             </Box>
         );
     }
+
+    if (kicked) {
+        return (
+            <Box style={{ height: "100dvh", width: "100%", overflow: "hidden", position: "relative", backgroundImage: `url(${background_LightDark})`, backgroundSize: "cover", backgroundPosition: "center" }}>
+                <Box style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(12px)", zIndex: 1 }} />
+                <Center style={{ height: "100%", position: "relative", zIndex: 2 }}>
+                    <Paper style={{ background: "rgba(10,12,16,0.75)", backdropFilter: "blur(8px)", border: "1px solid rgba(170,35,35,0.4)", padding: "40px 48px", borderRadius: 16, textAlign: "center", maxWidth: 420 }}>
+                        <Text size="xl" fw={700} style={{ color: "rgba(255,100,100,0.95)", marginBottom: 12 }}>KICKED</Text>
+                        <Text size="sm" style={{ color: "rgba(245,245,245,0.8)", marginBottom: 8 }}>You have been kicked from the room</Text>
+                        <Text size="xs" style={{ color: "rgba(230,230,230,0.5)", marginBottom: 24 }}>If you believe this was a mistake, please contact the room host or try joining another room.</Text>
+                        <Button onClick={() => navigate("/")} styles={{ root: { background: "linear-gradient(180deg, rgba(170,35,35,1), rgba(90,10,10,1))", border: "1px solid rgba(255,100,100,0.2)", letterSpacing: 2, textTransform: "uppercase" as const } }}>Back to Home</Button>
+                    </Paper>
+                </Center>
+            </Box>
+        );
+    }
+
 
     if (loading) {
         return (
