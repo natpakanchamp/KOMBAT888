@@ -7,6 +7,7 @@ public class RoomDtos {
     public record CreateRoomRequest(String name) {}
     public record JoinRoomRequest(String name) {}
     public record PlayerActionRequest(String playerId) {}
+    public record KickRequest(String hostId, String targetId) {}
 
     public record PlayerDto(
             String id,

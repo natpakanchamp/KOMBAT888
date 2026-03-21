@@ -96,6 +96,31 @@ public class RoomService {
         return toDto(room, playerId);
     }
 
+    public RoomDtos.RoomStateDto kickPlayer(String roomId, String hostId, String targetId) {
+        Room room = mustGet(roomId);
+
+        if (!"waiting".equals(room.state)) {
+            throw new IllegalStateException("Can only kick in waiting state");
+        }
+
+        RoomPlayer host = mustFindPlayer(room, hostId);
+        if (!host.isHost) {
+            throw new IllegalStateException("Only host can kick players");
+        }
+
+        if (hostId.equals(targetId)) {
+            throw new IllegalStateException("Host cannot kick themselves");
+        }
+
+        boolean removed = room.players.removeIf(p -> p.id.equals(targetId));
+        if (!removed) {
+            throw new NoSuchElementException("Target player not found");
+        }
+
+        broker.convertAndSend("/topic/room/" + roomId, toDto(room, null));
+        return toDto(room, hostId);
+    }
+
     public void leaveRoom(String roomId, String playerId){
         Room room = rooms.get(roomId);
         if(room == null) return;

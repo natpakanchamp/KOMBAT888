@@ -239,6 +239,19 @@ export default function WaitingRoomPage() {
         });
     }
 
+    async function kickPlayer(targetId: string) {
+        if (!roomId || !playerId) return;
+        try {
+            await fetch(`/api/room/${roomId}/kick`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ hostId: playerId, targetId }),
+            });
+        } catch (e) {
+            console.error("Failed to kick player", e);
+        }
+    }
+
     async function addBot() {
         if (!roomId || !playerId) return;
         try {
@@ -520,9 +533,31 @@ export default function WaitingRoomPage() {
                                                 <Text size="xs" style={{ color: "rgba(230,230,230,0.4)", marginTop: 2 }}>{p.minions?.length ? p.minions.join(", ") : "No minions selected"}</Text>
                                             </Box>
                                         </Group>
-                                        <Box style={{ padding: "4px 14px", borderRadius: 6, background: p.isReady ? "rgba(100,255,100,0.1)" : "rgba(255,255,255,0.04)", border: p.isReady ? "1px solid rgba(100,255,100,0.25)" : "1px solid rgba(255,255,255,0.08)", transition: "all 0.3s ease" }}>
-                                            <Text size="xs" fw={700} style={{ color: p.isReady ? "rgba(100,255,100,0.9)" : "rgba(230,230,230,0.4)", letterSpacing: 1, textTransform: "uppercase", fontSize: 11 }}>{p.isReady ? "READY" : "WAITING"}</Text>
-                                        </Box>
+                                        <Group gap={8}>
+                                            <Box style={{ padding: "4px 14px", borderRadius: 6, background: p.isReady ? "rgba(100,255,100,0.1)" : "rgba(255,255,255,0.04)", border: p.isReady ? "1px solid rgba(100,255,100,0.25)" : "1px solid rgba(255,255,255,0.08)", transition: "all 0.3s ease" }}>
+                                                <Text size="xs" fw={700} style={{ color: p.isReady ? "rgba(100,255,100,0.9)" : "rgba(230,230,230,0.4)", letterSpacing: 1, textTransform: "uppercase", fontSize: 11 }}>{p.isReady ? "READY" : "WAITING"}</Text>
+                                            </Box>
+                                            {isHost && !isYou && (
+                                                <Box
+                                                    component="button"
+                                                    onClick={() => kickPlayer(p.id)}
+                                                    style={{
+                                                        padding: "4px 10px",
+                                                        borderRadius: 6,
+                                                        background: "rgba(255,80,80,0.1)",
+                                                        border: "1px solid rgba(255,80,80,0.25)",
+                                                        cursor: "pointer",
+                                                        transition: "all 0.2s ease",
+                                                        outline: "none",
+                                                    }}
+                                                    onMouseEnter={(e: any) => { e.currentTarget.style.background = "rgba(255,80,80,0.25)"; e.currentTarget.style.border = "1px solid rgba(255,80,80,0.5)"; }}
+                                                    onMouseLeave={(e: any) => { e.currentTarget.style.background = "rgba(255,80,80,0.1)"; e.currentTarget.style.border = "1px solid rgba(255,80,80,0.25)"; }}
+                                                    title={`Kick ${p.name}`}
+                                                >
+                                                    <Text size="xs" fw={700} style={{ color: "rgba(255,80,80,0.9)", letterSpacing: 1, textTransform: "uppercase", fontSize: 10 }}>KICK</Text>
+                                                </Box>
+                                            )}
+                                        </Group>
                                     </Box>
                                 );
                             })}
