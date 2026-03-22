@@ -1,5 +1,6 @@
 // src/components/PlayerPanel.tsx
 import { Paper, Stack, Text, Group, Badge } from '@mantine/core';
+import  type { PlayerPanelProps } from "../props/PlayerPanelProps";
 
 export function PlayerPanel({ playerName, themeColor, borderColor, budget, spawnsLeft, isActive }: PlayerPanelProps) {
     return (

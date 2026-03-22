@@ -1,24 +1,107 @@
 // src/pages/BattlePage.tsx
-import { Box, Button } from '@mantine/core';
-import { useState } from 'react';
+import { Box, Button, Stack } from '@mantine/core';
+import { useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Hexagon } from '../components/Hexagon';
 import { PlayerPanel } from '../components/PlayerPanel';
+import { PurchasePanel } from '../components/PurchasePanel';
 import type { HexState } from '../type/HexState';
+
+const HEX_COST = 150;
+const ROWS = 8;
+const COLS = 8;
+
+const getInitialState = (c: number, r: number): HexState => {
+    if (c < 2 && r < 2) return 'LIGHT';
+    if (c === 2 && r === 0) return 'LIGHT';
+    if (c > 5 && r > 5) return 'DARK';
+    if (c === 5 && r === 7) return 'DARK';
+    return 'NEUTRAL';
+};
+
+const initializeBoard = () => {
+    const initial: Record<string, HexState> = {};
+    for (let c = 0; c < COLS; c++) {
+        for (let r = 0; r < ROWS; r++) {
+            initial[`${c}-${r}`] = getInitialState(c, r);
+        }
+    }
+    return initial;
+};
 
 export default function BattlePage() {
     const { roomId } = useParams<{ roomId: string }>();
-    const [currentTurn, setCurrentTurn] = useState<number>(1);
+    const [currentTurn, setCurrentTurn] = useState<number>(0);
 
-    const rows = 8;
-    const cols = 8;
+    // 👇 เพิ่ม State จำว่าเทิร์นนี้ซื้อไปหรือยัง
+    const [hasPurchasedThisTurn, setHasPurchasedThisTurn] = useState<boolean>(false);
 
-    const getInitialState = (c: number, r: number): HexState => {
-        if (c < 2 && r < 2) return 'LIGHT';
-        if (c === 2 && r === 0) return 'LIGHT';
-        if (c > 5 && r > 5) return 'DARK';
-        if (c === 5 && r === 7) return 'DARK';
-        return 'NEUTRAL';
+    const [board, setBoard] = useState<Record<string, HexState>>(initializeBoard());
+    const [selectedHex, setSelectedHex] = useState<{ col: number, row: number } | null>(null);
+
+    const [p1Budget, setP1Budget] = useState(10000);
+    const [p1Spawns, setP1Spawns] = useState(47);
+    const [p2Budget, setP2Budget] = useState(4000);
+    const [p2Spawns, setP2Spawns] = useState(47);
+
+    const getNeighbors = (c: number, r: number) => {
+        const isEvenCol = c % 2 === 0;
+        const directions = isEvenCol
+            ? [[0, -1], [0, 1], [-1, 0], [-1, 1], [1, 0], [1, 1]]
+            : [[0, -1], [0, 1], [-1, -1], [-1, 0], [1, -1], [1, 0]];
+        return directions.map(([dc, dr]) => ({ nc: c + dc, nr: r + dr }));
+    };
+
+    // 🔍 คำนวณหาช่องที่ "ซื้อได้"
+    const purchasableHexes = useMemo(() => {
+        const validHexes = new Set<string>();
+
+        // 👇 ถ้าซื้อไปแล้วในเทิร์นนี้ ไม่ต้องหาช่องที่ซื้อได้อีกเลย (ปิดแสง)
+        if (hasPurchasedThisTurn) return validHexes;
+
+        const myState = currentTurn === 0 ? 'LIGHT' : 'DARK';
+
+        Object.entries(board).forEach(([key, state]) => {
+            if (state === myState) {
+                const [c, r] = key.split('-').map(Number);
+                getNeighbors(c, r).forEach(({ nc, nr }) => {
+                    if (nc >= 0 && nc < COLS && nr >= 0 && nr < ROWS) {
+                        const nKey = `${nc}-${nr}`;
+                        if (board[nKey] === 'NEUTRAL') {
+                            validHexes.add(nKey);
+                        }
+                    }
+                });
+            }
+        });
+        return validHexes;
+    }, [board, currentTurn, hasPurchasedThisTurn]); // 👈 เพิ่ม dependency
+
+    const handleHexagonClick = (c: number, r: number) => {
+        const key = `${c}-${r}`;
+        if (purchasableHexes.has(key)) {
+            setSelectedHex({ col: c, row: r });
+        } else {
+            setSelectedHex(null);
+        }
+    };
+
+    const handleBuyHex = () => {
+        if (!selectedHex || hasPurchasedThisTurn) return; // 👈 ป้องกันการกดซื้อซ้ำ
+
+        if (currentTurn === 0) {
+            setP1Budget(prev => prev - HEX_COST);
+        } else {
+            setP2Budget(prev => prev - HEX_COST);
+        }
+
+        setBoard(prev => ({
+            ...prev,
+            [`${selectedHex.col}-${selectedHex.row}`]: currentTurn === 0 ? 'LIGHT' : 'DARK'
+        }));
+
+        setSelectedHex(null);
+        setHasPurchasedThisTurn(true); // 👇 ล็อกว่าซื้อไปแล้วนะ
     };
 
     return (
@@ -28,29 +111,40 @@ export default function BattlePage() {
                 width: '100%',
                 backgroundColor: 'rgba(0, 0, 0, 0.6)',
                 display: 'flex',
-                flexDirection: 'row', // 👈 ให้จัดเรียงซ้าย-ขวาตามเดิม
+                flexDirection: 'row',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 padding: '0 40px',
-                position: 'fixed', // 👈 สำคัญ: เพื่อให้ปุ่มอ้างอิงตำแหน่งได้ถูกต้อง
+                position: 'fixed',
                 backdropFilter: "blur(5px)",
                 inset: 0,
                 zIndex: 1,
             }}
         >
-            {/* 👈 แผงข้อมูลด้านซ้าย (Player 1) */}
-            <PlayerPanel
-                playerName="Player 1 (Light)"
-                themeColor="yellow"
-                borderColor="#FAB005"
-                budget={10000}
-                spawnsLeft={47}
-                isActive={currentTurn === 1}
-            />
+            {/* 👈 ฝั่งซ้าย (Player 1) */}
+            <Stack gap="md">
+                <PlayerPanel
+                    playerName="Player 1 (Light)"
+                    themeColor="yellow"
+                    borderColor="#FAB005"
+                    budget={p1Budget}
+                    spawnsLeft={p1Spawns}
+                    isActive={currentTurn === 0}
+                />
+                <PurchasePanel
+                    isActive={currentTurn === 0}
+                    themeColor="yellow"
+                    borderColor="#FAB005"
+                    selectedHex={currentTurn === 0 ? selectedHex : null}
+                    onBuy={handleBuyHex}
+                    canAfford={p1Budget >= HEX_COST}
+                    hasPurchased={currentTurn === 0 && hasPurchasedThisTurn} // 👈 ส่งค่าบอก Panel
+                />
+            </Stack>
 
-            {/* กระดานเกมตรงกลาง */}
+            {/* 🎯 กระดานเกมตรงกลาง */}
             <Box style={{ display: 'flex', flexDirection: 'row' }}>
-                {Array.from({ length: cols }).map((_, c) => (
+                {Array.from({ length: COLS }).map((_, c) => (
                     <Box
                         key={`col-${c}`}
                         style={{
@@ -59,13 +153,23 @@ export default function BattlePage() {
                             marginTop: c % 2 === 0 ? '28px' : '0px'
                         }}
                     >
-                        {Array.from({ length: rows }).map((_, r) => {
-                            const hexState = getInitialState(c, r);
+                        {Array.from({ length: ROWS }).map((_, r) => {
+                            const key = `${c}-${r}`;
+                            const actualState = board[key];
+                            const isPurchasable = purchasableHexes.has(key);
+                            const isSelected = selectedHex?.col === c && selectedHex?.row === r;
+
+                            let displayState = actualState;
+                            if (actualState === 'NEUTRAL' && isPurchasable) {
+                                displayState = currentTurn === 0 ? 'TURNING_LIGHT' : 'TURNING_DARK';
+                            }
+
                             return (
                                 <Hexagon
                                     key={`hex-${c}-${r}`}
-                                    state={hexState}
-                                    onClick={() => console.log(`คลิกที่ช่อง: คอลัมน์ ${c}, แถว ${r}`)}
+                                    state={displayState}
+                                    onClick={() => handleHexagonClick(c, r)}
+                                    isSelected={isSelected}
                                 />
                             );
                         })}
@@ -73,28 +177,43 @@ export default function BattlePage() {
                 ))}
             </Box>
 
-            {/* แผงข้อมูลด้านขวา (Player 2) */}
-            <PlayerPanel
-                playerName="Player 2 (Dark)"
-                themeColor="violet"
-                borderColor="#7048E8"
-                budget={10000}
-                spawnsLeft={47}
-                isActive={currentTurn === 2}
-            />
+            {/* 👉 ฝั่งขวา (Player 2) */}
+            <Stack gap="md">
+                <PlayerPanel
+                    playerName="Player 2 (Dark)"
+                    themeColor="violet"
+                    borderColor="#7048E8"
+                    budget={p2Budget}
+                    spawnsLeft={p2Spawns}
+                    isActive={currentTurn === 1}
+                />
+                <PurchasePanel
+                    isActive={currentTurn === 1}
+                    themeColor="violet"
+                    borderColor="#7048E8"
+                    selectedHex={currentTurn === 1 ? selectedHex : null}
+                    onBuy={handleBuyHex}
+                    canAfford={p2Budget >= HEX_COST}
+                    hasPurchased={currentTurn === 1 && hasPurchasedThisTurn} // 👈 ส่งค่าบอก Panel
+                />
+            </Stack>
 
-            {/* 👇 ปุ่มจบเทิร์น ย้ายมาไว้ด้านล่างสุดตรงกลาง */}
+            {/* 👇 ปุ่มจบเทิร์น */}
             <Button
                 style={{
                     position: 'absolute',
-                    bottom: '40px', // 👈 เปลี่ยนเป็น bottom เพื่อเกาะขอบล่าง
+                    bottom: '40px',
                     left: '50%',
                     transform: 'translateX(-50%)',
                     zIndex: 10
                 }}
-                onClick={() => setCurrentTurn(currentTurn === 1 ? 2 : 1)}
+                onClick={() => {
+                    setCurrentTurn(currentTurn === 0 ? 1 : 0);
+                    setSelectedHex(null);
+                    setHasPurchasedThisTurn(false); // 👇 รีเซ็ตสิทธิ์การซื้อเมื่อเริ่มเทิร์นใหม่
+                }}
             >
-                จบเทิร์น (สลับไป P{currentTurn === 1 ? 2 : 1})
+                จบเทิร์น (สลับไป P{currentTurn === 0 ? 2 : 1})
             </Button>
         </Box>
     );
