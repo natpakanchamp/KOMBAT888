@@ -8,11 +8,12 @@ export interface PurchasePanelProps {
     borderColor: string;
     selectedHex: { col: number, row: number } | null;
     onBuy: () => void;
+    onSkip: () => void; // 👈 เพิ่ม Props สำหรับฟังก์ชันข้าม
     canAfford: boolean;
-    hasPurchased?: boolean; // 👈 เพิ่ม Props ตัวนี้เข้ามา
+    hasPurchased?: boolean;
 }
 
-export function PurchasePanel({ isActive, themeColor, borderColor, selectedHex, onBuy, canAfford, hasPurchased }: PurchasePanelProps) {
+export function PurchasePanel({ isActive, themeColor, borderColor, selectedHex, onBuy, onSkip, canAfford, hasPurchased }: PurchasePanelProps) {
     const COST = 150;
 
     return (
@@ -36,10 +37,9 @@ export function PurchasePanel({ isActive, themeColor, borderColor, selectedHex, 
 
                 <Divider color="#444" />
 
-                {/* 👇 เช็คเงื่อนไข: ถ้าซื้อไปแล้วให้โชว์ข้อความนี้ */}
                 {hasPurchased ? (
                     <Text size="sm" c="dimmed" ta="center" py="xl">
-                        คุณซื้อพื้นที่ไปแล้วในเทิร์นนี้<br/>(จำกัด 1 ครั้ง/เทิร์น)
+                        คุณใช้สิทธิ์ไปแล้วในเทิร์นนี้<br/>(จำกัด 1 ครั้ง/เทิร์น)
                     </Text>
                 ) : selectedHex ? (
                     <>
@@ -69,11 +69,23 @@ export function PurchasePanel({ isActive, themeColor, borderColor, selectedHex, 
                         >
                             ซื้อพื้นที่ (Buy)
                         </Button>
+
+                        {/* 👇 ปุ่มข้ามการซื้อ (กรณีเลือกช่องไว้แล้วแต่เปลี่ยนใจ) */}
+                        <Button variant="subtle" color="gray" fullWidth onClick={onSkip} disabled={!isActive}>
+                            ข้ามการซื้อ (Skip)
+                        </Button>
                     </>
                 ) : (
-                    <Text size="sm" c="dimmed" ta="center" py="xl">
-                        คลิกเลือกพื้นที่รอบอาณาเขต<br/>ที่เรืองแสงเพื่อซื้อ
-                    </Text>
+                    <Stack gap="xs">
+                        <Text size="sm" c="dimmed" ta="center" py="sm">
+                            คลิกเลือกพื้นที่รอบอาณาเขต<br/>ที่เรืองแสงเพื่อซื้อ
+                        </Text>
+
+                        {/* 👇 ปุ่มข้ามการซื้อ (กรณีไม่ได้เลือกช่องไหนเลย) */}
+                        <Button variant="light" color="gray" fullWidth mt="xs" onClick={onSkip} disabled={!isActive}>
+                            ข้ามการซื้อเทิร์นนี้ (Skip)
+                        </Button>
+                    </Stack>
                 )}
             </Stack>
         </Paper>

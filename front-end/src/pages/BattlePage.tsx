@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 import { Hexagon } from '../components/Hexagon';
 import { PlayerPanel } from '../components/PlayerPanel';
 import { PurchasePanel } from '../components/PurchasePanel';
+import { SpawnMinionModal } from '../components/SpawnMinionModal';
 import type { HexState } from '../type/HexState';
 
 const HEX_COST = 150;
@@ -32,17 +33,22 @@ const initializeBoard = () => {
 export default function BattlePage() {
     const { roomId } = useParams<{ roomId: string }>();
     const [currentTurn, setCurrentTurn] = useState<number>(0);
-
-    // 👇 เพิ่ม State จำว่าเทิร์นนี้ซื้อไปหรือยัง
     const [hasPurchasedThisTurn, setHasPurchasedThisTurn] = useState<boolean>(false);
 
     const [board, setBoard] = useState<Record<string, HexState>>(initializeBoard());
     const [selectedHex, setSelectedHex] = useState<{ col: number, row: number } | null>(null);
 
+    // State สำหรับคุมหน้าต่างลงมินเนียน (เด้งขึ้นมาหลังจากซื้อ Hex)
+    const [hexToSpawn, setHexToSpawn] = useState<{ col: number, row: number } | null>(null);
+
     const [p1Budget, setP1Budget] = useState(10000);
     const [p1Spawns, setP1Spawns] = useState(47);
     const [p2Budget, setP2Budget] = useState(4000);
     const [p2Spawns, setP2Spawns] = useState(47);
+
+    // จำลองรายชื่อมินเนียนที่ผู้เล่นเลือกมาจากหน้า Waiting Room
+    const p1SelectedMinions = ['Saber', 'Archer'];
+    const p2SelectedMinions = ['Lancer', 'Caster', 'Berserker'];
 
     const getNeighbors = (c: number, r: number) => {
         const isEvenCol = c % 2 === 0;
@@ -52,11 +58,8 @@ export default function BattlePage() {
         return directions.map(([dc, dr]) => ({ nc: c + dc, nr: r + dr }));
     };
 
-    // 🔍 คำนวณหาช่องที่ "ซื้อได้"
     const purchasableHexes = useMemo(() => {
         const validHexes = new Set<string>();
-
-        // 👇 ถ้าซื้อไปแล้วในเทิร์นนี้ ไม่ต้องหาช่องที่ซื้อได้อีกเลย (ปิดแสง)
         if (hasPurchasedThisTurn) return validHexes;
 
         const myState = currentTurn === 0 ? 'LIGHT' : 'DARK';
@@ -75,7 +78,7 @@ export default function BattlePage() {
             }
         });
         return validHexes;
-    }, [board, currentTurn, hasPurchasedThisTurn]); // 👈 เพิ่ม dependency
+    }, [board, currentTurn, hasPurchasedThisTurn]);
 
     const handleHexagonClick = (c: number, r: number) => {
         const key = `${c}-${r}`;
@@ -87,7 +90,7 @@ export default function BattlePage() {
     };
 
     const handleBuyHex = () => {
-        if (!selectedHex || hasPurchasedThisTurn) return; // 👈 ป้องกันการกดซื้อซ้ำ
+        if (!selectedHex || hasPurchasedThisTurn) return;
 
         if (currentTurn === 0) {
             setP1Budget(prev => prev - HEX_COST);
@@ -100,59 +103,79 @@ export default function BattlePage() {
             [`${selectedHex.col}-${selectedHex.row}`]: currentTurn === 0 ? 'LIGHT' : 'DARK'
         }));
 
+        setHasPurchasedThisTurn(true);
+
+        // พอซื้อที่ดินสำเร็จ ให้บันทึกพิกัดเพื่อเปิด Modal ลงมินเนียนต่อทันที
+        setHexToSpawn({ col: selectedHex.col, row: selectedHex.row });
         setSelectedHex(null);
-        setHasPurchasedThisTurn(true); // 👇 ล็อกว่าซื้อไปแล้วนะ
+    };
+
+    // ฟังก์ชันสำหรับกดข้ามการซื้อที่ดิน
+    const handleSkipHex = () => {
+        if (hasPurchasedThisTurn) return;
+        setHasPurchasedThisTurn(true);
+        setSelectedHex(null);
+    };
+
+    // ฟังก์ชันเมื่อกดยืนยันลงมินเนียนจากใน Modal
+    const handleConfirmSpawn = (minionClass: string, cost: number) => {
+        if (!hexToSpawn) return;
+
+        if (currentTurn === 0) {
+            setP1Budget(prev => prev - cost);
+            setP1Spawns(prev => prev - 1);
+        } else {
+            setP2Budget(prev => prev - cost);
+            setP2Spawns(prev => prev - 1);
+        }
+
+        console.log(`ผู้เล่น ${currentTurn + 1} ลง ${minionClass} ที่ช่อง [${hexToSpawn.col}, ${hexToSpawn.row}] จ่ายไป ${cost}`);
+
+        setHexToSpawn(null); // ปิด Modal
     };
 
     return (
         <Box
             style={{
-                minHeight: '100vh',
-                width: '100%',
-                backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '0 40px',
-                position: 'fixed',
-                backdropFilter: "blur(5px)",
-                inset: 0,
-                zIndex: 1,
+                minHeight: '100vh', width: '100%', backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+                padding: '0 40px', position: 'fixed', backdropFilter: "blur(5px)", inset: 0, zIndex: 1,
             }}
         >
+            {/* 👇 หน้าต่างลงมินเนียน เด้งมาหลังซื้อ Hex */}
+            {hexToSpawn && (
+                <SpawnMinionModal
+                    opened={!!hexToSpawn}
+                    onClose={() => setHexToSpawn(null)}
+                    col={hexToSpawn.col}
+                    row={hexToSpawn.row}
+                    budget={currentTurn === 0 ? p1Budget : p2Budget}
+                    availableMinions={currentTurn === 0 ? p1SelectedMinions : p2SelectedMinions}
+                    themeColor={currentTurn === 0 ? 'yellow' : 'violet'}
+                    onConfirmSpawn={handleConfirmSpawn}
+                />
+            )}
+
             {/* 👈 ฝั่งซ้าย (Player 1) */}
             <Stack gap="md">
                 <PlayerPanel
-                    playerName="Player 1 (Light)"
-                    themeColor="yellow"
-                    borderColor="#FAB005"
-                    budget={p1Budget}
-                    spawnsLeft={p1Spawns}
-                    isActive={currentTurn === 0}
+                    playerName="Player 1 (Light)" themeColor="yellow" borderColor="#FAB005"
+                    budget={p1Budget} spawnsLeft={p1Spawns} isActive={currentTurn === 0}
                 />
                 <PurchasePanel
-                    isActive={currentTurn === 0}
-                    themeColor="yellow"
-                    borderColor="#FAB005"
+                    isActive={currentTurn === 0} themeColor="yellow" borderColor="#FAB005"
                     selectedHex={currentTurn === 0 ? selectedHex : null}
                     onBuy={handleBuyHex}
+                    onSkip={handleSkipHex}
                     canAfford={p1Budget >= HEX_COST}
-                    hasPurchased={currentTurn === 0 && hasPurchasedThisTurn} // 👈 ส่งค่าบอก Panel
+                    hasPurchased={currentTurn === 0 && hasPurchasedThisTurn}
                 />
             </Stack>
 
             {/* 🎯 กระดานเกมตรงกลาง */}
             <Box style={{ display: 'flex', flexDirection: 'row' }}>
                 {Array.from({ length: COLS }).map((_, c) => (
-                    <Box
-                        key={`col-${c}`}
-                        style={{
-                            display: 'flex', flexDirection: 'column',
-                            marginLeft: c === 0 ? '0px' : '-16px',
-                            marginTop: c % 2 === 0 ? '28px' : '0px'
-                        }}
-                    >
+                    <Box key={`col-${c}`} style={{ display: 'flex', flexDirection: 'column', marginLeft: c === 0 ? '0px' : '-16px', marginTop: c % 2 === 0 ? '28px' : '0px' }}>
                         {Array.from({ length: ROWS }).map((_, r) => {
                             const key = `${c}-${r}`;
                             const actualState = board[key];
@@ -166,10 +189,8 @@ export default function BattlePage() {
 
                             return (
                                 <Hexagon
-                                    key={`hex-${c}-${r}`}
-                                    state={displayState}
-                                    onClick={() => handleHexagonClick(c, r)}
-                                    isSelected={isSelected}
+                                    key={`hex-${c}-${r}`} state={displayState}
+                                    onClick={() => handleHexagonClick(c, r)} isSelected={isSelected}
                                 />
                             );
                         })}
@@ -180,37 +201,27 @@ export default function BattlePage() {
             {/* 👉 ฝั่งขวา (Player 2) */}
             <Stack gap="md">
                 <PlayerPanel
-                    playerName="Player 2 (Dark)"
-                    themeColor="violet"
-                    borderColor="#7048E8"
-                    budget={p2Budget}
-                    spawnsLeft={p2Spawns}
-                    isActive={currentTurn === 1}
+                    playerName="Player 2 (Dark)" themeColor="violet" borderColor="#7048E8"
+                    budget={p2Budget} spawnsLeft={p2Spawns} isActive={currentTurn === 1}
                 />
                 <PurchasePanel
-                    isActive={currentTurn === 1}
-                    themeColor="violet"
-                    borderColor="#7048E8"
+                    isActive={currentTurn === 1} themeColor="violet" borderColor="#7048E8"
                     selectedHex={currentTurn === 1 ? selectedHex : null}
                     onBuy={handleBuyHex}
+                    onSkip={handleSkipHex}
                     canAfford={p2Budget >= HEX_COST}
-                    hasPurchased={currentTurn === 1 && hasPurchasedThisTurn} // 👈 ส่งค่าบอก Panel
+                    hasPurchased={currentTurn === 1 && hasPurchasedThisTurn}
                 />
             </Stack>
 
             {/* 👇 ปุ่มจบเทิร์น */}
             <Button
-                style={{
-                    position: 'absolute',
-                    bottom: '40px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    zIndex: 10
-                }}
+                style={{ position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}
                 onClick={() => {
                     setCurrentTurn(currentTurn === 0 ? 1 : 0);
                     setSelectedHex(null);
-                    setHasPurchasedThisTurn(false); // 👇 รีเซ็ตสิทธิ์การซื้อเมื่อเริ่มเทิร์นใหม่
+                    setHasPurchasedThisTurn(false); // รีเซ็ตสิทธิ์การซื้อ
+                    setHexToSpawn(null); // รีเซ็ตหน้าต่างเผื่อค้าง
                 }}
             >
                 จบเทิร์น (สลับไป P{currentTurn === 0 ? 2 : 1})
