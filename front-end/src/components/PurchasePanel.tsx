@@ -2,17 +2,9 @@
 import { Paper, Text, Group, Button, Stack, Badge, Divider } from '@mantine/core';
 import { IconHexagon, IconCoins } from '@tabler/icons-react';
 
-export interface PurchasePanelProps {
-    isActive: boolean;
-    themeColor: string;
-    borderColor: string;
-    selectedHex: { col: number, row: number } | null;
-    onBuy: () => void;
-    onSkip: () => void; // 👈 เพิ่ม Props สำหรับฟังก์ชันข้าม
-    canAfford: boolean;
-    hasPurchased?: boolean;
-}
+import type { PurchasePanelProps } from '../props/PurchasePanelProps';
 
+// 👇 ต้องมีคำว่า export function แบบนี้นะครับ
 export function PurchasePanel({ isActive, themeColor, borderColor, selectedHex, onBuy, onSkip, canAfford, hasPurchased }: PurchasePanelProps) {
     const COST = 150;
 
@@ -70,7 +62,6 @@ export function PurchasePanel({ isActive, themeColor, borderColor, selectedHex, 
                             ซื้อพื้นที่ (Buy)
                         </Button>
 
-                        {/* 👇 ปุ่มข้ามการซื้อ (กรณีเลือกช่องไว้แล้วแต่เปลี่ยนใจ) */}
                         <Button variant="subtle" color="gray" fullWidth onClick={onSkip} disabled={!isActive}>
                             ข้ามการซื้อ (Skip)
                         </Button>
@@ -81,7 +72,6 @@ export function PurchasePanel({ isActive, themeColor, borderColor, selectedHex, 
                             คลิกเลือกพื้นที่รอบอาณาเขต<br/>ที่เรืองแสงเพื่อซื้อ
                         </Text>
 
-                        {/* 👇 ปุ่มข้ามการซื้อ (กรณีไม่ได้เลือกช่องไหนเลย) */}
                         <Button variant="light" color="gray" fullWidth mt="xs" onClick={onSkip} disabled={!isActive}>
                             ข้ามการซื้อเทิร์นนี้ (Skip)
                         </Button>

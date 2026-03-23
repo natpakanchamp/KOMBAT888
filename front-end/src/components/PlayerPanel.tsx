@@ -2,7 +2,7 @@
 import { Paper, Stack, Text, Group, Badge } from '@mantine/core';
 import  type { PlayerPanelProps } from "../props/PlayerPanelProps";
 
-export function PlayerPanel({ playerName, themeColor, borderColor, budget, spawnsLeft, isActive }: PlayerPanelProps) {
+export function PlayerPanel({ playerName, themeColor, borderColor, budget, isActive }: PlayerPanelProps) {
     return (
         <Paper
             p="md"
@@ -33,7 +33,6 @@ export function PlayerPanel({ playerName, themeColor, borderColor, budget, spawn
                 {/* 👇 จับข้อมูลเงินและมินเนียนมาเรียงแนวนอนประหยัดพื้นที่ */}
                 <Group justify="space-between">
                     <Text>💰 Budget: ${budget.toLocaleString()}</Text>
-                    <Text>⚔️ Spawns Left: {spawnsLeft}</Text>
                 </Group>
             </Stack>
         </Paper>
