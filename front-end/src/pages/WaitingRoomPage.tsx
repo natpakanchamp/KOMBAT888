@@ -567,7 +567,7 @@ export default function WaitingRoomPage() {
                                 objectFit: "fill",
                             }}
                         />
-                        <CloseButton onClick={() => navigate("/login")} top={40} right={95} size={32} style={{ zIndex: 110 }} />
+                        <CloseButton onClick={() => navigate("/login")} top={80} right={95} size={32} style={{ zIndex: 110 }} />
 
                         <Box style={{ padding: "28px 32px 20px", borderBottom: "1px solid rgba(250,176,5,0.15)", background: "linear-gradient(180deg, rgba(250,176,5,0.06) 0%, transparent 100%)", flexShrink: 0 }}>
                             <Title order={2} ta="center" style={{ color: "rgba(235,235,235,0.95)", letterSpacing: 3, textTransform: "uppercase", textShadow: "0 3px 18px rgba(0,0,0,0.9)", fontSize: "clamp(1.2rem, 3vw, 1.6rem)" }}>
