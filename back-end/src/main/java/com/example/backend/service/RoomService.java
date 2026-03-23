@@ -55,7 +55,9 @@ public class RoomService {
             throw new IllegalStateException("Room is full");
         }
 
-        RoomPlayer p = new RoomPlayer(nextPlayerId(), name, new ArrayList<>(), false, false);
+        // ถ้าไม่มี host ในห้อง (เช่น host ไป spectate แล้วเหลือแต่ bot) → ตั้งคนใหม่เป็น host
+        boolean hasHost = room.players.stream().anyMatch(x -> x.isHost);
+        RoomPlayer p = new RoomPlayer(nextPlayerId(), name, new ArrayList<>(), !hasHost, false);
         room.players.add(p);
         RoomDtos.RoomStateDto dto = toDto(room, p.id);
         // Broadcast ให้ทุกคนที่อยู่ใน {roomId} รู้ว่าใคร join
@@ -103,7 +105,7 @@ public class RoomService {
 
         // เช็คว่าผู้เล่น (ที่ไม่ใช่ bot และไม่ใช่ spectator) เลือก minion แล้ว
         boolean allHaveMinions = room.players.stream()
-                .filter(x -> !x.name.startsWith("Bot_") && !x.isSpectator)
+                .filter(x -> !x.name.startsWith("natpakanKanthasorn_") && !x.isSpectator)
                 .allMatch(x -> x.minions != null && !x.minions.isEmpty());
         if (!allHaveMinions) throw new IllegalStateException("Not all players have selected minions");
 
@@ -111,7 +113,7 @@ public class RoomService {
         RoomPlayer host = room.players.stream().filter(x -> x.isHost).findFirst().orElse(null);
         if (host != null) {
             for (RoomPlayer bot : room.players) {
-                if (bot.name.startsWith("Bot_")) {
+                if (bot.name.startsWith("natpakanKanthasorn_")) {
                     bot.minions = new ArrayList<>(host.minions);
                 }
             }
@@ -171,15 +173,7 @@ public class RoomService {
                     .findFirst()
                     .orElseThrow(() -> new NoSuchElementException("Player not found"));
 
-            // ถ้า host กลายเป็น spectator → โอน host ให้คนอื่น
-            if (p.isHost) {
-                p.isHost = false;
-                room.players.stream()
-                        .filter(x -> !x.id.equals(playerId))
-                        .findFirst()
-                        .ifPresent(x -> x.isHost = true);
-            }
-
+            // host ยังคงเป็น host แม้จะไป spectate
             room.players.removeIf(x -> x.id.equals(playerId));
             p.isSpectator = true;
             p.isReady = false;
@@ -218,10 +212,15 @@ public class RoomService {
             rooms.remove(roomId);
             return;
         }
-        // ถ้า Host คนแรกออก ให้อีกคนเป็น Host แทน
+        // ถ้า Host ออก → โอนให้ผู้เล่นจริง (ข้าม bot)
         if (!room.players.isEmpty()) {
             boolean hasHost = room.players.stream().anyMatch(p -> p.isHost);
-            if (!hasHost) room.players.get(0).isHost = true;
+            if (!hasHost) {
+                room.players.stream()
+                        .filter(x -> !x.name.startsWith("natpakanKanthasorn_"))
+                        .findFirst()
+                        .ifPresent(x -> x.isHost = true);
+            }
         }
         // Broadcast ไปทุกคนที่อยู่ในห้อง
         broker.convertAndSend("/topic/room/" + roomId, toDto(room, null));
@@ -266,7 +265,9 @@ public class RoomService {
         // รวม players + spectators (มีลำดับ) เป็น list เดียวส่งให้ frontend
         List<RoomDtos.PlayerDto> ps = room.allMembers().stream()
                 .map(p -> new RoomDtos.PlayerDto(
-                        p.id, p.name, p.minions, p.isHost, p.isReady, p.isSpectator
+                        p.id,
+                        p.name.startsWith("natpakanKanthasorn_") ? "BOT" : p.name,
+                        p.minions, p.isHost, p.isReady, p.isSpectator
                 ))
                 .toList();
 
@@ -299,7 +300,7 @@ public class RoomService {
         // create bot
         RoomPlayer bot = new RoomPlayer(
                 nextPlayerId() ,
-                "Bot_" + (room.players.size() + 1) ,
+                "natpakanKanthasorn_" + (room.players.size() + 1) ,
                 new ArrayList<>() ,
                 false,
                 true

@@ -154,7 +154,12 @@ export default function WaitingRoomPage() {
             try {
                 setLoading(true);
                 setError(null);
-                if (created) {
+                const existingId = sessionStorage.getItem(`playerId_${roomId}`);
+                if (existingId) {
+                    // มี playerId แล้ว (เช่น spectator กลับจาก battle) → ดึง state เลย ไม่ต้อง join
+                    playerIdRef.current = existingId;
+                    await loadRoom();
+                } else if (created) {
                     await loadRoom();
                 } else {
                     await joinThenLoad();
@@ -251,7 +256,10 @@ export default function WaitingRoomPage() {
         if (!roomState || !roomId) return;
         if (roomState.state === "in_game") {
             const me = roomState.players.find((p: any) => p.id === playerId);
-            sessionStorage.setItem(`isSpectator_${roomId}`, me?.isSpectator ? "true" : "false");
+            const amSpectator = me?.isSpectator === true;
+            sessionStorage.setItem(`isSpectator_${roomId}`, amSpectator ? "true" : "false");
+            // spectator ที่ตั้งใจกลับมาดู waiting room → ไม่ redirect กลับ battle
+            if (amSpectator) return;
             setFading(true);
             fadeOutBGM(3000);
             setTimeout(() => {
@@ -280,10 +288,9 @@ export default function WaitingRoomPage() {
 
     async function startGame() {
         if (!roomId || !playerId) return;
-        // ถ้ายังไม่ได้เลือกมินเนี่ยนเลย ให้เตือนก่อน
-        if(!hasMinions) {
+        // host ที่เป็น spectator ไม่ต้องเลือก minion
+        if(!hasMinions && !isYouSpectator) {
             alert("Please select at least one minion before starting the game.");
-            // ถ้าเลือกแล้วก็ไปต่อได้เลย
         }else{
             playSFX(SFX.WRYYY, 1);
             await fetch(`/api/room/${roomId}/start`, {
