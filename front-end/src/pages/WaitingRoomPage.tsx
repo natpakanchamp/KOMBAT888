@@ -6,7 +6,6 @@ import { Box, Center, Title, Text, Button, Stack, Group, Paper, Loader, Tooltip,
 import { FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import { faBookOpen } from "@fortawesome/free-solid-svg-icons";
 
-import waitingroom_icon from "../assets/waitingroom_icon.png";
 import background_LightDark from "../assets/background_LightDark.png";
 import frameWaitingRoom from "../assets/frameWaitingRoom.png";
 import CloseButton from "../components/CloseButton";
@@ -547,6 +546,8 @@ export default function WaitingRoomPage() {
                             animation: "floatIn 0.5s ease-out",
                             display: "flex",
                             flexDirection: "column",
+                            padding: "40px 60px",
+                            zIndex: 5,
                         }}
                     >
                         {/* ── กรอบตกแต่ง ── */}
@@ -555,50 +556,19 @@ export default function WaitingRoomPage() {
                             alt=""
                             style={{
                                 position: "absolute",
-                                top: "50%",
-                                left: "50%",
-                                transform: "translate(-52%, -47%)",
-                                width: "calc(100% + 170px)",
-                                height: "calc(100% + 200px)",
+                                top: -44, // ชิดขอบบนของ Waiting Room Box
+                                left: -29, // ชิดขอบซ้ายของ Waiting Room Box
+                                right: -45, // ชิดขอบขวาของ Waiting Room Box
+                                bottom: -40, // ชิดขอบล่างของ Waiting Room Box
+                                width: "calc(100% + 25px)", // กว้างเท่ากับ Waiting Room Box พอดี
+                                height: "calc(100% + 120px)", // สูงเท่ากับ Waiting Room Box พอดี
                                 pointerEvents: "none",
                                 zIndex: 100,
                                 objectFit: "fill",
+                                borderRadius: 18,
                             }}
                         />
                         <CloseButton onClick={() => navigate("/login")} top={40} right={95} size={32} style={{ zIndex: 110 }} />
-
-                        {/* Manual / Guide Button — top-left, opposite of CloseButton */}
-                        <Box
-                            component="button"
-                            type="button"
-                            onClick={() => setShowManual(true)}
-                            style={{
-                                position: "absolute",
-                                top: 420,
-                                left: 470,
-                                width: 32,
-                                height: 32,
-                                opacity: 0.65,
-                                borderRadius: 10,
-                                background: "none",
-                                border: "none",
-                                boxShadow: "none",
-                                outline: "none",
-                                cursor: "pointer",
-                                zIndex: 110,
-                                display: "grid",
-                                placeItems: "center",
-                                padding: 0,
-                                fontSize: 20,
-                                color: "rgba(255,255,255,255)",
-                                fontWeight: 700,
-                                transition: "all 0.2s ease",
-                            }}
-                            aria-label="Manual"
-                            title="Game Manual"
-                        >
-                            <FontAwesomeIcon icon={faBookOpen} />
-                        </Box>
 
                         <Box style={{ padding: "28px 32px 20px", borderBottom: "1px solid rgba(250,176,5,0.15)", background: "linear-gradient(180deg, rgba(250,176,5,0.06) 0%, transparent 100%)", flexShrink: 0 }}>
                             <Title order={2} ta="center" style={{ color: "rgba(235,235,235,0.95)", letterSpacing: 3, textTransform: "uppercase", textShadow: "0 3px 18px rgba(0,0,0,0.9)", fontSize: "clamp(1.2rem, 3vw, 1.6rem)" }}>
@@ -715,9 +685,40 @@ export default function WaitingRoomPage() {
                                 <Text size="xs" style={{ color: "rgba(230,230,230,0.4)", letterSpacing: 1, textTransform: "uppercase" }}>Your Minions</Text>
                                 {hasMinions ? <Text size="sm" fw={600} style={{ color: "rgba(250,176,5,0.9)", marginTop: 2 }}>{selectedMinions.map(m => m.type).join(", ")}</Text> : <Text size="sm" style={{ color: "rgba(255,100,100,0.7)", marginTop: 2 }}>No minions selected — select before readying up</Text>}
                             </Box>
-                            <Button variant="subtle" size="xs" onClick={() => { leavingRoomRef.current = false; navigate("/select", { state: { roomId, fromRoom: true } }); }} styles={{ root: { color: hasMinions ? "rgba(230,230,230,0.7)" : "rgba(250,176,5,0.85)", border: hasMinions ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(250,176,5,0.3)", background: hasMinions ? "rgba(255,255,255,0.04)" : "rgba(250,176,5,0.08)", letterSpacing: 1, textTransform: "uppercase" as const, fontWeight: 600, fontSize: 11 } }}>
-                                {hasMinions ? "CHANGE" : "SELECT MINIONS"}
-                            </Button>
+                            <Group gap="xs">
+                                {/* Manual / Guide Button — top-left, opposite of CloseButton */}
+                                <Box
+                                    component="button"
+                                    type="button"
+                                    onClick={() => setShowManual(true)}
+                                    style={{
+                                        width: 32,
+                                        height: 32,
+                                        opacity: 0.65,
+                                        borderRadius: 10,
+                                        background: "none",
+                                        border: "none",
+                                        boxShadow: "none",
+                                        outline: "none",
+                                        cursor: "pointer",
+                                        display: "grid",
+                                        placeItems: "center",
+                                        padding: 0,
+                                        fontSize: 20,
+                                        color: "rgba(255,255,255,255)",
+                                        fontWeight: 700,
+                                        transition: "all 0.2s ease",
+                                    }}
+                                    aria-label="Manual"
+                                    title="Game Manual"
+                                >
+                                    <FontAwesomeIcon icon={faBookOpen} />
+                                </Box>
+
+                                <Button variant="subtle" size="xs" onClick={() => { leavingRoomRef.current = false; navigate("/select", { state: { roomId, fromRoom: true } }); }} styles={{ root: { color: hasMinions ? "rgba(230,230,230,0.7)" : "rgba(250,176,5,0.85)", border: hasMinions ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(250,176,5,0.3)", background: hasMinions ? "rgba(255,255,255,0.04)" : "rgba(250,176,5,0.08)", letterSpacing: 1, textTransform: "uppercase" as const, fontWeight: 600, fontSize: 11 } }}>
+                                    {hasMinions ? "CHANGE" : "SELECT MINIONS"}
+                                </Button>
+                            </Group>
                         </Box>
 
                         <Box style={{ padding: "18px 32px 22px", borderTop: "1px solid rgba(255,255,255,0.06)", background: "linear-gradient(0deg, rgba(0,0,0,0.25) 0%, transparent 100%)", display: "flex", alignItems: "center", justifyContent: "center", gap: 14, flexWrap: "wrap", flexShrink: 0 }}>
