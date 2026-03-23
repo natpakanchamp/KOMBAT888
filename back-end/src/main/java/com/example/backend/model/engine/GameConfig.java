@@ -60,11 +60,11 @@ public class GameConfig {
                     }
                 }
             }
-            System.out.println("✅ โหลด Configuration จากไฟล์สำเร็จ!");
+            System.out.println(" โหลด Configuration จากไฟล์สำเร็จ!");
         } catch (IOException e) {
-            System.out.println("⚠️ ไม่พบไฟล์ '" + filePath + "' จะใช้ค่าเริ่มต้น (Default) แทน");
+            System.out.println("️ ไม่พบไฟล์ '" + filePath + "' จะใช้ค่าเริ่มต้น (Default) แทน");
         } catch (NumberFormatException e) {
-            System.out.println("⚠️ รูปแบบตัวเลขใน Config ผิดพลาด จะใช้ค่าเริ่มต้นแทนบางส่วน");
+            System.out.println(" รูปแบบตัวเลขใน Config ผิดพลาด จะใช้ค่าเริ่มต้นแทนบางส่วน");
         }
 
         return config;

@@ -15,7 +15,7 @@ public class GameEngine {
 
     public GameEngine() {
         config = GameConfig.loadFromFile("config.txt");
-        gameState = new GameState(10, 10, config);
+        gameState = new GameState(8 , 8 , config);
     }
 
     /**
@@ -70,10 +70,12 @@ public class GameEngine {
     }
 
     public GameState getGameState() {
+
         return gameState;
     }
 
     public boolean isGameOver() {
+
         return gameState.getCurrentTurn() > gameState.getMaxTurns();
     }
 }
