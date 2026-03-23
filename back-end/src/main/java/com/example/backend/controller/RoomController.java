@@ -90,6 +90,14 @@ public class RoomController {
         return ResponseEntity.ok(dto);
     }
 
+    @PostMapping("/{roomId}/spectate")
+    public RoomDtos.RoomStateDto spectate(@PathVariable String roomId, @RequestBody RoomDtos.SpectateRequest req) {
+        if (req == null || req.playerId() == null || req.playerId().isBlank()) {
+            throw new IllegalStateException("Missing playerId");
+        }
+        return roomService.toggleSpectator(roomId, req.playerId(), req.isSpectator());
+    }
+
     @PostMapping("/{roomId}/add-bot")
     public ResponseEntity<?> addBot(@PathVariable String roomId) {
         try {

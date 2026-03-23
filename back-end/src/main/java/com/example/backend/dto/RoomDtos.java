@@ -12,12 +12,15 @@ public class RoomDtos {
     public record SetMinionsRequest(String playerId, List<MinionDto> minions) {}
     public record MinionDto(String type, String strategy) {}
 
+    public record SpectateRequest(String playerId, boolean isSpectator) {}
+
     public record PlayerDto(
             String id,
             String name,
             List<MinionDto> minions,
             boolean isHost,
-            boolean isReady
+            boolean isReady,
+            boolean isSpectator
     ) {}
 
     public record GameSettingsDto(String map, String mode) {}

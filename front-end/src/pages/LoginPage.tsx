@@ -1,5 +1,5 @@
 // src/pages/LoginPage.tsx
-import { Box, Button, Center, Paper, Stack, Text, TextInput, Title } from "@mantine/core";
+import { Box, Button, Center, Paper, Stack, Text, TextInput, Image } from "@mantine/core";
 import {useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -7,7 +7,7 @@ import background_LightDark from "../assets/background_LightDark.png";
 import caster from "../assets/caster.png";
 import berserker from "../assets/berserker.png";
 import CloseButton from "../components/CloseButton";
-
+import kombat888_login from "../assets/kombat888_login.png";
 
 export default function LoginPage() {
     const [userName, setUserName] = useState("");
@@ -59,16 +59,16 @@ export default function LoginPage() {
         return (
             <Box
                 style={{
-                    height: "100dvh", // ✅ ล็อกความสูง = จอ
+                    height: "100dvh", //ล็อกความสูง = จอ
                     width: "100%",
-                    overflow: "hidden", // ✅ ห้าม scroll
+                    overflow: "hidden", // ห้าม scroll
                     position: "relative",
                     backgroundImage: `url(${background_LightDark})`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                 }}
             >
-            {/* ✅ กระจกดำเต็มจอ */}
+            {/* กระจกดำเต็มจอ */}
             <Box
                 style={{
                     position: "fixed",
@@ -79,7 +79,7 @@ export default function LoginPage() {
                 }}
             />
 
-            {/* ✅ Spotlight แบบในรูป */}
+            {/* Spotlight แบบในรูป */}
             <Box
                 style={{
                     position: "fixed",
@@ -90,9 +90,9 @@ export default function LoginPage() {
                 }}
             />
 
-            {/* ✅ กล่องอยู่กลางจอ */}
+            {/* กล่องอยู่กลางจอ */}
             <Center style={{ height: "100%", position: "relative", zIndex: 3, padding: "0 24px" }}>
-                {/* ✅ เฟรมใหญ่ซ้าย-กลาง-ขวา (responsive + ไม่ล้นจอ) */}
+                {/* เฟรมใหญ่ซ้าย-กลาง-ขวา (responsive + ไม่ล้นจอ) */}
                 <Box
                     style={{
                         position: "relative",
@@ -160,17 +160,11 @@ export default function LoginPage() {
                     >
                         {/* Title top */}
                         <Box style={{ position: "absolute", top: 28, left: 0, right: 0, textAlign: "center" }}>
-                            <Title
-                                order={1}
-                                style={{
-                                    color: "rgba(235,235,235,0.95)",
-                                    letterSpacing: 2,
-                                    textTransform: "uppercase",
-                                    textShadow: "0 3px 18px rgba(0,0,0,0.9)",
-                                }}
-                            >
-                                KOMBAT888
-                            </Title>
+                            <Stack align="center">
+                                <Image src={kombat888_login} alt="Game Logo" w={300}></Image>
+                            </Stack>
+
+
                             <Text size="xs" c="rgba(230,230,230,0.50)" style={{ letterSpacing: 2 }}>
                                 IDENTIFY YOURSELF
                             </Text>
@@ -205,33 +199,42 @@ export default function LoginPage() {
                             />
 
                             {/* ปุ่ม ENTER ที่กดได้เฉพาะเมื่อกรอกชื่อครบ 3 ตัวอักษรขึ้นไป และมีสไตล์เหมือนในรูป */}
-                            <Box style={{ width: "80%", margin: "0 auto" }}>
-                                <Button
-                                    size="lg"
-                                    radius="md"
-                                    fullWidth
-                                    onClick={handleStart}
-                                    disabled={userName.trim().length < 3}
-                                    styles={{
-                                        root: {
-                                            height: 46,
-                                            letterSpacing: 4,
-                                            textTransform: "uppercase",
-                                            fontWeight: 700,
-                                            background: "linear-gradient(180deg, rgba(210,145,80,1) 0%, rgba(120,70,35,1) 100%)",
-                                            border: "1px solid rgba(255,215,170,0.18)",
-                                            boxShadow: "0 16px 40px rgba(0,0,0,0.65), inset 0 0 0 1px rgba(0,0,0,0.35)",
-
-                                            // ✅ ทำให้จางลงตอน disabled
-                                            opacity: userName.trim().length < 3 ? 0.55 : 1,
-                                            filter: userName.trim().length < 3 ? "grayscale(0.25) brightness(0.85)" : "none",
-                                            cursor: userName.trim().length < 3 ? "not-allowed" : "pointer",
-                                            transition: "opacity 0.15s ease, filter 0.15s ease, transform 0.06s ease",
-                                        },
-                                    }}
+                            <Box
+                                style={{
+                                    width: "80%",
+                                    position: "fixed",
+                                    margin: "0 auto",
+                                    bottom: "30px",
+                                    left: "50%",
+                                    transform: "translateX(-50%)"
+                                }}
                                 >
-                                    ENTER
-                                </Button>
+                                    <Button
+                                        size="lg"
+                                        radius="md"
+                                        fullWidth
+                                        onClick={handleStart}
+                                        disabled={userName.trim().length < 3}
+                                        styles={{
+                                            root: {
+                                                height: 46,
+                                                letterSpacing: 4,
+                                                textTransform: "uppercase",
+                                                fontWeight: 700,
+                                                background: "linear-gradient(180deg, rgba(210,145,80,1) 0%, rgba(120,70,35,1) 100%)",
+                                                border: "1px solid rgba(255,215,170,0.18)",
+                                                boxShadow: "0 16px 40px rgba(0,0,0,0.65), inset 0 0 0 1px rgba(0,0,0,0.35)",
+
+                                                // ✅ ทำให้จางลงตอน disabled
+                                                opacity: userName.trim().length < 3 ? 0.55 : 1,
+                                                filter: userName.trim().length < 3 ? "grayscale(0.25) brightness(0.85)" : "none",
+                                                cursor: userName.trim().length < 3 ? "not-allowed" : "pointer",
+                                                transition: "opacity 0.15s ease, filter 0.15s ease, transform 0.06s ease",
+                                            },
+                                        }}
+                                    >
+                                        ENTER
+                                    </Button>
                             </Box>
 
                             <Text size="xs" c="rgba(230,230,230,0.35)" ta="center">

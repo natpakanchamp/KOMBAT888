@@ -32,6 +32,7 @@ const initializeBoard = () => {
 
 export default function BattlePage() {
     const { roomId } = useParams<{ roomId: string }>();
+    const isSpectator = roomId ? sessionStorage.getItem(`isSpectator_${roomId}`) === "true" : false;
     const [currentTurn, setCurrentTurn] = useState<number>(0);
 
     // State นับหมายเลขเทิร์น (เริ่มที่ 1)
@@ -80,6 +81,7 @@ export default function BattlePage() {
     }, [board, currentTurn, hasPurchasedThisTurn]);
 
     const handleHexagonClick = (c: number, r: number) => {
+        if (isSpectator) return;
         const key = `${c}-${r}`;
         if (purchasableHexes.has(key)) {
             setSelectedHex({ col: c, row: r });
@@ -89,7 +91,7 @@ export default function BattlePage() {
     };
 
     const handleBuyHex = () => {
-        if (!selectedHex || hasPurchasedThisTurn) return;
+        if (isSpectator || !selectedHex || hasPurchasedThisTurn) return;
 
         // หักเงินผู้เล่น
         if (currentTurn === 0) {
@@ -111,13 +113,13 @@ export default function BattlePage() {
     };
 
     const handleSkipHex = () => {
-        if (hasPurchasedThisTurn) return;
+        if (isSpectator || hasPurchasedThisTurn) return;
         setHasPurchasedThisTurn(true);
         setSelectedHex(null);
     };
 
     const handleConfirmSpawn = (minionClass: string, cost: number) => {
-        if (!hexToSpawn) return;
+        if (isSpectator || !hexToSpawn) return;
 
         // หักเงินค่าลงมินเนียน
         if (currentTurn === 0) {
@@ -225,7 +227,7 @@ export default function BattlePage() {
                     canAfford={p2Budget >= HEX_COST} hasPurchased={currentTurn === 1 && hasPurchasedThisTurn}
                 />
             </Stack>
-
+            
             {/* ปุ่มจบเทิร์น */}
             <Button
                 style={{ position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}

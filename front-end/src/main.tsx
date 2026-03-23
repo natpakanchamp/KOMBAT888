@@ -3,9 +3,8 @@ import ReactDom from "react-dom/client";
 import {RouterProvider} from "react-router-dom";
 import {router} from "./routes.tsx";
 import "@mantine/core/styles.css";
-import {MantineProvider} from "@mantine/core";
-import "./index.css";
-
+import {MantineProvider} from "@mantine/core"; // Import Mantine styles
+import "./index.css"; // Import custom global styles
 
 ReactDom.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>

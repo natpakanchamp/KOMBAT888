@@ -130,12 +130,12 @@ export default function SelectMinionsPage() {
                             style={{
                                 padding: "10px 24px",
                                 borderRadius: 10,
-                                background: selectedMinions.length > 0 ? "rgba(250,176,5,0.08)" : "rgba(255,255,255,0.05)",
+                                background: selectedMinions.length > 0 ? "rgba(250,176,5,0.8)" : "rgba(255,255,255,0.55)",
                                 border: selectedMinions.length > 0 ? "1px solid rgba(250,176,5,0.2)" : "1px solid rgba(255,255,255,0.08)",
                                 textAlign: "center",
                             }}
                         >
-                            <Text size="xs" style={{ color: "rgba(230,230,230,0.5)", letterSpacing: 1, textTransform: "uppercase" }}>
+                            <Text size="xs" style={{ color: "rgba(0,0,0,0.5)", letterSpacing: 1, textTransform: "uppercase" }}>
                                 Selected: {selectedMinions.length > 0 ? selectedMinions.map(m => m.type).join(", ") : "None"}
                             </Text>
                         </Box>

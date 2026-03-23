@@ -63,6 +63,14 @@ button:focus-visible {
   }
 }
 
+/* ── Custom Font Game ── */
+@font-face {
+  font-family: 'Scurlock';
+  src: url("./assets/fonts/SC______.TTF") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
 /* ── Waiting Room Animations ── */
 @keyframes waitingPulse {
   0%, 100% { opacity: 0.4; }
@@ -87,4 +95,9 @@ button:focus-visible {
 @keyframes spinSword {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
 }

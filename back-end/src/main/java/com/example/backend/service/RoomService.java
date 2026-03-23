@@ -43,8 +43,8 @@ public class RoomService {
             throw new IllegalStateException("Room not joinable (state=" + room.state + ")");
         }
 
-        // เช็ค rejoin ก่อน maxPlayers — ถ้าชื่อซ้ำ = คนเดิมกลับมา
-        Optional<RoomPlayer> existing = room.players.stream()
+        // เช็ค rejoin ก่อน maxPlayers — ถ้าชื่อซ้ำ = คนเดิมกลับมา (ค้นทั้ง players + spectators)
+        Optional<RoomPlayer> existing = room.allMembers().stream()
                 .filter(p -> p.name.equalsIgnoreCase(name))
                 .findFirst();
         if (existing.isPresent()) {
@@ -95,13 +95,15 @@ public class RoomService {
         if (!p.isHost) throw new IllegalStateException("Only host can start");
 
         boolean allReady = !room.players.isEmpty()
-                && room.players.stream().allMatch(x -> x.isHost || x.isReady);
+                && room.players.stream()
+                        .filter(x -> !x.isSpectator)
+                        .allMatch(x -> x.isHost || x.isReady);
 
         if (!allReady) throw new IllegalStateException("Not all players are ready");
 
-        // เช็คว่าผู้เล่น (ที่ไม่ใช่ bot) เลือก minion แล้ว
+        // เช็คว่าผู้เล่น (ที่ไม่ใช่ bot และไม่ใช่ spectator) เลือก minion แล้ว
         boolean allHaveMinions = room.players.stream()
-                .filter(x -> !x.name.startsWith("Bot_"))
+                .filter(x -> !x.name.startsWith("Bot_") && !x.isSpectator)
                 .allMatch(x -> x.minions != null && !x.minions.isEmpty());
         if (!allHaveMinions) throw new IllegalStateException("Not all players have selected minions");
 
@@ -117,10 +119,11 @@ public class RoomService {
 
         room.state = "in_game";
 
-        // รวม minion ของทุก player ส่งให้ GameEngine
+        // รวม minion ของผู้เล่น (ไม่รวม spectator) ส่งให้ GameEngine
         Map<Integer, List<RoomDtos.MinionDto>> playerMinions = new LinkedHashMap<>();
         int ownerIndex = 1;
         for (RoomPlayer rp : room.players) {
+            if (rp.isSpectator) continue;
             playerMinions.put(ownerIndex++, rp.minions);
         }
         gameService.startGame(roomId, playerMinions);
@@ -147,6 +150,10 @@ public class RoomService {
 
         boolean removed = room.players.removeIf(p -> p.id.equals(targetId));
         if (!removed) {
+            // ลองลบจาก spectators
+            removed = room.spectators.remove(targetId) != null;
+        }
+        if (!removed) {
             throw new NoSuchElementException("Target player not found");
         }
 
@@ -154,19 +161,69 @@ public class RoomService {
         return toDto(room, hostId);
     }
 
+    public synchronized RoomDtos.RoomStateDto toggleSpectator(String roomId, String playerId, boolean isSpectator) {
+        Room room = mustGet(roomId);
+
+        if (isSpectator) {
+            // ย้าย player → spectator
+            RoomPlayer p = room.players.stream()
+                    .filter(x -> x.id.equals(playerId))
+                    .findFirst()
+                    .orElseThrow(() -> new NoSuchElementException("Player not found"));
+
+            // ถ้า host กลายเป็น spectator → โอน host ให้คนอื่น
+            if (p.isHost) {
+                p.isHost = false;
+                room.players.stream()
+                        .filter(x -> !x.id.equals(playerId))
+                        .findFirst()
+                        .ifPresent(x -> x.isHost = true);
+            }
+
+            room.players.removeIf(x -> x.id.equals(playerId));
+            p.isSpectator = true;
+            p.isReady = false;
+            room.spectators.put(playerId, p);
+        } else {
+            // ย้าย spectator → player
+            RoomPlayer p = room.spectators.remove(playerId);
+            if (p == null) throw new NoSuchElementException("Spectator not found");
+
+            long activeCount = room.players.size();
+            if (activeCount >= room.maxPlayers) {
+                // ห้องเต็ม → ใส่กลับเป็น spectator
+                room.spectators.put(playerId, p);
+                throw new IllegalStateException("Room is full, cannot rejoin as player");
+            }
+
+            p.isSpectator = false;
+            p.isReady = false;
+            // ถ้าไม่มี host → ตั้งคนนี้เป็น host
+            boolean hasHost = room.players.stream().anyMatch(x -> x.isHost);
+            if (!hasHost) p.isHost = true;
+            room.players.add(p);
+        }
+
+        broker.convertAndSend("/topic/room/" + roomId, toDto(room, null));
+        return toDto(room, playerId);
+    }
+
     public void leaveRoom(String roomId, String playerId){
         Room room = rooms.get(roomId);
         if(room == null) return;
         room.players.removeIf(p -> p.id.equals(playerId));
-        // ถ้าไม่มีคนอยู่ในห้องเลย ให้ลบห้อง
-        if(room.players.isEmpty()){
+        room.spectators.remove(playerId);
+        // ถ้าไม่มีคนอยู่ในห้องเลย (ทั้ง players + spectators) ให้ลบห้อง
+        if(room.players.isEmpty() && room.spectators.isEmpty()){
             rooms.remove(roomId);
             return;
         }
         // ถ้า Host คนแรกออก ให้อีกคนเป็น Host แทน
-        boolean hasHost = room.players.stream().anyMatch(p -> p.isHost);
-        if(!hasHost) room.players.get(0).isHost = true; // ถ้าไม่มี Host ให้คนถัดไปเป็น Host แทน
-        // Broadcast ไปทุกคนที่อยู่ในหห้อง
+        if (!room.players.isEmpty()) {
+            boolean hasHost = room.players.stream().anyMatch(p -> p.isHost);
+            if (!hasHost) room.players.get(0).isHost = true;
+        }
+        // Broadcast ไปทุกคนที่อยู่ในห้อง
         broker.convertAndSend("/topic/room/" + roomId, toDto(room, null));
     }
 
@@ -179,10 +236,15 @@ public class RoomService {
     }
 
     private RoomPlayer mustFindPlayer(Room room, String playerId) {
-        return room.players.stream()
+        // ค้นใน players ก่อน
+        Optional<RoomPlayer> found = room.players.stream()
                 .filter(x -> x.id.equals(playerId))
-                .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("Player not found"));
+                .findFirst();
+        if (found.isPresent()) return found.get();
+        // ค้นใน spectators
+        RoomPlayer spec = room.spectators.get(playerId);
+        if (spec != null) return spec;
+        throw new NoSuchElementException("Player not found");
     }
 
     private synchronized String nextPlayerId() {
@@ -201,9 +263,10 @@ public class RoomService {
     }
 
     private RoomDtos.RoomStateDto toDto(Room room, String youId) {
-        List<RoomDtos.PlayerDto> ps = room.players.stream()
+        // รวม players + spectators (มีลำดับ) เป็น list เดียวส่งให้ frontend
+        List<RoomDtos.PlayerDto> ps = room.allMembers().stream()
                 .map(p -> new RoomDtos.PlayerDto(
-                        p.id, p.name, p.minions, p.isHost, p.isReady
+                        p.id, p.name, p.minions, p.isHost, p.isReady, p.isSpectator
                 ))
                 .toList();
 
@@ -227,8 +290,9 @@ public class RoomService {
         if (!"waiting".equals(room.state) )
             throw new IllegalStateException("Room state not found");
 
-        // check ว่าห้องยังไม่เต็ม
-        if (room.players.size() >= room.maxPlayers) {
+        // check ว่าห้องยังไม่เต็ม (นับเฉพาะ active players)
+        long activeCount = room.players.stream().filter(x -> !x.isSpectator).count();
+        if (activeCount >= room.maxPlayers) {
             throw new IllegalStateException("Room full ");
         }
 
@@ -256,6 +320,8 @@ public class RoomService {
         String state; // waiting|starting|in_game|closed
         int maxPlayers;
         List<RoomPlayer> players;
+        // เก็บ spectators แยกใน Map มีลำดับ + thread-safe
+        Map<String, RoomPlayer> spectators = Collections.synchronizedMap(new LinkedHashMap<>());
         RoomDtos.GameSettingsDto gameSettings;
 
         Room(String roomId, String state, int maxPlayers, List<RoomPlayer> players, RoomDtos.GameSettingsDto gameSettings) {
@@ -265,6 +331,13 @@ public class RoomService {
             this.players = players;
             this.gameSettings = gameSettings;
         }
+
+        /** คืน players + spectators รวมกัน (players ก่อน, spectators ตามหลัง) */
+        List<RoomPlayer> allMembers() {
+            List<RoomPlayer> all = new ArrayList<>(players);
+            all.addAll(spectators.values());
+            return all;
+        }
     }
 
     private static class RoomPlayer {
@@ -273,6 +346,7 @@ public class RoomService {
         List<RoomDtos.MinionDto> minions;
         boolean isHost;
         boolean isReady;
+        boolean isSpectator;
 
         RoomPlayer(String id, String name, List<RoomDtos.MinionDto> minions, boolean isHost, boolean isReady) {
             this.id = id;
@@ -280,6 +354,7 @@ public class RoomService {
             this.minions = minions;
             this.isHost = isHost;
             this.isReady = isReady;
+            this.isSpectator = false;
         }
     }
 }

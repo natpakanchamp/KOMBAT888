@@ -2,10 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
-import { Box, Center, Title, Text, Button, Stack, Group, Paper, Loader, Tooltip, TextInput } from "@mantine/core";
+import { Box, Center, Title, Text, Button, Stack, Group, Paper, Loader, Tooltip, TextInput, Image } from "@mantine/core";
 import { FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import { faBookOpen } from "@fortawesome/free-solid-svg-icons";
 
+import waitingroom_icon from "../assets/waitingroom_icon.png";
 import background_LightDark from "../assets/background_LightDark.png";
 import frameWaitingRoom from "../assets/frameWaitingRoom.png";
 import CloseButton from "../components/CloseButton";
@@ -244,6 +245,8 @@ export default function WaitingRoomPage() {
     useEffect(() => {
         if (!roomState || !roomId) return;
         if (roomState.state === "in_game") {
+            const me = roomState.players.find((p: any) => p.id === playerId);
+            sessionStorage.setItem(`isSpectator_${roomId}`, me?.isSpectator ? "true" : "false");
             navigate(`/battle/${roomId}`, { replace: true });
         }
     }, [roomState, roomId, navigate]);
@@ -467,8 +470,68 @@ export default function WaitingRoomPage() {
             <Box style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(10px)", zIndex: 1 }} />
             <Box style={{ position: "fixed", inset: 0, background: "radial-gradient(ellipse at center, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.75) 100%)", zIndex: 2 }} />
 
+            {/* ── Spectator panel (LEFT, fixed outside of Group) ── */}
+            {(spectators.length > 0 || isYouSpectator) && (
+                <Box
+                    style={{
+                        position: "fixed",
+                        top: "50%",
+                        left: 16,
+                        transform: "translateY(-50%)",
+                        width: 220,
+                        maxHeight: "min(70vh, 500px)",
+                        borderRadius: 18,
+                        overflow: "hidden",
+                        boxShadow: "0 30px 90px rgba(0,0,0,0.5)",
+                        border: "1px solid rgba(150,200,255,0.15)",
+                        background: "rgba(10, 15, 25, 0.85)",
+                        backdropFilter: "blur(16px)",
+                        display: "flex",
+                        flexDirection: "column",
+                        zIndex: 110,
+                        animation: "slideInLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+                    }}
+                >
+                    <Box style={{ padding: "24px 24px 16px", borderBottom: "1px solid rgba(150,200,255,0.1)", background: "linear-gradient(180deg, rgba(80,160,255,0.06) 0%, transparent 100%)", flexShrink: 0 }}>
+                        <Title order={4} ta="center" style={{ color: "rgba(235,245,255,0.9)", letterSpacing: 2, textTransform: "uppercase" }}>
+                            SPECTATORS
+                        </Title>
+                        <Text ta="center" size="xs" style={{ color: "rgba(150,200,255,0.5)", letterSpacing: 1, textTransform: "uppercase", marginTop: 4 }}>
+                            {spectators.length} Watching
+                        </Text>
+                    </Box>
+
+                    <Box style={{ padding: "16px", flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10 }}>
+                        {spectators.length === 0 ? (
+                            <Center style={{ flex: 1 }}>
+                                <Text size="sm" style={{ color: "rgba(150,200,255,0.3)", letterSpacing: 1 }}>It's quiet here...</Text>
+                            </Center>
+                        ) : (
+                            spectators.map((s) => {
+                                const isYou = s.id === playerId;
+                                return (
+                                    <Box key={s.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderRadius: 10, background: isYou ? "rgba(80,160,255,0.1)" : "rgba(255,255,255,0.02)", border: isYou ? "1px solid rgba(80,160,255,0.3)" : "1px solid rgba(255,255,255,0.05)" }}>
+                                        <Box style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg, rgba(80,160,255,0.5), rgba(40,100,180,0.5))", border: "1px solid rgba(255,255,255,0.1)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                                            <Text size="xs" fw={700} style={{ color: "rgba(255,255,255,0.9)" }}>{s.name.charAt(0).toUpperCase()}</Text>
+                                        </Box>
+                                        <Box>
+                                            <Group gap={6} align="center">
+                                                <Text size="sm" fw={600} style={{ color: "rgba(235,245,255,0.9)" }}>{s.name}</Text>
+                                                {isYou && <Text size="xs" style={{ color: "rgba(150,200,255,0.6)", fontSize: 10 }}>(you)</Text>}
+                                            </Group>
+                                            <Text size="xs" style={{ color: "rgba(150,200,255,0.4)", marginTop: 2, fontSize: 10, textTransform: "uppercase", letterSpacing: 1 }}>
+                                                Observing
+                                            </Text>
+                                        </Box>
+                                    </Box>
+                                );
+                            })
+                        )}
+                    </Box>
+                </Box>
+            )}
+
             <Center style={{ height: "100%", position: "relative", zIndex: 3, padding: "0 24px" }}>
-                {/* ── Group ควบคุมการวางตัวของหน้าต่างหลัก และหน้าต่าง Spectator ── */}
                 <Group align="stretch" justify="center" gap="xl" style={{ width: "100%" }}>
 
                     {/* ── Main content (Players) ── */}
@@ -502,7 +565,7 @@ export default function WaitingRoomPage() {
                                 objectFit: "fill",
                             }}
                         />
-                        <CloseButton onClick={() => navigate("/login")} top={14} right={14} size={32} />
+                        <CloseButton onClick={() => navigate("/login")} top={40} right={95} size={32} style={{ zIndex: 110 }} />
 
                         {/* Manual / Guide Button — top-left, opposite of CloseButton */}
                         <Box
@@ -511,17 +574,18 @@ export default function WaitingRoomPage() {
                             onClick={() => setShowManual(true)}
                             style={{
                                 position: "absolute",
-                                top: 14,
-                                left: 14,
+                                top: 420,
+                                left: 470,
                                 width: 32,
                                 height: 32,
+                                opacity: 0.65,
                                 borderRadius: 10,
                                 background: "none",
                                 border: "none",
                                 boxShadow: "none",
                                 outline: "none",
                                 cursor: "pointer",
-                                zIndex: 50,
+                                zIndex: 110,
                                 display: "grid",
                                 placeItems: "center",
                                 padding: 0,
@@ -544,6 +608,7 @@ export default function WaitingRoomPage() {
                                 Prepare for battle
                             </Text>
                         </Box>
+
 
                         <Box style={{ padding: "14px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
                             <Group gap="lg">
@@ -683,61 +748,6 @@ export default function WaitingRoomPage() {
                         </Box>
                     </Box>
 
-                    {/* ── Side Modal (Spectators) ── */}
-                    {(spectators.length > 0 || isYouSpectator) && (
-                        <Box
-                            style={{
-                                width: "min(320px, 90vw)",
-                                maxHeight: "min(88vh, 700px)",
-                                borderRadius: 18,
-                                overflow: "hidden",
-                                boxShadow: "0 30px 90px rgba(0,0,0,0.5)",
-                                border: "1px solid rgba(150,200,255,0.15)",
-                                background: "rgba(10, 15, 25, 0.72)",
-                                backdropFilter: "blur(16px)",
-                                display: "flex",
-                                flexDirection: "column",
-                                animation: "slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1)", // แอนิเมชันให้สไลด์เข้ามาจากด้านขวา
-                            }}
-                        >
-                            <Box style={{ padding: "24px 24px 16px", borderBottom: "1px solid rgba(150,200,255,0.1)", background: "linear-gradient(180deg, rgba(80,160,255,0.06) 0%, transparent 100%)", flexShrink: 0 }}>
-                                <Title order={4} ta="center" style={{ color: "rgba(235,245,255,0.9)", letterSpacing: 2, textTransform: "uppercase" }}>
-                                    SPECTATORS
-                                </Title>
-                                <Text ta="center" size="xs" style={{ color: "rgba(150,200,255,0.5)", letterSpacing: 1, textTransform: "uppercase", marginTop: 4 }}>
-                                    {spectators.length} Watching
-                                </Text>
-                            </Box>
-
-                            <Box style={{ padding: "16px", flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10 }}>
-                                {spectators.length === 0 ? (
-                                    <Center style={{ flex: 1 }}>
-                                        <Text size="sm" style={{ color: "rgba(150,200,255,0.3)", letterSpacing: 1 }}>It's quiet here...</Text>
-                                    </Center>
-                                ) : (
-                                    spectators.map((s, i) => {
-                                        const isYou = s.id === playerId;
-                                        return (
-                                            <Box key={s.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderRadius: 10, background: isYou ? "rgba(80,160,255,0.1)" : "rgba(255,255,255,0.02)", border: isYou ? "1px solid rgba(80,160,255,0.3)" : "1px solid rgba(255,255,255,0.05)" }}>
-                                                <Box style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg, rgba(80,160,255,0.5), rgba(40,100,180,0.5))", border: "1px solid rgba(255,255,255,0.1)", display: "grid", placeItems: "center", flexShrink: 0 }}>
-                                                    <Text size="xs" fw={700} style={{ color: "rgba(255,255,255,0.9)" }}>{s.name.charAt(0).toUpperCase()}</Text>
-                                                </Box>
-                                                <Box>
-                                                    <Group gap={6} align="center">
-                                                        <Text size="sm" fw={600} style={{ color: "rgba(235,245,255,0.9)" }}>{s.name}</Text>
-                                                        {isYou && <Text size="xs" style={{ color: "rgba(150,200,255,0.6)", fontSize: 10 }}>(you)</Text>}
-                                                    </Group>
-                                                    <Text size="xs" style={{ color: "rgba(150,200,255,0.4)", marginTop: 2, fontSize: 10, textTransform: "uppercase", letterSpacing: 1 }}>
-                                                        Observing
-                                                    </Text>
-                                                </Box>
-                                            </Box>
-                                        );
-                                    })
-                                )}
-                            </Box>
-                        </Box>
-                    )}
                 </Group>
             </Center>
 
