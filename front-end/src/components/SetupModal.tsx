@@ -2,7 +2,8 @@ import { Modal, Stack, Title, Group, Button, Box, Text, Divider, Textarea } from
 import { useState, useEffect } from "react";
 import type { SetupModalProps } from "../props/SetupModalProps"
 
-export function SetupModal({ opened, onClose, onSave, unitType }: SetupModalProps) {
+// 👇 เพิ่ม onRun เข้ามาใน Props ที่รับมา
+export function SetupModal({ opened, onClose, onSave, onRun, unitType }: SetupModalProps) {
     const [strategy, setStrategy] = useState('');
 
     // ล้างค่าในช่องกรอกทุกครั้งที่เปิด Modal ใหม่
@@ -36,12 +37,12 @@ export function SetupModal({ opened, onClose, onSave, unitType }: SetupModalProp
                 <Textarea
                     label="STRATEGY PLAN"
                     placeholder="ระบุแผนการรบสำหรับตัวละครนี้ (เช่น เน้นตั้งรับแล้วสวนกลับ...)"
-                    minRows={4} // กำหนดจำนวนบรรทัดเริ่มต้น
-                    autosize    // ยืดขยายตามจำนวนตัวอักษรที่พิมพ์
+                    minRows={4}
+                    autosize
                     value={strategy}
                     onChange={(e) => setStrategy(e.currentTarget.value)}
                     styles={{
-                        input: { backgroundColor: '#2C2E33', color: 'white' },
+                        input: { backgroundColor: '#2C2E33', color: 'white', fontFamily: 'monospace' }, // เพิ่ม monospace ให้อ่านโค้ดง่ายขึ้น
                         label: { color: 'gray.4', marginBottom: 5 }
                     }}
                 />
@@ -50,6 +51,17 @@ export function SetupModal({ opened, onClose, onSave, unitType }: SetupModalProp
                     <Button variant="subtle" color="gray" onClick={onClose}>
                         CANCEL
                     </Button>
+
+                    {/* 👇 เพิ่มปุ่ม RUN ตรงนี้ 👇 */}
+                    <Button
+                        variant="light"
+                        color="teal"
+                        onClick={() => onRun && onRun(strategy)}
+                        disabled={!strategy.trim()}
+                    >
+                        ▶ RUN
+                    </Button>
+
                     <Button
                         color="blue"
                         onClick={() => { onSave(strategy); onClose(); }}
