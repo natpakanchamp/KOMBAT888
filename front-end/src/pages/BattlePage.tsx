@@ -91,18 +91,21 @@ export default function BattlePage() {
     const handleBuyHex = () => {
         if (!selectedHex || hasPurchasedThisTurn) return;
 
+        // หักเงินผู้เล่น
         if (currentTurn === 0) {
             setP1Budget(prev => prev - HEX_COST);
         } else {
             setP2Budget(prev => prev - HEX_COST);
         }
 
+        // เปลี่ยนสีช่องบนกระดาน
         setBoard(prev => ({
             ...prev,
             [`${selectedHex.col}-${selectedHex.row}`]: currentTurn === 0 ? 'LIGHT' : 'DARK'
         }));
 
         setHasPurchasedThisTurn(true);
+        // เปิดหน้าต่างลงมินเนียน
         setHexToSpawn({ col: selectedHex.col, row: selectedHex.row });
         setSelectedHex(null);
     };
@@ -116,6 +119,7 @@ export default function BattlePage() {
     const handleConfirmSpawn = (minionClass: string, cost: number) => {
         if (!hexToSpawn) return;
 
+        // หักเงินค่าลงมินเนียน
         if (currentTurn === 0) {
             setP1Budget(prev => prev - cost);
         } else {
@@ -124,7 +128,7 @@ export default function BattlePage() {
 
         console.log(`ผู้เล่น ${currentTurn + 1} ลง ${minionClass} ที่ช่อง [${hexToSpawn.col}, ${hexToSpawn.row}] จ่ายไป ${cost}`);
 
-        setHexToSpawn(null);
+        setHexToSpawn(null); // ปิดหน้าต่างลงมินเนียน
     };
 
     return (
