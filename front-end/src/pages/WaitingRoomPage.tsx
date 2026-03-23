@@ -12,6 +12,7 @@ import CloseButton from "../components/CloseButton";
 import SpectatorButton from "../components/SpectatorButton";
 import ManualWaitingPage from "./ManualWaitingPage.tsx";
 import type { RoomState } from "../type/RoomState.tsx"
+import { useSparkleTrail } from '../hooks/useSparkleTrail';
 
 export default function WaitingRoomPage() {
     const { roomId } = useParams();
@@ -43,6 +44,8 @@ export default function WaitingRoomPage() {
             return saved ? JSON.parse(saved) : [];
         } catch { return []; }
     });
+
+    useSparkleTrail();
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -556,19 +559,15 @@ export default function WaitingRoomPage() {
                             alt=""
                             style={{
                                 position: "absolute",
-                                top: -44, // ชิดขอบบนของ Waiting Room Box
-                                left: -29, // ชิดขอบซ้ายของ Waiting Room Box
-                                right: -45, // ชิดขอบขวาของ Waiting Room Box
-                                bottom: -40, // ชิดขอบล่างของ Waiting Room Box
-                                width: "calc(100% + 25px)", // กว้างเท่ากับ Waiting Room Box พอดี
-                                height: "calc(100% + 120px)", // สูงเท่ากับ Waiting Room Box พอดี
+                                inset: "-40px -60px -60px -100px",
+                                width: "calc(100% + 160px)",
+                                height: "calc(100% + 100px)",
                                 pointerEvents: "none",
                                 zIndex: 100,
                                 objectFit: "fill",
-                                borderRadius: 18,
                             }}
                         />
-                        <CloseButton onClick={() => navigate("/login")} top={40} right={95} size={32} style={{ zIndex: 110 }} />
+                        <CloseButton onClick={() => navigate("/login")} top={80} right={95} size={32} style={{ zIndex: 110 }} />
 
                         <Box style={{ padding: "28px 32px 20px", borderBottom: "1px solid rgba(250,176,5,0.15)", background: "linear-gradient(180deg, rgba(250,176,5,0.06) 0%, transparent 100%)", flexShrink: 0 }}>
                             <Title order={2} ta="center" style={{ color: "rgba(235,235,235,0.95)", letterSpacing: 3, textTransform: "uppercase", textShadow: "0 3px 18px rgba(0,0,0,0.9)", fontSize: "clamp(1.2rem, 3vw, 1.6rem)" }}>

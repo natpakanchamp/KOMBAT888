@@ -71,6 +71,24 @@ button:focus-visible {
   font-style: normal;
 }
 
+.cursor-wink-particle {
+  pointer-events: none;
+  user-select: none;
+}
+
+.custom-cursor {
+  position: fixed;
+  width: 20px;
+  height: 20px;
+  background-color: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 100000;
+  transform: translate(-50%, -50%);
+  transition: transform 0.1s ease-out;
+}
+
 /* ── Waiting Room Animations ── */
 @keyframes waitingPulse {
   0%, 100% { opacity: 0.4; }

@@ -1,12 +1,21 @@
 import { useState } from "react";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Box, Text } from "@mantine/core";
 import GearIcon from "./GearIcon";
+import { Howler } from "howler";
 
 export default function GearMenu() {
     const [open, setOpen] = useState(false);
+    const [muted, setMuted] = useState(() => sessionStorage.getItem("bgmMuted") === "true");
     const navigate = useNavigate();
     const location = useLocation();
+
+    const toggleMute = () => {
+        const next = !muted;
+        Howler.mute(next);
+        sessionStorage.setItem("bgmMuted", String(next));
+        setMuted(next);
+    };
 
     // เช็คว่าอยู่หน้า battle หรือไม่
     const isBattle = location.pathname.startsWith("/battle/");
@@ -92,6 +101,11 @@ export default function GearMenu() {
                             onClick={() => { if (!waitingRoomDisabled) { setOpen(false); navigate("/waitingRoom"); } }}
                             disabled={waitingRoomDisabled}
                         />
+                        <MenuItem
+                            label={muted ? "🔇 Unmute Music" : "🔊 Mute Music"}
+                            onClick={toggleMute}
+                            variant="mute"
+                        />
                         <MenuItem label="Close" onClick={() => setOpen(false)} variant="close" />
                     </Box>
                 </Box>
@@ -100,25 +114,25 @@ export default function GearMenu() {
     );
 }
 
-function MenuItem({ label, onClick, variant, disabled }: { label: string; onClick: () => void; variant?: "close"; disabled?: boolean }) {
+function MenuItem({ label, onClick, variant, disabled }: { label: string; onClick: () => void; variant?: "close" | "mute"; disabled?: boolean }) {
     const isClose = variant === "close";
+    const isMute = variant === "mute";
+    const bg = disabled ? "rgba(255,255,255,0.03)" : isClose ? "rgba(255,255,255,0.05)" : isMute ? "rgba(80,120,255,0.1)" : "linear-gradient(180deg, rgba(250,176,5,0.15), rgba(250,176,5,0.05))";
+    const border = disabled ? "1px solid rgba(255,255,255,0.05)" : isClose ? "1px solid rgba(255,255,255,0.1)" : isMute ? "1px solid rgba(80,120,255,0.25)" : "1px solid rgba(250,176,5,0.2)";
+    const color = disabled ? "rgba(230,230,230,0.25)" : isClose ? "rgba(230,230,230,0.6)" : "rgba(230,230,230,0.9)";
     return (
         <Box
             component="button"
             onClick={disabled ? undefined : onClick}
             style={{
-                background: disabled
-                    ? "rgba(255,255,255,0.03)"
-                    : isClose ? "rgba(255,255,255,0.05)" : "linear-gradient(180deg, rgba(250,176,5,0.15), rgba(250,176,5,0.05))",
-                border: disabled
-                    ? "1px solid rgba(255,255,255,0.05)"
-                    : isClose ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(250,176,5,0.2)",
+                background: bg,
+                border,
                 borderRadius: 10,
                 padding: "10px 20px",
                 cursor: disabled ? "not-allowed" : "pointer",
                 outline: "none",
                 transition: "all 0.2s ease",
-                color: disabled ? "rgba(230,230,230,0.25)" : isClose ? "rgba(230,230,230,0.6)" : "rgba(230,230,230,0.9)",
+                color,
                 fontSize: 14,
                 fontWeight: 600,
                 letterSpacing: 1,
@@ -127,15 +141,11 @@ function MenuItem({ label, onClick, variant, disabled }: { label: string; onClic
             }}
             onMouseEnter={(e) => {
                 if (disabled) return;
-                e.currentTarget.style.background = isClose
-                    ? "rgba(255,255,255,0.1)"
-                    : "linear-gradient(180deg, rgba(250,176,5,0.3), rgba(250,176,5,0.1))";
+                e.currentTarget.style.background = isClose ? "rgba(255,255,255,0.1)" : isMute ? "rgba(80,120,255,0.2)" : "linear-gradient(180deg, rgba(250,176,5,0.3), rgba(250,176,5,0.1))";
             }}
             onMouseLeave={(e) => {
                 if (disabled) return;
-                e.currentTarget.style.background = isClose
-                    ? "rgba(255,255,255,0.05)"
-                    : "linear-gradient(180deg, rgba(250,176,5,0.15), rgba(250,176,5,0.05))";
+                e.currentTarget.style.background = bg;
             }}
         >
             {label}
