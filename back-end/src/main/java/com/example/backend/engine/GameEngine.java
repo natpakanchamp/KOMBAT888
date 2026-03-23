@@ -1,12 +1,15 @@
 package com.example.backend.engine;
 
+import com.example.backend.dto.GameSummaryDto;
 import com.example.backend.dto.RoomDtos;
 import com.example.backend.model.engine.GameConfig;
 import com.example.backend.model.engine.GameState;
 import com.example.backend.model.engine.Unit;
+import com.example.backend.model.engine.MatchResult ;
 
 import java.util.List;
 import java.util.Map;
+
 
 public class GameEngine {
 
@@ -68,7 +71,7 @@ public class GameEngine {
         System.out.println("--- Player 2's Turn ---");
         gameState.setCurrentTurn(gameState.getCurrentTurn() + 1);
     }
-
+    // ตรงนี้ใช้ lombok ได้
     public GameState getGameState() {
 
         return gameState;
@@ -78,4 +81,54 @@ public class GameEngine {
 
         return gameState.getCurrentTurn() > gameState.getMaxTurns();
     }
+
+    public GameSummaryDto createSummary() {
+        // find winner
+        MatchResult result  = gameState.getCurrentTurn()  > gameState.getMaxTurns()
+        ? gameState.evaluateTimeOutWinner() // หมดเวลา
+        : gameState.checkNormalWin() ;
+
+        String winner = switch (result) {
+            case PLAYER1_WINS -> "PLAYER1";
+            case PLAYER2_WINS -> "PLAYER2";
+            case DRAW         -> "DRAW";
+            case ONGOING      -> "ONGOING"; // case ถูกเรียกก่อนจบเกม
+        };
+
+        String loser = switch (result) {
+            case PLAYER1_WINS -> "PLAYER2";
+            case PLAYER2_WINS -> "PLAYER1";
+            case DRAW         -> "DRAW";
+            case ONGOING      -> "ONGOING";
+        };
+
+
+        // สร้าง playerSummary ของแต่ละ player
+        GameSummaryDto.playerSummary p1 = new GameSummaryDto.playerSummary(
+                gameState.getP1Budget(),
+                gameState. countActiveUnits(1),
+                gameState.sumHP(1),
+                gameState.countOwnerHexs(1)
+        );
+        GameSummaryDto.playerSummary p2 = new GameSummaryDto.playerSummary(
+                gameState.getP2Budget(),
+                gameState. countActiveUnits(2),
+                gameState.sumHP(2),
+                gameState.countOwnerHexs(2)
+        );
+
+
+        // return Dto Summary
+
+        return new GameSummaryDto(
+                winner ,
+                loser ,
+                gameState.getCurrentTurn() - 1  ,
+                p1,
+                p2
+        );
+
+    }
+
+
 }

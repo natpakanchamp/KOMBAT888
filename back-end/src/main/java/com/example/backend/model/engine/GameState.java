@@ -332,4 +332,37 @@ public class GameState {
         if (this.p2Budget > this.p1Budget) return MatchResult.PLAYER2_WINS;
         return MatchResult.DRAW;
     }
+
+    // ======== add  method for summary Game =========
+    // นับจำนวน minion ที่เหลือของแต่ละฝั่ง
+    public int countActiveUnits(int owner ) {
+        int activeUnits = 0;
+        for (Unit unit : this.units) {
+            if (unit.isAlive() && unit.getOwner() == owner )   activeUnits ++;
+
+        }
+        return activeUnits;
+    }
+
+    // total Hp of All minion
+    public int sumHP(int owner ) {
+        int totalHp = 0 ;
+        for (Unit  unit : this.units) {
+            if (unit.isAlive()  && unit.getOwner() == owner )   totalHp += unit.getHP();
+        }
+        return totalHp;
+    }
+    // total Hex ที่แต่ละผู้เล่น เป็น เจ้าของ
+    public int countOwnerHexs (int owner ) {
+        int countHex = 0;
+        for (int r = 0; r < boardRows; r++)
+            for (int c = 0; c < boardCols; c++) {
+                if (hexOwnership[r][c] == owner) countHex++;
+
+            }
+        return countHex;
+    }
+
+
+
 }

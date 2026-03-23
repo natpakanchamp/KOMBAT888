@@ -1,5 +1,6 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.GameSummaryDto;
 import com.example.backend.model.engine.GameState;
 import com.example.backend.service.GameService;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class GameController {
 
     @GetMapping("/state")
     public GameState getState(@PathVariable String roomId) {
+
         return gameService.getState(roomId);
     }
 
@@ -36,6 +38,11 @@ public class GameController {
         return gameService.isGameOver(roomId);
     }
 
+
+    @GetMapping("/summary")
+    public GameSummaryDto getSummary(@PathVariable String roomId) {
+        return gameService.getSummary(roomId) ;
+    }
     // ---- error mapping ----
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<?> notFound(NoSuchElementException e) {

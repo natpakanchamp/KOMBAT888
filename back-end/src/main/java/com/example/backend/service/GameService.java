@@ -1,5 +1,6 @@
 package com.example.backend.service;
 
+import com.example.backend.dto.GameSummaryDto;
 import com.example.backend.dto.RoomDtos;
 import com.example.backend.engine.GameEngine;
 import com.example.backend.model.engine.GameState;
@@ -66,4 +67,14 @@ public class GameService {
         }
         return engine;
     }
-}
+
+    public GameSummaryDto getSummary(String roomId) {
+
+        GameEngine engine = mustGetEngine(roomId);
+        return engine.createSummary();
+    }
+
+        // API หลังทำเสร็จ
+        //GET /api/game/{roomId}/summary
+    }
+
