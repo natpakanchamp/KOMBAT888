@@ -3,9 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { Box, Center, Text, Image, UnstyledButton, Stack } from "@mantine/core";
 import logo from "../assets/logo.png";
 import playBtn from "../assets/play.png";
+import { useSparkleTrail } from '../hooks/useSparkleTrail';
 
 export default function HomePage() {
     const navigate = useNavigate();
+
+    // เรียกใช้ Hook วิบวับ
+    useSparkleTrail();
 
     return (
         <Box style={{ minHeight: "100vh", position: "relative" }}>

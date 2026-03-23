@@ -8,11 +8,13 @@ import caster from "../assets/caster.png";
 import berserker from "../assets/berserker.png";
 import CloseButton from "../components/CloseButton";
 import kombat888_login from "../assets/kombat888_login.png";
+import { useSparkleTrail } from '../hooks/useSparkleTrail';
 
 export default function LoginPage() {
     const [userName, setUserName] = useState("");
     const navigate = useNavigate();
     const [showManual, setShowManual] = useState(false);
+    useSparkleTrail();
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
