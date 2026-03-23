@@ -2,19 +2,26 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Box, Text } from "@mantine/core";
 import GearIcon from "./GearIcon";
-import { Howler } from "howler";
+import { getHowl } from "../hooks/useBGM";
 
 export default function GearMenu() {
     const [open, setOpen] = useState(false);
-    const [muted, setMuted] = useState(() => sessionStorage.getItem("bgmMuted") === "true");
+    const [bgmMuted, setBgmMuted] = useState(() => sessionStorage.getItem("bgmMuted") === "true");
+    const [sfxMuted, setSfxMuted] = useState(() => sessionStorage.getItem("sfxMuted") === "true");
     const navigate = useNavigate();
     const location = useLocation();
 
-    const toggleMute = () => {
-        const next = !muted;
-        Howler.mute(next);
+    const toggleBgmMute = () => {
+        const next = !bgmMuted;
+        getHowl().mute(next);
         sessionStorage.setItem("bgmMuted", String(next));
-        setMuted(next);
+        setBgmMuted(next);
+    };
+
+    const toggleSfxMute = () => {
+        const next = !sfxMuted;
+        sessionStorage.setItem("sfxMuted", String(next));
+        setSfxMuted(next);
     };
 
     // เช็คว่าอยู่หน้า battle หรือไม่
@@ -102,8 +109,13 @@ export default function GearMenu() {
                             disabled={waitingRoomDisabled}
                         />
                         <MenuItem
-                            label={muted ? "🔇 Unmute Music" : "🔊 Mute Music"}
-                            onClick={toggleMute}
+                            label={bgmMuted ? "🔇 Unmute Music" : "🔊 Mute Music"}
+                            onClick={toggleBgmMute}
+                            variant="mute"
+                        />
+                        <MenuItem
+                            label={sfxMuted ? "🔇 Unmute SFX" : "🔊 Mute SFX"}
+                            onClick={toggleSfxMute}
                             variant="mute"
                         />
                         <MenuItem label="Close" onClick={() => setOpen(false)} variant="close" />

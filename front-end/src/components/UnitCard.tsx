@@ -1,6 +1,7 @@
 // src/components/UnitCard.tsx
 import { Box, Image, Text, Stack, Button } from '@mantine/core';
 import { useState } from 'react';
+import { playSFX, SFX } from "../hooks/useSFX";
 import type { UnitCardProps } from "../props/UnitCardProps.tsx";
 
 export function UnitCard({
@@ -17,6 +18,7 @@ export function UnitCard({
     const [isFlipped, setIsFlipped] = useState(initialFlipped);
 
     const handleFlip = () => {
+        playSFX(SFX.YES_YES, 1);
         const next = !isFlipped;
         setIsFlipped(next);
         onFlip?.(next);

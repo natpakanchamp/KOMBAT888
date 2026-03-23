@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Howl, Howler } from 'howler';
+import { Howl } from 'howler';
 
 const bgmFile = '/bgm/Giorno_Theme_normal.mp3';
 
@@ -11,7 +11,7 @@ export function getHowl(): Howl {
         sharedHowl = new Howl({
             src: [bgmFile],
             loop: true,
-            volume: 0.4,
+            volume: 0.2,
             mute: isMuted,
             onend: () => { sharedHowl?.play(); },
         });
@@ -26,8 +26,7 @@ export const useBGM = (shouldPlay: boolean) => {
         const howl = getHowl();
 
         if (shouldPlay && !playingRef.current) {
-            // apply mute state จาก sessionStorage ก่อนเล่น
-            Howler.mute(sessionStorage.getItem("bgmMuted") === "true");
+            howl.mute(sessionStorage.getItem("bgmMuted") === "true");
             howl.play();
             playingRef.current = true;
         } else if (!shouldPlay && playingRef.current) {
