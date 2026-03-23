@@ -95,6 +95,11 @@ button:focus-visible {
   50% { opacity: 1; }
 }
 
+@keyframes fadeInBlack {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
 @keyframes readyGlow {
   0%, 100% { box-shadow: 0 0 8px rgba(250, 176, 5, 0.3), inset 0 0 12px rgba(250, 176, 5, 0.05); }
   50% { box-shadow: 0 0 18px rgba(250, 176, 5, 0.5), inset 0 0 20px rgba(250, 176, 5, 0.1); }

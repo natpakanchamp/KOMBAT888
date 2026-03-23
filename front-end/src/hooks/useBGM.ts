@@ -13,10 +13,30 @@ export function getHowl(): Howl {
             loop: true,
             volume: 0.2,
             mute: isMuted,
-            onend: () => { sharedHowl?.play(); },
         });
     }
     return sharedHowl;
+}
+
+export function fadeOutBGM(durationMs = 3000) {
+    const howl = getHowl();
+    const startVol = howl.volume();
+    const steps = 30;
+    const interval = durationMs / steps;
+    const decrement = startVol / steps;
+    let current = startVol;
+
+    const timer = setInterval(() => {
+        current -= decrement;
+        if (current <= 0) {
+            howl.volume(0);
+            howl.stop();
+            howl.volume(startVol); // reset volume for next play
+            clearInterval(timer);
+        } else {
+            howl.volume(current);
+        }
+    }, interval);
 }
 
 export const useBGM = (shouldPlay: boolean) => {

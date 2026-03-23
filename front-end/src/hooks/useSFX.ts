@@ -17,4 +17,5 @@ export function playSFX(src: string, volume = 0.6) {
 // เสียงที่ใช้บ่อย export ไว้เลย
 export const SFX = {
     YES_YES: '/sfx/yes-yes.mp3',
+    WRYYY: '/sfx/Wryyy.mp3',
 };
