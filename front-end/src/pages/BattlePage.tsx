@@ -35,9 +35,7 @@ export default function BattlePage() {
     const isSpectator = roomId ? sessionStorage.getItem(`isSpectator_${roomId}`) === "true" : false;
     const [currentTurn, setCurrentTurn] = useState<number>(0);
 
-    // State นับหมายเลขเทิร์น (เริ่มที่ 1)
     const [turnCount, setTurnCount] = useState<number>(1);
-
     const [hasPurchasedThisTurn, setHasPurchasedThisTurn] = useState<boolean>(false);
 
     const [board, setBoard] = useState<Record<string, HexState>>(initializeBoard());
@@ -83,8 +81,14 @@ export default function BattlePage() {
     const handleHexagonClick = (c: number, r: number) => {
         if (isSpectator) return;
         const key = `${c}-${r}`;
+        const clickedState = board[key];
+        const myColor = currentTurn === 0 ? 'LIGHT' : 'DARK';
+
         if (purchasableHexes.has(key)) {
             setSelectedHex({ col: c, row: r });
+        } else if (clickedState === myColor) {
+            setSelectedHex(null);
+            setHexToSpawn({ col: c, row: r });
         } else {
             setSelectedHex(null);
         }
@@ -107,9 +111,8 @@ export default function BattlePage() {
         }));
 
         setHasPurchasedThisTurn(true);
-        // เปิดหน้าต่างลงมินเนียน
-        setHexToSpawn({ col: selectedHex.col, row: selectedHex.row });
         setSelectedHex(null);
+        // 👇 เอาคำสั่งเปิดหน้าต่างมินเนียนออกไปแล้วครับ ซื้อเสร็จก็จบแค่นี้ ให้ผู้เล่นไปคลิกเลือกช่องเอง
     };
 
     const handleSkipHex = () => {
@@ -131,6 +134,24 @@ export default function BattlePage() {
         console.log(`ผู้เล่น ${currentTurn + 1} ลง ${minionClass} ที่ช่อง [${hexToSpawn.col}, ${hexToSpawn.row}] จ่ายไป ${cost}`);
 
         setHexToSpawn(null); // ปิดหน้าต่างลงมินเนียน
+
+        // บังคับจบเทิร์นทันทีที่ลงมินเนียนเสร็จ
+        if (currentTurn === 1) {
+            setTurnCount(prev => prev + 1);
+        }
+        setCurrentTurn(currentTurn === 0 ? 1 : 0);
+        setSelectedHex(null);
+        setHasPurchasedThisTurn(false);
+    };
+
+    const handleEndTurn = () => {
+        if (currentTurn === 1) {
+            setTurnCount(prev => prev + 1);
+        }
+        setCurrentTurn(currentTurn === 0 ? 1 : 0);
+        setSelectedHex(null);
+        setHasPurchasedThisTurn(false);
+        setHexToSpawn(null);
     };
 
     return (
@@ -227,20 +248,11 @@ export default function BattlePage() {
                     canAfford={p2Budget >= HEX_COST} hasPurchased={currentTurn === 1 && hasPurchasedThisTurn}
                 />
             </Stack>
-            
-            {/* ปุ่มจบเทิร์น */}
+
+            {/* ปุ่มจบเทิร์น (สำหรับกดข้ามกรณีไม่ได้ซื้อมินเนียน) */}
             <Button
                 style={{ position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}
-                onClick={() => {
-                    // เมื่อจบเทิร์นของ Player 2 จะบวกหมายเลขเทิร์นเพิ่มไป 1
-                    if (currentTurn === 1) {
-                        setTurnCount(prev => prev + 1);
-                    }
-                    setCurrentTurn(currentTurn === 0 ? 1 : 0);
-                    setSelectedHex(null);
-                    setHasPurchasedThisTurn(false);
-                    setHexToSpawn(null);
-                }}
+                onClick={handleEndTurn}
             >
                 จบเทิร์น (สลับไป P{currentTurn === 0 ? 2 : 1})
             </Button>

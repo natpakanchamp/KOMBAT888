@@ -31,7 +31,7 @@ export function PurchasePanel({ isActive, themeColor, borderColor, selectedHex, 
 
                 {hasPurchased ? (
                     <Text size="sm" c="dimmed" ta="center" py="xl">
-                        คุณใช้สิทธิ์ไปแล้วในเทิร์นนี้<br/>(จำกัด 1 ครั้ง/เทิร์น)
+                        คลิกเลือกพื้นที่ที่เป็นเจ้าของ<br/>เพื้อซื้อมินเนียน
                     </Text>
                 ) : selectedHex ? (
                     <>
