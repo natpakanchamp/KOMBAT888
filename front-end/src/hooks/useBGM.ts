@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Howl, Howler } from 'howler';
-import bgmFile from '../../public/bgm/battle-theme.mp3';
+
+const bgmFile = '/bgm/Giorno_Theme_normal.mp3';
 
 let sharedHowl: Howl | null = null;
 
@@ -11,8 +12,8 @@ export function getHowl(): Howl {
             src: [bgmFile],
             loop: true,
             volume: 0.4,
-            html5: true,
             mute: isMuted,
+            onend: () => { sharedHowl?.play(); },
         });
     }
     return sharedHowl;
