@@ -30,7 +30,7 @@ export default function HomePage() {
                 <Stack align="center" gap={100}>
                     <Image src={logo} alt="Game Logo" w={500} />
 
-                    <UnstyledButton onClick={() => navigate("/login")}>
+                    <UnstyledButton onClick={() => { sessionStorage.setItem("bgmStarted", "true"); navigate("/login"); }}>
                         <Image
                             src={playBtn}
                             w={400}

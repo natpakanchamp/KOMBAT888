@@ -559,16 +559,12 @@ export default function WaitingRoomPage() {
                             alt=""
                             style={{
                                 position: "absolute",
-                                top: -44, // ชิดขอบบนของ Waiting Room Box
-                                left: -29, // ชิดขอบซ้ายของ Waiting Room Box
-                                right: -45, // ชิดขอบขวาของ Waiting Room Box
-                                bottom: -40, // ชิดขอบล่างของ Waiting Room Box
-                                width: "calc(100% + 25px)", // กว้างเท่ากับ Waiting Room Box พอดี
-                                height: "calc(100% + 120px)", // สูงเท่ากับ Waiting Room Box พอดี
+                                inset: "-40px -60px -60px -100px",
+                                width: "calc(100% + 160px)",
+                                height: "calc(100% + 100px)",
                                 pointerEvents: "none",
                                 zIndex: 100,
                                 objectFit: "fill",
-                                borderRadius: 18,
                             }}
                         />
                         <CloseButton onClick={() => navigate("/login")} top={40} right={95} size={32} style={{ zIndex: 110 }} />
