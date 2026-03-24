@@ -22,11 +22,11 @@ public class StrategyFactory {
                 // ใช้ Text Block (พิมพ์ """ แล้วขึ้นบรรทัดใหม่)
                 // จุดไหนที่ต้องการแทรกตัวแปร ให้ใส่ %s
                 script = """
-                        if (Budget) then
-                            move %s
-                        else
-                            done
-                        """.formatted(forward);
+                if (nearby %s) then
+                    shoot %s 1
+                else
+                    move %s
+                """.formatted(forward, forward, forward); // พิมพ์ forward เข้าไป 3 ครั้ง
                 break;
 
             case Unit.TYPE_ARCHER:
