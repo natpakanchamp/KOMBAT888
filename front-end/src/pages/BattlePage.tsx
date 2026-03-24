@@ -15,7 +15,6 @@ import type { UnitData } from '../components/MinionToken';
 import { setBattleHowl } from '../hooks/useBGM';
 
 
-const HEX_COST = 150;
 const ROWS = 8;
 const COLS = 8;
 
@@ -114,6 +113,19 @@ export default function BattlePage() {
         return () => { client.deactivate(); };
     }, [roomId]);
 
+    // ดึง config จาก backend
+    useEffect(() => {
+        if (!roomId) return;
+        fetch(`/api/game/${roomId}/config`)
+            .then(r => r.ok ? r.json() : null)
+            .then(cfg => {
+                if (!cfg) return;
+                if (cfg.hexPurchaseCost !== undefined) setHexCost(cfg.hexPurchaseCost);
+                if (cfg.spawnCost !== undefined) setSpawnCost(cfg.spawnCost);
+            })
+            .catch(() => {});
+    }, [roomId]);
+
     // ดึง state ครั้งแรก
     useEffect(() => {
         if (!roomId) return;
@@ -133,6 +145,8 @@ export default function BattlePage() {
 
     const [turnCount, setTurnCount] = useState<number>(1);
     const [maxTurns, setMaxTurns] = useState<number>(0);
+    const [hexCost, setHexCost] = useState<number>(750);
+    const [spawnCost, setSpawnCost] = useState<number>(500);
     const [hasPurchasedThisTurn, setHasPurchasedThisTurn] = useState<boolean>(false);
 
     const [board, setBoard] = useState<Record<string, HexState>>(initializeBoard());
@@ -285,6 +299,7 @@ export default function BattlePage() {
                     col={hexToSpawn.col}
                     row={hexToSpawn.row}
                     budget={currentTurn === 0 ? p1Budget : p2Budget}
+                    spawnCost={spawnCost}
                     availableMinions={currentTurn === 0 ? p1SelectedMinions : p2SelectedMinions}
                     themeColor={currentTurn === 0 ? 'yellow' : 'violet'}
                     onConfirmSpawn={handleConfirmSpawn}
@@ -300,7 +315,7 @@ export default function BattlePage() {
                     isActive={currentTurn === 0} themeColor="yellow" borderColor="#FAB005"
                     selectedHex={currentTurn === 0 ? selectedHex : null}
                     onBuy={handleBuyHex} onSkip={handleSkipHex}
-                    canAfford={p1Budget >= HEX_COST} hasPurchased={currentTurn === 0 && hasPurchasedThisTurn}
+                    canAfford={p1Budget >= hexCost} hasPurchased={currentTurn === 0 && hasPurchasedThisTurn}
                 />
             </Stack>
 
@@ -353,7 +368,7 @@ export default function BattlePage() {
                     isActive={currentTurn === 1} themeColor="violet" borderColor="#7048E8"
                     selectedHex={currentTurn === 1 ? selectedHex : null}
                     onBuy={handleBuyHex} onSkip={handleSkipHex}
-                    canAfford={p2Budget >= HEX_COST} hasPurchased={currentTurn === 1 && hasPurchasedThisTurn}
+                    canAfford={p2Budget >= hexCost} hasPurchased={currentTurn === 1 && hasPurchasedThisTurn}
                 />
             </Stack>
 

@@ -73,8 +73,11 @@ public class GameEngine {
     }
     // ตรงนี้ใช้ lombok ได้
     public GameState getGameState() {
-
         return gameState;
+    }
+
+    public GameConfig getConfig() {
+        return config;
     }
 
     public boolean isGameOver() {

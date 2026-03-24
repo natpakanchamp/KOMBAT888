@@ -2,6 +2,7 @@ package com.example.backend.controller;
 
 import com.example.backend.dto.GameSummaryDto;
 import com.example.backend.dto.RoomDtos;
+import com.example.backend.model.engine.GameConfig;
 import com.example.backend.model.engine.GameState;
 import com.example.backend.service.GameService;
 import lombok.RequiredArgsConstructor;
@@ -49,8 +50,14 @@ public class GameController {
 
     @PostMapping("/spawn")
     public ResponseEntity<?> spawnUnit(@PathVariable String roomId, @RequestBody RoomDtos.SpawnUnitRequest req) {
-        gameService.spawnUnit(roomId, req.player(), req.minionType(), req.row(), req.col());
+        boolean ok = gameService.spawnUnit(roomId, req.player(), req.minionType(), req.row(), req.col());
+        if (!ok) return ResponseEntity.badRequest().body(new ErrorBody("Cannot spawn: insufficient budget"));
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/config")
+    public GameConfig getConfig(@PathVariable String roomId) {
+        return gameService.getConfig(roomId);
     }
 
     @GetMapping("/summary")

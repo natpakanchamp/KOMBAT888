@@ -135,8 +135,17 @@ public class GameState {
     }
 
     public boolean buyHex(int row, int col, int player, long cost) {
-        if (player == 1 && p1Budget >= cost) { p1BudgetExact -= cost; hexOwnership[row][col] = player; return true; }
-        else if (player == 2 && p2Budget >= cost) { p2BudgetExact -= cost; hexOwnership[row][col] = player; return true; }
+        if (player == 1 && p1Budget >= cost) {
+            p1BudgetExact -= cost;
+            p1Budget = (long) p1BudgetExact;
+            hexOwnership[row][col] = player;
+            return true;
+        } else if (player == 2 && p2Budget >= cost) {
+            p2BudgetExact -= cost;
+            p2Budget = (long) p2BudgetExact;
+            hexOwnership[row][col] = player;
+            return true;
+        }
         return false;
     }
 
@@ -149,8 +158,15 @@ public class GameState {
     public boolean isWithinBounds(int row, int col) { return row >= 0 && row < boardRows && col >= 0 && col < boardCols; }
 
     public boolean pay(Unit unit, long cost) {
-        if (unit.getOwner() == 1 && this.p1Budget >= cost) { this.p1BudgetExact -= cost; return true; }
-        else if (unit.getOwner() == 2 && this.p2Budget >= cost) { this.p2BudgetExact -= cost; return true; }
+        if (unit.getOwner() == 1 && this.p1Budget >= cost) {
+            this.p1BudgetExact -= cost;
+            this.p1Budget = (long) this.p1BudgetExact;
+            return true;
+        } else if (unit.getOwner() == 2 && this.p2Budget >= cost) {
+            this.p2BudgetExact -= cost;
+            this.p2Budget = (long) this.p2BudgetExact;
+            return true;
+        }
         return false;
     }
 
