@@ -8,14 +8,16 @@ import java.util.Map;
 
 public record WhileStatement(Expr condition, Statement body) implements Statement {
     @Override
-    public void execute(GameState state, Unit currentUnit, Map<String, Long> localVars, Map<String, Long> globalVars) throws EvalError {
+    public void execute(GameState state, Unit currentUnit, Map<String,
+            Long> localVars, Map<String, Long> globalVars) throws EvalError {
+
         int loopCount = 0; // ป้องกัน Infinite Loop (Optional safety)
 
-        // [UPDATE] ตามกฎ: Positive (>0) is True
-        while (condition.eval(state, currentUnit, localVars, globalVars) > 0) {
-            if (loopCount++ > 1000) throw new EvalError("Infinite loop detected");
-
+        // แค่หยุด loop ไม่ต้อง throw err ตาม spec
+        while (loopCount < 10000 &&
+                condition.eval(state, currentUnit, localVars, globalVars) > 0) {
             body.execute(state, currentUnit, localVars, globalVars);
+            loopCount++;
         }
     }
 }

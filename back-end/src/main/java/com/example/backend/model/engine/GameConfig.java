@@ -23,7 +23,7 @@ public class GameConfig {
         GameConfig config = new GameConfig();
 
         // 1. ตั้งค่า Default เผื่อกรณีหาไฟล์ไม่เจอ (อิงจาก Sample ในรูป)
-        config.spawnCost = 100;
+        config.spawnCost = 500;
         config.hexPurchaseCost = 1000;
         config.initBudget = 10000;
         config.initHp = 100;

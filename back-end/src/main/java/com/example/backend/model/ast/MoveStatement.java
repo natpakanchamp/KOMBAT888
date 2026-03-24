@@ -9,7 +9,9 @@ public record MoveStatement(String directionStr) implements Statement {
     private static final DirectionAdapter adapter = new StringToDirectionAdapter();
 
     @Override
-    public void execute(GameState state, Unit currentUnit, Map<String, Long> localVars, Map<String, Long> globalVars) throws EvalError {
+    public void execute(GameState state, Unit currentUnit,
+                        Map<String, Long> localVars, Map<String,
+                    Long> globalVars) throws EvalError {
         // ขั้นตอน 1: Adapt ข้อมูลทิศทาง
         DIRECTION dir = adapter.adapt(directionStr);
 

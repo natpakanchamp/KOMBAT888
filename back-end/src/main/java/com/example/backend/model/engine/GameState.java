@@ -35,6 +35,11 @@ public class GameState {
     private long p1RemainingSpawns;
     private long p2RemainingSpawns;
 
+
+    private int p1TurnCount ;
+    private int p2TurnCount ;
+
+
     // ==========================================
     // Constructor รับ GameConfig
     // ==========================================
@@ -56,6 +61,9 @@ public class GameState {
         this.p2BudgetExact = config.getInitBudget();
 
         this.currentTurn = 1;
+        this.p1TurnCount = 0;
+        this.p2TurnCount = 0;
+
 
         this.units = new ArrayList<>();
         this.globalVars = new HashMap<>();
@@ -75,6 +83,8 @@ public class GameState {
             this.hexOwnership[lastRow][lastCol - 2] = 2;     this.hexOwnership[lastRow][lastCol - 1] = 2;
             this.hexOwnership[lastRow][lastCol] = 2;
         }
+
+
     }
 
 
@@ -254,7 +264,7 @@ public class GameState {
                             // เก็บค่าน้อยสุด
                             if (val < bestValue) {
                                 bestValue = val;
-                                found = false;
+                                found = true;
 
                             }
                         }
