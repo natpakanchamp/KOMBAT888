@@ -42,6 +42,18 @@ export default function BattlePage() {
         return () => clearTimeout(timer);
     }, []);
 
+    // เล่น BGM เมื่อเข้าหน้า และหยุดเมื่อออกจากหน้า
+    useEffect(() => {
+        const battleBGM = new Howl({
+            src: ['/bgm/battle-bgm.mp3'],
+            loop: true,
+            volume: 0.3,
+            mute: sessionStorage.getItem("bgmMuted") === "true",
+        });
+        battleBGM.play();
+        return () => { battleBGM.stop(); }; // cleanup เมื่อออกจากหน้า
+    }, []);
+
     // State นับหมายเลขเทิร์น (เริ่มที่ 1)
     const [turnCount, setTurnCount] = useState<number>(1);
     const [hasPurchasedThisTurn, setHasPurchasedThisTurn] = useState<boolean>(false);

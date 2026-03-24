@@ -72,3 +72,8 @@ export const useSparkleTrail = () => {
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, []);
 };
+
+/* Credit:
+ * https://custom-cursor.com/cursor-trails/sparkles-and-twinkles/glitter
+ * https://webdesign.tutsplus.com/javascript-sparkle-cursor--cms-109158t
+ */
