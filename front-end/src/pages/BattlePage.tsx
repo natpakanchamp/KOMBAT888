@@ -181,12 +181,18 @@ export default function BattlePage() {
         const clickedState = board[key];
         const myColor = currentTurn === 0 ? 'LIGHT' : 'DARK';
 
+        // 👇 เช็คว่าช่องที่คลิก มีมินเนียนยืนอยู่แล้วหรือยัง?
+        const isOccupied = units.some(u => u.col === c && u.row === r);
+
         if (purchasableHexes.has(key)) {
             setSelectedHex({ col: c, row: r });
-        } else if (clickedState === myColor) {
+        }
+        // 👇 เพิ่มเงื่อนไข !isOccupied (ต้องไม่มีคนยืนอยู่) ถึงจะเปิดหน้าต่างลงมินเนียนได้
+        else if (clickedState === myColor && !isOccupied) {
             setSelectedHex(null);
             setHexToSpawn({ col: c, row: r });
-        } else {
+        }
+        else {
             setSelectedHex(null);
         }
     };
@@ -202,7 +208,7 @@ export default function BattlePage() {
         if (res.ok) {
             setHasPurchasedThisTurn(true);
             setSelectedHex(null); // ซื้อเสร็จเคลียร์ช่องที่เลือก
-            // 👇 เอา setHexToSpawn ออก เพื่อไม่ให้เด้งหน้าต่าง Spawn อัตโนมัติ
+            // เอา setHexToSpawn ออก เพื่อไม่ให้เด้งหน้าต่าง Spawn อัตโนมัติ
         }
     };
 
