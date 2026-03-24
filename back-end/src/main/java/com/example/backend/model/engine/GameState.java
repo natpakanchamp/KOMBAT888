@@ -192,6 +192,7 @@ public class GameState {
         return true;
     }
 
+    // ระบบยิง ให้ค้นหาเป้าหมายทะลุแมพตามทิศทาง
     public void shoot(Unit currentUnit, String direction, long expenditure) {
         int[] offset = getDirectionOffset(direction);
         int targetRow = currentUnit.getRow() + offset[0];
@@ -275,6 +276,7 @@ public class GameState {
         return 0;
     }
 
+    // นับจำนวน Unit ที่ยังมีชีวิตอยู่
     public int countActiveUnits(int player) {
         int count = 0;
         for (Unit unit : this.units) {
@@ -285,6 +287,7 @@ public class GameState {
         return count;
     }
 
+    // หาผลรวม HP ของ Unit ที่ยังมีชีวิตอยู่
     public int sumHP(int player) {
         int totalHP = 0;
         for (Unit unit : this.units) {
@@ -295,6 +298,7 @@ public class GameState {
         return totalHP;
     }
 
+    // นับจำนวนพื้นที่ (Hex) ที่ผู้เล่นครอบครองอยู่
     public int countOwnerHexs(int player) {
         int count = 0;
         for (int r = 0; r < boardRows; r++) {

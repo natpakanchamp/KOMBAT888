@@ -55,6 +55,8 @@ public class RoomController {
         return roomService.getRoom(roomId);
     }
 
+    @GetMapping("/{roomId}/")
+
     @PostMapping("/{roomId}/ready")
     public RoomDtos.RoomStateDto ready(@PathVariable String roomId, @RequestBody RoomDtos.PlayerActionRequest req) {
         if (req == null || req.playerId() == null || req.playerId().isBlank()) {

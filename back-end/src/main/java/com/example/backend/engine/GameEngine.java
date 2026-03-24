@@ -106,15 +106,17 @@ public class GameEngine {
         // สร้าง playerSummary ของแต่ละ player
         GameSummaryDto.playerSummary p1 = new GameSummaryDto.playerSummary(
                 gameState.getP1Budget(),
-                gameState. countActiveUnits(1),
+                gameState.countActiveUnits(1),
                 gameState.sumHP(1),
-                gameState.countOwnerHexs(1)
+                gameState.countOwnerHexs(1),
+                gameState.getCurrentTurn()
         );
         GameSummaryDto.playerSummary p2 = new GameSummaryDto.playerSummary(
                 gameState.getP2Budget(),
-                gameState. countActiveUnits(2),
+                gameState.countActiveUnits(2),
                 gameState.sumHP(2),
-                gameState.countOwnerHexs(2)
+                gameState.countOwnerHexs(2),
+                gameState.getCurrentTurn()
         );
 
 

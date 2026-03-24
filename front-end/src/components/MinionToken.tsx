@@ -90,7 +90,7 @@ export function MinionToken({ unit }: MinionTokenProps) {
                         width: 200,
                         height: 200,
                         objectFit: 'contain',
-                        filter: isLight ? 'none' : 'hue-rotate(240deg) brightness(0.8)',
+                        filter: 'none',
                         // เพิ่ม drop-shadow ให้เห็นชัด
                         dropShadow: isLight
                             ? '0 0 4px rgba(250,176,5,0.8)'
