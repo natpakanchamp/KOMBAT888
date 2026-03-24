@@ -105,7 +105,7 @@ export default function GearMenu() {
                         <MenuItem label="Home" onClick={() => { setOpen(false); navigate("/"); }} />
                         <MenuItem
                             label="Waiting Room"
-                            onClick={() => { if (!waitingRoomDisabled) { setOpen(false); navigate(roomId ? `/waitingRoom/${roomId}` : "/waitingRoom"); } }}
+                            onClick={() => { if (!waitingRoomDisabled) { setOpen(false); navigate(roomId ? `/waitingRoom/${roomId}?fromBattle=true` : "/waitingRoom"); } }}
                             disabled={waitingRoomDisabled}
                         />
                         <MenuItem

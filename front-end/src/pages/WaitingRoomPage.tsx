@@ -258,8 +258,9 @@ export default function WaitingRoomPage() {
             const me = roomState.players.find((p: any) => p.id === playerId);
             const amSpectator = me?.isSpectator === true;
             sessionStorage.setItem(`isSpectator_${roomId}`, amSpectator ? "true" : "false");
-            // spectator ที่ตั้งใจกลับมาดู waiting room → ไม่ redirect กลับ battle
-            if (amSpectator) return;
+            // spectator ที่ตั้งใจกลับมาจาก battle → ไม่ redirect กลับ
+            const params = new URLSearchParams(window.location.search);
+            if (amSpectator && params.get("fromBattle") === "true") return;
             setFading(true);
             fadeOutBGM(3000);
             setTimeout(() => {

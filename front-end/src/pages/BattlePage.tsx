@@ -1,6 +1,6 @@
 // src/pages/BattlePage.tsx
 import { Box, Button, Stack, Text, Paper } from '@mantine/core';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Hexagon } from '../components/Hexagon';
 import { PlayerPanel } from '../components/PlayerPanel';
