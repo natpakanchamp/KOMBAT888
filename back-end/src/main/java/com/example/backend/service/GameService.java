@@ -33,8 +33,12 @@ public class GameService {
     }
 
     // execute turn ถัดไป
-    public void nextTurn(String roomId) {
+    public void nextTurn(String roomId, int player) {
         GameEngine engine = mustGetEngine(roomId);
+
+        if (engine.getGameState().getCurrentPlayer() != player ){
+            throw  new IllegalStateException("Not your turn") ;
+        }
         engine.executeTurn();
         broadcastState(roomId);
     }
@@ -52,6 +56,12 @@ public class GameService {
     // ซื้อ hex และ broadcast (ดึงค่าจาก config)
     public boolean buyHex(String roomId, int player, int row, int col) {
         GameEngine engine = mustGetEngine(roomId);
+        GameState state = engine.getGameState() ;
+
+        if (player != state.getCurrentPlayer()) {
+            return false ;
+        }
+
         long cost = engine.getConfig().getHexPurchaseCost();
         boolean ok = engine.getGameState().buyHex(row, col, player, cost);
         if (ok) broadcastState(roomId);
@@ -61,8 +71,12 @@ public class GameService {
     // spawn unit, หักเงิน และ broadcast
     public boolean spawnUnit(String roomId, int player, String minionType, int row, int col) {
         GameEngine engine = mustGetEngine(roomId);
+        GameState state  =  engine.getGameState() ;
+        if (player != state.getCurrentPlayer()) {
+            return false  ;  // ซื้อไม่ได้จ้าไม่ใช้ตามึง
+        }
         long cost = engine.getConfig().getSpawnCost();
-        GameState state = engine.getGameState();
+       // GameState state = engine.getGameState();
 
         // เช็คและหักเงิน
         if (player == 1 && state.getP1Budget() >= cost) {

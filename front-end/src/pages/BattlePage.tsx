@@ -1,4 +1,3 @@
-// src/pages/BattlePage.tsx
 import { Box, Button, Stack, Text, Paper } from '@mantine/core';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
@@ -14,22 +13,16 @@ import type { HexState } from '../type/HexState';
 import type { UnitData } from '../components/MinionToken';
 import { setBattleHowl } from '../hooks/useBGM';
 
-
 const ROWS = 8;
 const COLS = 8;
-
-// 🎛️ ตัวเลขสำหรับจูนกระดาน Hexagon (ปรับเพื่อให้ขอบต่อกันสนิท)
 const OFFSET_X = -16;
 const STAGGER_Y = 28;
 const GAP_Y = -2;
 
-// ตั้งค่าเริ่มต้นของกระดานให้ตรงกับของ Java (ชิดขวาล่าง)
 const getInitialState = (c: number, r: number): HexState => {
-    // ฐาน Player 1 (มุมซ้ายบน)
     if (r === 0 && (c === 0 || c === 1 || c === 2)) return 'LIGHT';
     if (r === 1 && (c === 0 || c === 1)) return 'LIGHT';
 
-    // ฐาน Player 2 (มุมขวาล่างสุด)
     if (r === ROWS - 1 && (c === COLS - 1 || c === COLS - 2 || c === COLS - 3)) return 'DARK';
     if (r === ROWS - 2 && (c === COLS - 1 || c === COLS - 2)) return 'DARK';
 
@@ -46,7 +39,6 @@ const initializeBoard = () => {
     return initial;
 };
 
-// แปลง hexOwnership[row][col] (0=neutral,1=light,2=dark) เป็น board Record
 function ownershipToBoard(ownership: number[][]): Record<string, HexState> {
     const b: Record<string, HexState> = {};
     for (let r = 0; r < ownership.length; r++) {
@@ -60,68 +52,91 @@ function ownershipToBoard(ownership: number[][]): Record<string, HexState> {
 
 export default function BattlePage() {
     const { roomId } = useParams<{ roomId: string }>();
-    const isSpectator = roomId ? sessionStorage.getItem(`isSpectator_${roomId}`) === "true" : false;
-    const myPlayer = roomId ? Number(sessionStorage.getItem(`playerNumber_${roomId}`)) || 0 : 0; // 1=P1, 2=P2, 0=spectator
+    const isSpectator = roomId ? sessionStorage.getItem(`isSpectator_${roomId}`) === 'true' : false;
+    const myPlayer = roomId ? Number(sessionStorage.getItem(`playerNumber_${roomId}`)) || 0 : 0;
+
     const [fadeIn, setFadeIn] = useState(true);
-    const [currentTurn, setCurrentTurn] = useState<number>(0);
-    // currentTurn: 0=P1's turn, 1=P2's turn → myPlayer: 1=P1, 2=P2
-    const isMyTurn = myPlayer === currentTurn + 1;
+    const [currentPlayer, setCurrentPlayer] = useState<number>(1);
+    const isMyTurn = myPlayer === currentPlayer;
     const canAct = isMyTurn && !isSpectator;
 
-    // State จาก backend
     const [units, setUnits] = useState<UnitData[]>([]);
+    const [turnCount, setTurnCount] = useState<number>(1);
+    const [maxTurns, setMaxTurns] = useState<number>(0);
+    const [hexCost, setHexCost] = useState<number>(750);
+    const [spawnCost, setSpawnCost] = useState<number>(500);
+    const [hasPurchasedThisTurn, setHasPurchasedThisTurn] = useState<boolean>(false);
+
+    const [board, setBoard] = useState<Record<string, HexState>>(initializeBoard());
+    const [selectedHex, setSelectedHex] = useState<{ col: number; row: number } | null>(null);
+    const [hexToSpawn, setHexToSpawn] = useState<{ col: number; row: number } | null>(null);
+
+    const [p1Budget, setP1Budget] = useState<number>(10000);
+    const [p2Budget, setP2Budget] = useState<number>(4000);
+
     const stompRef = useRef<Client | null>(null);
 
+    const p1SelectedMinions = ['Saber', 'Archer'];
+    const p2SelectedMinions = ['Lancer', 'Caster', 'Berserker'];
+
     useEffect(() => {
-        // เริ่มจากจอดำ แล้วค่อยๆ fade out ใน 2 วินาที
         const timer = setTimeout(() => setFadeIn(false), 100);
         return () => clearTimeout(timer);
     }, []);
 
-    // เล่น BGM เมื่อเข้าหน้า และหยุดเมื่อออกจากหน้า
     useEffect(() => {
         const battleBGM = new Howl({
             src: ['/bgm/battle-bgm.mp3'],
             loop: true,
             volume: 0.1,
-            mute: sessionStorage.getItem("bgmMuted") === "true",
+            mute: sessionStorage.getItem('bgmMuted') === 'true',
         });
+
         setBattleHowl(battleBGM);
-        if (sessionStorage.getItem("bgmMuted") !== "true") {
+
+        if (sessionStorage.getItem('bgmMuted') !== 'true') {
             battleBGM.play();
         }
+
         return () => {
             battleBGM.stop();
             setBattleHowl(null);
         };
     }, []);
 
-    // Subscribe WebSocket /topic/game/{roomId}
     useEffect(() => {
         if (!roomId) return;
+
         const client = new Client({
             webSocketFactory: () => new SockJS('/ws'),
             onConnect: () => {
-                client.subscribe(`/topic/game/${roomId}`, (msg) => {
+                client.subscribe(`/topic/game/${roomId}`, msg => {
                     const state = JSON.parse(msg.body);
+
                     if (state.hexOwnership) setBoard(ownershipToBoard(state.hexOwnership));
                     if (state.units) setUnits(state.units);
                     if (state.p1Budget !== undefined) setP1Budget(state.p1Budget);
                     if (state.p2Budget !== undefined) setP2Budget(state.p2Budget);
+                    if (state.currentPlayer !== undefined) setCurrentPlayer(state.currentPlayer);
                     if (state.currentTurn !== undefined) setTurnCount(state.currentTurn);
+                    if (state.maxTurns !== undefined) setMaxTurns(state.maxTurns);
                 });
             },
         });
+
         client.activate();
         stompRef.current = client;
-        return () => { client.deactivate(); };
+
+        return () => {
+            void client.deactivate();
+        };
     }, [roomId]);
 
-    // ดึง config จาก backend
     useEffect(() => {
         if (!roomId) return;
+
         fetch(`/api/game/${roomId}/config`)
-            .then(r => r.ok ? r.json() : null)
+            .then(r => (r.ok ? r.json() : null))
             .then(cfg => {
                 if (!cfg) return;
                 if (cfg.hexPurchaseCost !== undefined) setHexCost(cfg.hexPurchaseCost);
@@ -130,44 +145,31 @@ export default function BattlePage() {
             .catch(() => {});
     }, [roomId]);
 
-    // ดึง state ครั้งแรก
     useEffect(() => {
         if (!roomId) return;
+
         fetch(`/api/game/${roomId}/state`)
-            .then(r => r.ok ? r.json() : null)
+            .then(r => (r.ok ? r.json() : null))
             .then(state => {
                 if (!state) return;
+
                 if (state.hexOwnership) setBoard(ownershipToBoard(state.hexOwnership));
                 if (state.units) setUnits(state.units);
                 if (state.p1Budget !== undefined) setP1Budget(state.p1Budget);
                 if (state.p2Budget !== undefined) setP2Budget(state.p2Budget);
+                if (state.currentPlayer !== undefined) setCurrentPlayer(state.currentPlayer);
                 if (state.currentTurn !== undefined) setTurnCount(state.currentTurn);
                 if (state.maxTurns !== undefined) setMaxTurns(state.maxTurns);
             })
             .catch(() => {});
     }, [roomId]);
 
-    const [turnCount, setTurnCount] = useState<number>(1);
-    const [maxTurns, setMaxTurns] = useState<number>(0);
-    const [hexCost, setHexCost] = useState<number>(750);
-    const [spawnCost, setSpawnCost] = useState<number>(500);
-    const [hasPurchasedThisTurn, setHasPurchasedThisTurn] = useState<boolean>(false);
-
-    const [board, setBoard] = useState<Record<string, HexState>>(initializeBoard());
-    const [selectedHex, setSelectedHex] = useState<{ col: number, row: number } | null>(null);
-    const [hexToSpawn, setHexToSpawn] = useState<{ col: number, row: number } | null>(null);
-
-    const [p1Budget, setP1Budget] = useState(10000);
-    const [p2Budget, setP2Budget] = useState(4000);
-
-    const p1SelectedMinions = ['Saber', 'Archer'];
-    const p2SelectedMinions = ['Lancer', 'Caster', 'Berserker'];
-
     const getNeighbors = (c: number, r: number) => {
         const isEvenCol = c % 2 === 0;
         const directions = isEvenCol
             ? [[0, -1], [0, 1], [-1, 0], [-1, 1], [1, 0], [1, 1]]
             : [[0, -1], [0, 1], [-1, -1], [-1, 0], [1, -1], [1, 0]];
+
         return directions.map(([dc, dr]) => ({ nc: c + dc, nr: r + dr }));
     };
 
@@ -190,43 +192,44 @@ export default function BattlePage() {
                 });
             }
         });
+
         return validHexes;
     }, [board, canAct, myPlayer, hasPurchasedThisTurn]);
 
     const handleHexagonClick = (c: number, r: number) => {
         if (!canAct) return;
+
         const key = `${c}-${r}`;
         const clickedState = board[key];
         const myColor = myPlayer === 1 ? 'LIGHT' : 'DARK';
-
-        // 👇 เช็คว่าช่องที่คลิก มีมินเนียนยืนอยู่แล้วหรือยัง?
         const isOccupied = units.some(u => u.col === c && u.row === r);
 
         if (purchasableHexes.has(key)) {
             setSelectedHex({ col: c, row: r });
-        }
-        // 👇 เพิ่มเงื่อนไข !isOccupied (ต้องไม่มีคนยืนอยู่) ถึงจะเปิดหน้าต่างลงมินเนียนได้
-        else if (clickedState === myColor && !isOccupied) {
+        } else if (clickedState === myColor && !isOccupied) {
             setSelectedHex(null);
             setHexToSpawn({ col: c, row: r });
-        }
-        else {
+        } else {
             setSelectedHex(null);
         }
     };
 
     const handleBuyHex = async () => {
         if (!canAct || !selectedHex || hasPurchasedThisTurn || !roomId) return;
-        const player = myPlayer;
+
         const res = await fetch(`/api/game/${roomId}/buy-hex`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ player, row: selectedHex.row, col: selectedHex.col }),
+            body: JSON.stringify({
+                player: myPlayer,
+                row: selectedHex.row,
+                col: selectedHex.col,
+            }),
         });
+
         if (res.ok) {
             setHasPurchasedThisTurn(true);
-            setSelectedHex(null); // ซื้อเสร็จเคลียร์ช่องที่เลือก
-            // เอา setHexToSpawn ออก เพื่อไม่ให้เด้งหน้าต่าง Spawn อัตโนมัติ
+            setSelectedHex(null);
         }
     };
 
@@ -237,13 +240,21 @@ export default function BattlePage() {
     };
 
     const handleConfirmSpawn = async (minionClass: string, _cost: number) => {
+        void _cost;
+
         if (!canAct || !hexToSpawn || !roomId) return;
-        const player = myPlayer;
+
         await fetch(`/api/game/${roomId}/spawn`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ player, minionType: minionClass, row: hexToSpawn.row, col: hexToSpawn.col }),
+            body: JSON.stringify({
+                player: myPlayer,
+                minionType: minionClass,
+                row: hexToSpawn.row,
+                col: hexToSpawn.col,
+            }),
         });
+
         setHexToSpawn(null);
         setSelectedHex(null);
         setHasPurchasedThisTurn(false);
@@ -252,38 +263,49 @@ export default function BattlePage() {
     const handleEndTurn = async () => {
         if (!canAct || !roomId) return;
 
-        // ส่ง API ไปบอก Backend ว่าผู้เล่นนี้ขอจบเทิร์น
         try {
             await fetch(`/api/game/${roomId}/next-turn`, {
-                method: 'POST'
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ player: myPlayer }),
             });
 
-            // เคลียร์ค่า UI ฝั่งตัวเองเท่านั้น ไม่ต้องสลับเทิร์นเอง
             setSelectedHex(null);
             setHasPurchasedThisTurn(false);
             setHexToSpawn(null);
-
-            // สถานะ currentTurn และ turnCount จะถูกอัปเดตอัตโนมัติเมื่อ WebSocket ได้รับข้อความจาก Server
         } catch (e) {
-            console.error("Failed to end turn", e);
+            console.error('Failed to end turn', e);
         }
     };
 
     return (
         <Box
             style={{
-                minHeight: '100vh', width: '100%', backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-                padding: '0 40px', position: 'fixed', backdropFilter: "blur(5px)", inset: 0, zIndex: 1,
+                minHeight: '100vh',
+                width: '100%',
+                backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '0 40px',
+                position: 'fixed',
+                backdropFilter: 'blur(5px)',
+                inset: 0,
+                zIndex: 1,
             }}
         >
-            <Box style={{
-                position: "fixed", inset: 0, zIndex: 9999,
-                background: "black",
-                opacity: fadeIn ? 1 : 0,
-                transition: "opacity 2s ease",
-                pointerEvents: "none",
-            }} />
+            <Box
+                style={{
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: 9999,
+                    background: 'black',
+                    opacity: fadeIn ? 1 : 0,
+                    transition: 'opacity 2s ease',
+                    pointerEvents: 'none',
+                }}
+            />
 
             <Paper
                 radius="md"
@@ -320,20 +342,26 @@ export default function BattlePage() {
 
             <Stack gap="md">
                 <PlayerPanel
-                    playerName="Player 1 (Light)" themeColor="yellow" borderColor="#FAB005"
-                    budget={p1Budget} isActive={currentTurn === 0}
+                    playerName="Player 1 (Light)"
+                    themeColor="yellow"
+                    borderColor="#FAB005"
+                    budget={p1Budget}
+                    isActive={currentPlayer === 1}
                 />
                 {myPlayer === 1 && isMyTurn && (
                     <PurchasePanel
-                        isActive={true} themeColor="yellow" borderColor="#FAB005"
+                        isActive={true}
+                        themeColor="yellow"
+                        borderColor="#FAB005"
                         selectedHex={selectedHex}
-                        onBuy={handleBuyHex} onSkip={handleSkipHex}
-                        canAfford={p1Budget >= hexCost} hasPurchased={hasPurchasedThisTurn}
+                        onBuy={handleBuyHex}
+                        onSkip={handleSkipHex}
+                        canAfford={p1Budget >= hexCost}
+                        hasPurchased={hasPurchasedThisTurn}
                     />
                 )}
             </Stack>
 
-            {/* จัดการขอบ Hexagon ตรงนี้ */}
             <Box style={{ display: 'flex', flexDirection: 'row' }}>
                 {Array.from({ length: COLS }).map((_, c) => (
                     <Box
@@ -342,7 +370,7 @@ export default function BattlePage() {
                             display: 'flex',
                             flexDirection: 'column',
                             marginLeft: c === 0 ? '0px' : `${OFFSET_X}px`,
-                            marginTop: c % 2 === 0 ? `${STAGGER_Y}px` : '0px'
+                            marginTop: c % 2 === 0 ? `${STAGGER_Y}px` : '0px',
                         }}
                     >
                         {Array.from({ length: ROWS }).map((_, r) => {
@@ -375,22 +403,35 @@ export default function BattlePage() {
 
             <Stack gap="md">
                 <PlayerPanel
-                    playerName="Player 2 (Dark)" themeColor="violet" borderColor="#7048E8"
-                    budget={p2Budget} isActive={currentTurn === 1}
+                    playerName="Player 2 (Dark)"
+                    themeColor="violet"
+                    borderColor="#7048E8"
+                    budget={p2Budget}
+                    isActive={currentPlayer === 2}
                 />
                 {myPlayer === 2 && isMyTurn && (
                     <PurchasePanel
-                        isActive={true} themeColor="violet" borderColor="#7048E8"
+                        isActive={true}
+                        themeColor="violet"
+                        borderColor="#7048E8"
                         selectedHex={selectedHex}
-                        onBuy={handleBuyHex} onSkip={handleSkipHex}
-                        canAfford={p2Budget >= hexCost} hasPurchased={hasPurchasedThisTurn}
+                        onBuy={handleBuyHex}
+                        onSkip={handleSkipHex}
+                        canAfford={p2Budget >= hexCost}
+                        hasPurchased={hasPurchasedThisTurn}
                     />
                 )}
             </Stack>
 
             {canAct && (
                 <Button
-                    style={{ position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}
+                    style={{
+                        position: 'absolute',
+                        bottom: '40px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        zIndex: 10,
+                    }}
                     onClick={handleEndTurn}
                 >
                     จบเทิร์น

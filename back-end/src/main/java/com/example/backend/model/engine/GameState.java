@@ -15,6 +15,10 @@ public class GameState {
     private List<Unit> units;
     private Map<String, Long> globalVars;
     // budget จริงแบบ ไม่ได้ตัด ทศนิยมออก
+    private int currentPlayer ;
+    private int p1TurnsPlayed ;
+    private int p2TurnsPlayed ;
+
     private double p1BudgetExact ;
     private double p2BudgetExact ;
 
@@ -42,6 +46,10 @@ public class GameState {
         this.boardRows = boardRows;
         this.boardCols = boardCols;
         this.maxTurns = config.getMaxTurns();
+
+        this.currentPlayer  = 1  ; // start on player1
+        this.p1TurnsPlayed = 0;
+        this.p2TurnsPlayed = 0;
 
         //  ดึงค่าจาก Config มาเก็บไว้ให้ระบบเกมและ AST ใช้
         this.interestRate = config.getInterestPct();

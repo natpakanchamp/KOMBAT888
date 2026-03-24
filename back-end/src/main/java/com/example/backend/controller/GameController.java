@@ -21,10 +21,12 @@ public class GameController {
     // start ถูกเรียกผ่าน RoomController → RoomService.startGame() แทนแล้ว
     // endpoint นี้ไม่ใช้แล้ว
 
+    //  ======= endpoint for next turn of Swap user =====
     @PostMapping("/next-turn")
-    public String nextTurn(@PathVariable String roomId) {
-        gameService.nextTurn(roomId);
-        return "Turn executed";
+    public ResponseEntity<?> nextTurn(@PathVariable String roomId , @RequestBody
+    RoomDtos.EndTurnRequest req ){
+        gameService.nextTurn(roomId , req.player());
+        return ResponseEntity.ok().body("Turn executed") ;
     }
 
 
@@ -64,6 +66,13 @@ public class GameController {
     public GameSummaryDto getSummary(@PathVariable String roomId) {
         return gameService.getSummary(roomId) ;
     }
+
+
+
+
+
+
+
     // ---- error mapping ----
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<?> notFound(NoSuchElementException e) {

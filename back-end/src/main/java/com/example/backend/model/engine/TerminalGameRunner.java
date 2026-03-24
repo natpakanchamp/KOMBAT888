@@ -30,7 +30,7 @@ public class TerminalGameRunner {
             System.out.println("ป้อนข้อมูลไม่ถูกต้อง ค่าเริ่มต้นจะเป็น Duel");
         }
 
-        GameConfig config = GameConfig.loadFromFile("config.txt");
+        GameConfig config = GameConfig.loadFromFile("C:\\Users\\User\\IdeaProjects\\KOMBAT888_VNNTTTT\\back-end\\config.txt");
         GameState state = new GameState(8, 8, config);
         Unit.resetId();
 

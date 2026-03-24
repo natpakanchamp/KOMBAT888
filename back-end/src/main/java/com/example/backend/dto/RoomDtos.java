@@ -39,4 +39,7 @@ public class RoomDtos {
             GameSettingsDto gameSettings,
             YouDto you // may be null
     ) {}
+
+    public record EndTurnRequest(int  player) {}
+
 }

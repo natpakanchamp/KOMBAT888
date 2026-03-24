@@ -32,7 +32,7 @@ public class GameEngine {
         // ตำแหน่งเริ่มต้นของแต่ละ player
         int[][] startPositions = {
                 {0, 0},  // player 1
-                {9, 9},  // player 2
+                {7, 7},  // player 2 fix
         };
 
         for (Map.Entry<Integer, List<RoomDtos.MinionDto>> entry : playerMinions.entrySet()) {
@@ -63,14 +63,29 @@ public class GameEngine {
     }
 
     public void executeTurn() {
-        if (gameState.getCurrentTurn() > gameState.getMaxTurns()) {
+        if (isGameOver()) {
             return;
         }
+
+        int currentPlayer = gameState.getCurrentPlayer();
+
         System.out.println("========== TURN " + gameState.getCurrentTurn() + " ==========");
-        System.out.println("--- Player 1's Turn ---");
-        System.out.println("--- Player 2's Turn ---");
-        gameState.setCurrentTurn(gameState.getCurrentTurn() + 1);
+        System.out.println("--- Player " + currentPlayer + "'s Turn Ended ---");
+
+        if (currentPlayer == 1) {
+            gameState.setP1TurnsPlayed(gameState.getP1TurnsPlayed() + 1);
+            gameState.setCurrentPlayer(2);
+        } else {
+            gameState.setP2TurnsPlayed(gameState.getP2TurnsPlayed() + 1);
+            gameState.setCurrentPlayer(1);
+
+            // นับรอบใหม่เมื่อครบทั้ง 2 ฝั่งแล้ว
+            gameState.setCurrentTurn(gameState.getCurrentTurn() + 1);
+        }
     }
+
+
+
     // ตรงนี้ใช้ lombok ได้
     public GameState getGameState() {
         return gameState;
@@ -82,7 +97,9 @@ public class GameEngine {
 
     public boolean isGameOver() {
 
-        return gameState.getCurrentTurn() > gameState.getMaxTurns();
+//        return gameState.getCurrentTurn() > gameState.getMaxTurns();
+        return gameState.getP1TurnsPlayed() >= gameState.getMaxTurns()
+                && gameState.getP2TurnsPlayed() >= gameState.getMaxTurns();
     }
 
     public GameSummaryDto createSummary() {
