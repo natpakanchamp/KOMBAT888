@@ -3,6 +3,8 @@ package com.example.backend.service;
 import com.example.backend.dto.GameSummaryDto;
 import com.example.backend.dto.RoomDtos;
 import com.example.backend.engine.GameEngine;
+import com.example.backend.model.engine.GameConfig;
+import com.example.backend.model.engine.Unit;
 import com.example.backend.model.engine.GameState;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -47,6 +49,39 @@ public class GameService {
         return mustGetEngine(roomId).isGameOver();
     }
 
+    // ซื้อ hex และ broadcast (ดึงค่าจาก config)
+    public boolean buyHex(String roomId, int player, int row, int col) {
+        GameEngine engine = mustGetEngine(roomId);
+        long cost = engine.getConfig().getHexPurchaseCost();
+        boolean ok = engine.getGameState().buyHex(row, col, player, cost);
+        if (ok) broadcastState(roomId);
+        return ok;
+    }
+
+    // spawn unit, หักเงิน และ broadcast
+    public boolean spawnUnit(String roomId, int player, String minionType, int row, int col) {
+        GameEngine engine = mustGetEngine(roomId);
+        long cost = engine.getConfig().getSpawnCost();
+        GameState state = engine.getGameState();
+
+        // เช็คและหักเงิน
+        if (player == 1 && state.getP1Budget() >= cost) {
+            state.setP1BudgetExact(state.getP1BudgetExact() - cost);
+            state.setP1Budget((long) state.getP1BudgetExact());
+        } else if (player == 2 && state.getP2Budget() >= cost) {
+            state.setP2BudgetExact(state.getP2BudgetExact() - cost);
+            state.setP2Budget((long) state.getP2BudgetExact());
+        } else {
+            return false; // เงินไม่พอ
+        }
+
+        int type = engine.mapType(minionType);
+        Unit unit = new Unit(1L, player, type, row, col);
+        state.addUnit(unit);
+        broadcastState(roomId);
+        return true;
+    }
+
     // ลบเกมของห้อง (เมื่อเกมจบ หรือห้องถูกลบ)
     public void removeGame(String roomId) {
         engines.remove(roomId);
@@ -68,8 +103,12 @@ public class GameService {
         return engine;
     }
 
-    public GameSummaryDto getSummary(String roomId) {
+    // ดึง config ของเกม
+    public GameConfig getConfig(String roomId) {
+        return mustGetEngine(roomId).getConfig();
+    }
 
+    public GameSummaryDto getSummary(String roomId) {
         GameEngine engine = mustGetEngine(roomId);
         return engine.createSummary();
     }

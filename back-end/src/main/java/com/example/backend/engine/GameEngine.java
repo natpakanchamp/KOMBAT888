@@ -51,7 +51,7 @@ public class GameEngine {
     }
 
     /** แปลงชื่อ type จาก frontend เป็น Unit constant */
-    private int mapType(String typeName) {
+    public int mapType(String typeName) {
         return switch (typeName.toLowerCase()) {
             case "saber"     -> Unit.TYPE_SABER;
             case "archer"    -> Unit.TYPE_ARCHER;
@@ -73,8 +73,11 @@ public class GameEngine {
     }
     // ตรงนี้ใช้ lombok ได้
     public GameState getGameState() {
-
         return gameState;
+    }
+
+    public GameConfig getConfig() {
+        return config;
     }
 
     public boolean isGameOver() {
@@ -106,15 +109,17 @@ public class GameEngine {
         // สร้าง playerSummary ของแต่ละ player
         GameSummaryDto.playerSummary p1 = new GameSummaryDto.playerSummary(
                 gameState.getP1Budget(),
-                gameState. countActiveUnits(1),
+                gameState.countActiveUnits(1),
                 gameState.sumHP(1),
-                gameState.countOwnerHexs(1)
+                gameState.countOwnerHexs(1),
+                gameState.getCurrentTurn()
         );
         GameSummaryDto.playerSummary p2 = new GameSummaryDto.playerSummary(
                 gameState.getP2Budget(),
-                gameState. countActiveUnits(2),
+                gameState.countActiveUnits(2),
                 gameState.sumHP(2),
-                gameState.countOwnerHexs(2)
+                gameState.countOwnerHexs(2),
+                gameState.getCurrentTurn()
         );
 
 

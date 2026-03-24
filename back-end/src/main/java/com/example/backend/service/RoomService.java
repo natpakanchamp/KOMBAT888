@@ -109,8 +109,8 @@ public class RoomService {
                 .allMatch(x -> x.minions != null && !x.minions.isEmpty());
         if (!allHaveMinions) throw new IllegalStateException("Not all players have selected minions");
 
-        // Bot ใช้ minion เดียวกับ Host
-        RoomPlayer host = room.players.stream().filter(x -> x.isHost).findFirst().orElse(null);
+        // Bot ใช้ minion เดียวกับ Host (host อาจเป็น spectator)
+        RoomPlayer host = room.allMembers().stream().filter(x -> x.isHost).findFirst().orElse(null);
         if (host != null) {
             for (RoomPlayer bot : room.players) {
                 if (bot.name.startsWith("natpakanKanthasorn_")) {

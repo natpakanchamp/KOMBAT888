@@ -11,7 +11,8 @@ public record GameSummaryDto (String winner , String loser , int totalTurn ,
             long remainingBudget , // Budget คงเหลือ
             int remainingMinion , // จำนวน minion คงเหลือ
             int totalHp ,   // รวม HP ของ minion ทั้งหมดที่รอด
-            int ownedHexs  // จำนวน hex ของ แต่ละ plyer
+            int ownedHexs ,  // จำนวน hex ของ แต่ละ plyer
+            int turn
     ){}
 
 

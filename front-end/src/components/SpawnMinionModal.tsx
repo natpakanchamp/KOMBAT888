@@ -3,9 +3,6 @@ import { Modal, Text, Group, Stack, Button, Paper, Badge, Divider } from '@manti
 import { IconCoins, IconUserPlus } from '@tabler/icons-react';
 import { useState } from 'react';
 
-// 👇 ตั้งราคาคงที่สำหรับมินเนียนทุกตัวตรงนี้ได้เลยครับ (เช่น 500)
-const SPAWN_COST = 500;
-
 // เก็บแค่ไอคอนของแต่ละคลาส
 const MINION_ICONS: Record<string, string> = {
     'Saber': '🗡️',
@@ -21,16 +18,16 @@ export interface SpawnMinionModalProps {
     col: number;
     row: number;
     budget: number;
+    spawnCost: number;
     availableMinions: string[];
     themeColor: string;
     onConfirmSpawn: (minionClass: string, cost: number) => void;
 }
 
-export function SpawnMinionModal({ opened, onClose, col, row, budget, availableMinions, themeColor, onConfirmSpawn }: SpawnMinionModalProps) {
+export function SpawnMinionModal({ opened, onClose, col, row, budget, spawnCost, availableMinions, themeColor, onConfirmSpawn }: SpawnMinionModalProps) {
     const [selectedMinion, setSelectedMinion] = useState<string | null>(null);
 
-    // เช็คว่าเงินพอจ่ายราคาคงที่นี้ไหม
-    const canAfford = budget >= SPAWN_COST;
+    const canAfford = budget >= spawnCost;
 
     const withGlow = {
         boxShadow: `0 0 10px ${themeColor === 'yellow' ? 'rgba(250, 176, 5, 0.7)' : 'rgba(112, 72, 232, 0.7)'}`,
@@ -89,9 +86,9 @@ export function SpawnMinionModal({ opened, onClose, col, row, budget, availableM
                                         <Text size="md" fw={isSelected ? 700 : 500}>{minionClass}</Text>
                                     </Group>
                                     <Group gap="xs">
-                                        <IconCoins size={16} color={budget >= SPAWN_COST ? "#FAB005" : "#D88888"} />
+                                        <IconCoins size={16} color={budget >= spawnCost ? "#FAB005" : "#D88888"} />
                                         {/* 👇 แสดงราคาคงที่ */}
-                                        <Text size="md" fw={700} c={budget >= SPAWN_COST ? "yellow" : "#D88888"}>{SPAWN_COST}</Text>
+                                        <Text size="md" fw={700} c={budget >= spawnCost ? "yellow" : "#D88888"}>{spawnCost}</Text>
                                     </Group>
                                 </Group>
                             </Paper>
@@ -114,7 +111,7 @@ export function SpawnMinionModal({ opened, onClose, col, row, budget, availableM
                     <Button variant="subtle" color="gray" onClick={onClose}>ข้ามไปก่อน (Skip)</Button>
                     <Button
                         color={themeColor}
-                        onClick={() => selectedMinion && onConfirmSpawn(selectedMinion, SPAWN_COST)}
+                        onClick={() => selectedMinion && onConfirmSpawn(selectedMinion, spawnCost)}
                         disabled={!selectedMinion || !canAfford}
                     >
                         ยืนยันการลงมินเนียน

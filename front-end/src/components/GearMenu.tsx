@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Box, Text } from "@mantine/core";
 import GearIcon from "./GearIcon";
-import { getHowl } from "../hooks/useBGM";
+import { getActiveBGM } from "../hooks/useBGM";
 
 export default function GearMenu() {
     const [open, setOpen] = useState(false);
@@ -13,7 +13,7 @@ export default function GearMenu() {
 
     const toggleBgmMute = () => {
         const next = !bgmMuted;
-        getHowl().mute(next);
+        getActiveBGM().mute(next);
         sessionStorage.setItem("bgmMuted", String(next));
         setBgmMuted(next);
     };
