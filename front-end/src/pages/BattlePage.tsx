@@ -1,12 +1,13 @@
 // src/pages/BattlePage.tsx
 import { Box, Button, Stack, Text, Paper } from '@mantine/core';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Hexagon } from '../components/Hexagon';
 import { PlayerPanel } from '../components/PlayerPanel';
 import { PurchasePanel } from '../components/PurchasePanel';
 import { SpawnMinionModal } from '../components/SpawnMinionModal';
 import type { HexState } from '../type/HexState';
+import { setBattleHowl } from '../hooks/useBGM';
 
 const HEX_COST = 150;
 const ROWS = 8;
@@ -33,8 +34,34 @@ const initializeBoard = () => {
 export default function BattlePage() {
     const { roomId } = useParams<{ roomId: string }>();
     const isSpectator = roomId ? sessionStorage.getItem(`isSpectator_${roomId}`) === "true" : false;
+    const [fadeIn, setFadeIn] = useState(true);
     const [currentTurn, setCurrentTurn] = useState<number>(0);
 
+    useEffect(() => {
+        // เริ่มจากจอดำ แล้วค่อยๆ fade out ใน 2 วินาที
+        const timer = setTimeout(() => setFadeIn(false), 100);
+        return () => clearTimeout(timer);
+    }, []);
+
+    // เล่น BGM เมื่อเข้าหน้า และหยุดเมื่อออกจากหน้า
+    useEffect(() => {
+        const battleBGM = new Howl({
+            src: ['/bgm/battle-bgm.mp3'],
+            loop: true,
+            volume: 0.1,
+            mute: sessionStorage.getItem("bgmMuted") === "true",
+        });
+        setBattleHowl(battleBGM); // register ให้ GearMenu mute ได้
+        if (sessionStorage.getItem("bgmMuted") !== "true") {
+            battleBGM.play();
+        }
+        return () => {
+            battleBGM.stop();
+            setBattleHowl(null); // unregister เมื่อออกจากหน้า
+        };
+    }, []);
+
+    // State นับหมายเลขเทิร์น (เริ่มที่ 1)
     const [turnCount, setTurnCount] = useState<number>(1);
     const [hasPurchasedThisTurn, setHasPurchasedThisTurn] = useState<boolean>(false);
 
@@ -112,7 +139,6 @@ export default function BattlePage() {
 
         setHasPurchasedThisTurn(true);
         setSelectedHex(null);
-        // 👇 เอาคำสั่งเปิดหน้าต่างมินเนียนออกไปแล้วครับ ซื้อเสร็จก็จบแค่นี้ ให้ผู้เล่นไปคลิกเลือกช่องเอง
     };
 
     const handleSkipHex = () => {
@@ -162,6 +188,15 @@ export default function BattlePage() {
                 padding: '0 40px', position: 'fixed', backdropFilter: "blur(5px)", inset: 0, zIndex: 1,
             }}
         >
+            {/* ── Fade in from black ── */}
+            <Box style={{
+                position: "fixed", inset: 0, zIndex: 9999,
+                background: "black",
+                opacity: fadeIn ? 1 : 0,
+                transition: "opacity 2s ease",
+                pointerEvents: "none",
+            }} />
+
             {/* กล่องแสดงหมายเลข Turn ด้านบนตรงกลาง */}
             <Paper
                 radius="md"

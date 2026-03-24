@@ -13,6 +13,8 @@ import SpectatorButton from "../components/SpectatorButton";
 import ManualWaitingPage from "./ManualWaitingPage.tsx";
 import type { RoomState } from "../type/RoomState.tsx"
 import { useSparkleTrail } from '../hooks/useSparkleTrail';
+import {playSFX, SFX} from "../hooks/useSFX.ts";
+import { fadeOutBGM } from "../hooks/useBGM";
 
 export default function WaitingRoomPage() {
     const { roomId } = useParams();
@@ -36,6 +38,7 @@ export default function WaitingRoomPage() {
     const [joinRoomInput, setJoinRoomInput] = useState("");
     const [showManual, setShowManual] = useState(false);
     const [kicked, setKicked] = useState(false);
+    const [fading, setFading] = useState(false);
 
     const storageKey = `minions_${roomId}`;
     const [selectedMinions, setSelectedMinions] = useState<{ type: string; strategy: string }[]>(() => {
@@ -151,7 +154,12 @@ export default function WaitingRoomPage() {
             try {
                 setLoading(true);
                 setError(null);
-                if (created) {
+                const existingId = sessionStorage.getItem(`playerId_${roomId}`);
+                if (existingId) {
+                    // มี playerId แล้ว (เช่น spectator กลับจาก battle) → ดึง state เลย ไม่ต้อง join
+                    playerIdRef.current = existingId;
+                    await loadRoom();
+                } else if (created) {
                     await loadRoom();
                 } else {
                     await joinThenLoad();
@@ -248,8 +256,16 @@ export default function WaitingRoomPage() {
         if (!roomState || !roomId) return;
         if (roomState.state === "in_game") {
             const me = roomState.players.find((p: any) => p.id === playerId);
-            sessionStorage.setItem(`isSpectator_${roomId}`, me?.isSpectator ? "true" : "false");
-            navigate(`/battle/${roomId}`, { replace: true });
+            const amSpectator = me?.isSpectator === true;
+            sessionStorage.setItem(`isSpectator_${roomId}`, amSpectator ? "true" : "false");
+            // spectator ที่ตั้งใจกลับมาจาก battle → ไม่ redirect กลับ
+            const params = new URLSearchParams(window.location.search);
+            if (amSpectator && params.get("fromBattle") === "true") return;
+            setFading(true);
+            fadeOutBGM(3000);
+            setTimeout(() => {
+                navigate(`/battle/${roomId}`, { replace: true });
+            }, 3000);
         }
     }, [roomState, roomId, navigate]);
 
@@ -273,11 +289,11 @@ export default function WaitingRoomPage() {
 
     async function startGame() {
         if (!roomId || !playerId) return;
-        // ถ้ายังไม่ได้เลือกมินเนี่ยนเลย ให้เตือนก่อน
-        if(!hasMinions) {
+        // host ที่เป็น spectator ไม่ต้องเลือก minion
+        if(!hasMinions && !isYouSpectator) {
             alert("Please select at least one minion before starting the game.");
-            // ถ้าเลือกแล้วก็ไปต่อได้เลย
         }else{
+            playSFX(SFX.WRYYY, 1);
             await fetch(`/api/room/${roomId}/start`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -467,10 +483,20 @@ export default function WaitingRoomPage() {
                 backgroundImage: `url(${background_LightDark})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
+
             }}
         >
             <Box style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(10px)", zIndex: 1 }} />
             <Box style={{ position: "fixed", inset: 0, background: "radial-gradient(ellipse at center, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.75) 100%)", zIndex: 2 }} />
+
+            {/* ── Fade to black overlay ── */}
+            <Box style={{
+                position: "fixed", inset: 0, zIndex: 9999,
+                background: "black",
+                opacity: fading ? 1 : 0,
+                transition: "opacity 3s ease",
+                pointerEvents: fading ? "all" : "none",
+            }} />
 
             {/* ── Spectator panel (LEFT, fixed outside of Group) ── */}
             {(spectators.length > 0 || isYouSpectator) && (
