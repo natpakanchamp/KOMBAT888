@@ -62,18 +62,25 @@ public class GameState {
 
         this.hexOwnership = new int[boardRows][boardCols];
 
-        // แจกพื้นที่ P1
+        // แจกพื้นที่ P1 (มุมซ้ายบน)
         if (boardRows > 1 && boardCols > 2) {
             this.hexOwnership[0][0] = 1; this.hexOwnership[0][1] = 1; this.hexOwnership[0][2] = 1;
             this.hexOwnership[1][0] = 1; this.hexOwnership[1][1] = 1;
         }
 
-        // แจกพื้นที่เริ่มต้น  P2
+        // 👇 แก้ไข: แจกพื้นที่เริ่มต้น P2 (ชิดขวาล่างสุด)
         if (boardRows > 1 && boardCols > 2) {
-            int lastRow = boardRows - 1; int lastCol = boardCols - 1;
-            this.hexOwnership[lastRow - 1][lastCol - 2] = 2; this.hexOwnership[lastRow - 1][lastCol - 1] = 2;
-            this.hexOwnership[lastRow][lastCol - 2] = 2;     this.hexOwnership[lastRow][lastCol - 1] = 2;
-            this.hexOwnership[lastRow][lastCol] = 2;
+            int lastRow = boardRows - 1;
+            int lastCol = boardCols - 1;
+
+            // แถวล่างสุด (Row 7) สร้าง 3 ช่องขวาสุด
+            this.hexOwnership[lastRow][lastCol] = 2;         // [7][7]
+            this.hexOwnership[lastRow][lastCol - 1] = 2;     // [7][6]
+            this.hexOwnership[lastRow][lastCol - 2] = 2;     // [7][5]
+
+            // แถวรองล่างสุด (Row 6) สร้าง 2 ช่องขวาสุด
+            this.hexOwnership[lastRow - 1][lastCol] = 2;     // [6][7]
+            this.hexOwnership[lastRow - 1][lastCol - 1] = 2; // [6][6]
         }
     }
 
@@ -185,28 +192,22 @@ public class GameState {
         return true;
     }
 
-    // 👇 ระบบยิง ให้ค้นหาเป้าหมายทะลุแมพตามทิศทาง
     public void shoot(Unit currentUnit, String direction, long expenditure) {
         int[] offset = getDirectionOffset(direction);
         int targetRow = currentUnit.getRow() + offset[0];
         int targetCol = currentUnit.getCol() + offset[1];
 
-        // หักเงิน
         if (!pay(currentUnit, expenditure + 1)) return;
 
-        // ให้กระสุนพุ่งไปตามทิศทางจนกว่าจะเจอ Unit หรือหลุดขอบกระดาน
         while (isWithinBounds(targetRow, targetCol)) {
             Unit target = getUnitAt(targetRow, targetCol);
 
             if (target != null && target.isAlive()) {
-                // คำนวณดาเมจ
                 long damage = Math.max(1, expenditure - target.getDefense());
                 target.takeDamage(damage);
-                // พอโดนเป้าหมายแล้ว กระสุนหายไปเลย
                 break;
             }
 
-            // ถ้าช่องว่าง ให้กระสุนพุ่งต่อไป
             targetRow += offset[0];
             targetCol += offset[1];
         }
@@ -234,7 +235,7 @@ public class GameState {
                             long val = dist * 10 + directionToNumber(direct);
                             if (val < bestValue) {
                                 bestValue = val;
-                                found = true; // หาเจอแล้ว
+                                found = true;
                             }
                         }
                         break;
@@ -274,7 +275,6 @@ public class GameState {
         return 0;
     }
 
-    // 👇 นับจำนวน Unit ที่ยังมีชีวิตอยู่
     public int countActiveUnits(int player) {
         int count = 0;
         for (Unit unit : this.units) {
@@ -285,7 +285,6 @@ public class GameState {
         return count;
     }
 
-    // 👇 หาผลรวม HP ของ Unit ที่ยังมีชีวิตอยู่
     public int sumHP(int player) {
         int totalHP = 0;
         for (Unit unit : this.units) {
@@ -296,7 +295,6 @@ public class GameState {
         return totalHP;
     }
 
-    // 👇 นับจำนวนพื้นที่ (Hex) ที่ผู้เล่นครอบครองอยู่
     public int countOwnerHexs(int player) {
         int count = 0;
         for (int r = 0; r < boardRows; r++) {
