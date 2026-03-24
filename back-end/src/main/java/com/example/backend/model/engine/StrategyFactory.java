@@ -19,30 +19,35 @@ public class StrategyFactory {
         // กำหนดสคริปต์ให้แต่ละคลาส
         switch (type) {
             case Unit.TYPE_SABER:
-                // ใช้ Budget (พิมพ์ใหญ่) แทน budget >= 1
-                // เพราะ Parser ตอนนี้รองรับเฉพาะคณิตศาสตร์ (ค่า > 0 ถือว่าเป็น True)
-                script = "if (Budget) then\n" +
-                        "    move " + forward + "\n" +
-                        "else\n" +
-                        "    done\n";
+                // ใช้ Text Block (พิมพ์ """ แล้วขึ้นบรรทัดใหม่)
+                // จุดไหนที่ต้องการแทรกตัวแปร ให้ใส่ %s
+                script = """
+                        if (Budget) then
+                            move %s
+                        else
+                            done
+                        """.formatted(forward);
                 break;
 
             case Unit.TYPE_ARCHER:
-                // เพิ่ม { } ครอบบล็อก while เพื่อให้ตัวแปร m ถูกบวกค่าป้องกัน Infinite Loop
-                script = "t = t + 1\n" +
-                        "m = 0\n" +
-                        "while (3 - m) {\n" +
-                        "    move " + forward + "\n" +
-                        "    m = m + 1\n" +
-                        "}\n" +
-                        "shoot " + forward + " 3\n";
+                script = """
+                        t = t + 1
+                        m = 0
+                        while (3 - m) {
+                            move %s
+                            m = m + 1
+                        }
+                        shoot %s 3
+                        """.formatted(forward, forward); // มี %s 2 ตัว ก็ใส่ forward 2 ครั้ง
                 break;
 
             case Unit.TYPE_LANCER:
-                script = "if (nearby " + forward + ") then\n" +
-                        "    shoot " + forward + " 2\n" +
-                        "else\n" +
-                        "    move " + forward + "\n";
+                script = """
+                        if (nearby %s) then
+                            shoot %s 2
+                        else
+                            move %s
+                        """.formatted(forward, forward, forward); // มี %s 3 ตัว
                 break;
 
             default:
@@ -56,16 +61,12 @@ public class StrategyFactory {
         // จุดเชื่อมต่อ Parser ของจริงเข้ากับ Game Engine
         // =========================================================
         try {
-            // โยนข้อความสคริปต์เข้า Tokenizer
             Tokenizer tokenizer = new ExprTokenizer(script);
-            // ให้ Parser แปลง Token เป็นโครงสร้าง AST (Statement)
             ExprParser parser = new ExprParser(tokenizer);
-
             return parser.parse();
 
         } catch (Exception e) {
             System.err.println("🚨 Parse Error (P" + player + " / คลาส " + type + "): " + e.getMessage());
-            // ถ้าสคริปต์มีปัญหา ให้มินเนียนตัวนั้นยืนนิ่งๆ (done) แทนที่จะปล่อยให้เกมพัง
             return new DoneStatement();
         }
     }
