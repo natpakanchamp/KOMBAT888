@@ -61,8 +61,12 @@ function ownershipToBoard(ownership: number[][]): Record<string, HexState> {
 export default function BattlePage() {
     const { roomId } = useParams<{ roomId: string }>();
     const isSpectator = roomId ? sessionStorage.getItem(`isSpectator_${roomId}`) === "true" : false;
+    const myPlayer = roomId ? Number(sessionStorage.getItem(`playerNumber_${roomId}`)) || 0 : 0; // 1=P1, 2=P2, 0=spectator
     const [fadeIn, setFadeIn] = useState(true);
     const [currentTurn, setCurrentTurn] = useState<number>(0);
+    // currentTurn: 0=P1's turn, 1=P2's turn → myPlayer: 1=P1, 2=P2
+    const isMyTurn = myPlayer === currentTurn + 1;
+    const canAct = isMyTurn && !isSpectator;
 
     // State จาก backend
     const [units, setUnits] = useState<UnitData[]>([]);
@@ -169,9 +173,9 @@ export default function BattlePage() {
 
     const purchasableHexes = useMemo(() => {
         const validHexes = new Set<string>();
-        if (hasPurchasedThisTurn) return validHexes;
+        if (!canAct || hasPurchasedThisTurn) return validHexes;
 
-        const myState = currentTurn === 0 ? 'LIGHT' : 'DARK';
+        const myState = myPlayer === 1 ? 'LIGHT' : 'DARK';
 
         Object.entries(board).forEach(([key, state]) => {
             if (state === myState) {
@@ -187,13 +191,13 @@ export default function BattlePage() {
             }
         });
         return validHexes;
-    }, [board, currentTurn, hasPurchasedThisTurn]);
+    }, [board, canAct, myPlayer, hasPurchasedThisTurn]);
 
     const handleHexagonClick = (c: number, r: number) => {
-        if (isSpectator) return;
+        if (!canAct) return;
         const key = `${c}-${r}`;
         const clickedState = board[key];
-        const myColor = currentTurn === 0 ? 'LIGHT' : 'DARK';
+        const myColor = myPlayer === 1 ? 'LIGHT' : 'DARK';
 
         // 👇 เช็คว่าช่องที่คลิก มีมินเนียนยืนอยู่แล้วหรือยัง?
         const isOccupied = units.some(u => u.col === c && u.row === r);
@@ -212,8 +216,8 @@ export default function BattlePage() {
     };
 
     const handleBuyHex = async () => {
-        if (isSpectator || !selectedHex || hasPurchasedThisTurn || !roomId) return;
-        const player = currentTurn === 0 ? 1 : 2;
+        if (!canAct || !selectedHex || hasPurchasedThisTurn || !roomId) return;
+        const player = myPlayer;
         const res = await fetch(`/api/game/${roomId}/buy-hex`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -227,34 +231,42 @@ export default function BattlePage() {
     };
 
     const handleSkipHex = () => {
-        if (isSpectator || hasPurchasedThisTurn) return;
+        if (!canAct || hasPurchasedThisTurn) return;
         setHasPurchasedThisTurn(true);
         setSelectedHex(null);
     };
 
     const handleConfirmSpawn = async (minionClass: string, _cost: number) => {
-        if (isSpectator || !hexToSpawn || !roomId) return;
-        const player = currentTurn === 0 ? 1 : 2;
+        if (!canAct || !hexToSpawn || !roomId) return;
+        const player = myPlayer;
         await fetch(`/api/game/${roomId}/spawn`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ player, minionType: minionClass, row: hexToSpawn.row, col: hexToSpawn.col }),
         });
         setHexToSpawn(null);
-        if (currentTurn === 1) setTurnCount(prev => prev + 1);
-        setCurrentTurn(currentTurn === 0 ? 1 : 0);
         setSelectedHex(null);
         setHasPurchasedThisTurn(false);
     };
 
-    const handleEndTurn = () => {
-        if (currentTurn === 1) {
-            setTurnCount(prev => prev + 1);
+    const handleEndTurn = async () => {
+        if (!canAct || !roomId) return;
+
+        // ส่ง API ไปบอก Backend ว่าผู้เล่นนี้ขอจบเทิร์น
+        try {
+            await fetch(`/api/game/${roomId}/next-turn`, {
+                method: 'POST'
+            });
+
+            // เคลียร์ค่า UI ฝั่งตัวเองเท่านั้น ไม่ต้องสลับเทิร์นเอง
+            setSelectedHex(null);
+            setHasPurchasedThisTurn(false);
+            setHexToSpawn(null);
+
+            // สถานะ currentTurn และ turnCount จะถูกอัปเดตอัตโนมัติเมื่อ WebSocket ได้รับข้อความจาก Server
+        } catch (e) {
+            console.error("Failed to end turn", e);
         }
-        setCurrentTurn(currentTurn === 0 ? 1 : 0);
-        setSelectedHex(null);
-        setHasPurchasedThisTurn(false);
-        setHexToSpawn(null);
     };
 
     return (
@@ -298,10 +310,10 @@ export default function BattlePage() {
                     onClose={() => setHexToSpawn(null)}
                     col={hexToSpawn.col}
                     row={hexToSpawn.row}
-                    budget={currentTurn === 0 ? p1Budget : p2Budget}
+                    budget={myPlayer === 1 ? p1Budget : p2Budget}
                     spawnCost={spawnCost}
-                    availableMinions={currentTurn === 0 ? p1SelectedMinions : p2SelectedMinions}
-                    themeColor={currentTurn === 0 ? 'yellow' : 'violet'}
+                    availableMinions={myPlayer === 1 ? p1SelectedMinions : p2SelectedMinions}
+                    themeColor={myPlayer === 1 ? 'yellow' : 'violet'}
                     onConfirmSpawn={handleConfirmSpawn}
                 />
             )}
@@ -311,12 +323,14 @@ export default function BattlePage() {
                     playerName="Player 1 (Light)" themeColor="yellow" borderColor="#FAB005"
                     budget={p1Budget} isActive={currentTurn === 0}
                 />
-                <PurchasePanel
-                    isActive={currentTurn === 0} themeColor="yellow" borderColor="#FAB005"
-                    selectedHex={currentTurn === 0 ? selectedHex : null}
-                    onBuy={handleBuyHex} onSkip={handleSkipHex}
-                    canAfford={p1Budget >= hexCost} hasPurchased={currentTurn === 0 && hasPurchasedThisTurn}
-                />
+                {myPlayer === 1 && isMyTurn && (
+                    <PurchasePanel
+                        isActive={true} themeColor="yellow" borderColor="#FAB005"
+                        selectedHex={selectedHex}
+                        onBuy={handleBuyHex} onSkip={handleSkipHex}
+                        canAfford={p1Budget >= hexCost} hasPurchased={hasPurchasedThisTurn}
+                    />
+                )}
             </Stack>
 
             {/* จัดการขอบ Hexagon ตรงนี้ */}
@@ -339,7 +353,7 @@ export default function BattlePage() {
 
                             let displayState = actualState;
                             if (actualState === 'NEUTRAL' && isPurchasable) {
-                                displayState = currentTurn === 0 ? 'TURNING_LIGHT' : 'TURNING_DARK';
+                                displayState = myPlayer === 1 ? 'TURNING_LIGHT' : 'TURNING_DARK';
                             }
 
                             const unitOnHex = units.find(u => u.col === c && u.row === r) ?? null;
@@ -364,20 +378,24 @@ export default function BattlePage() {
                     playerName="Player 2 (Dark)" themeColor="violet" borderColor="#7048E8"
                     budget={p2Budget} isActive={currentTurn === 1}
                 />
-                <PurchasePanel
-                    isActive={currentTurn === 1} themeColor="violet" borderColor="#7048E8"
-                    selectedHex={currentTurn === 1 ? selectedHex : null}
-                    onBuy={handleBuyHex} onSkip={handleSkipHex}
-                    canAfford={p2Budget >= hexCost} hasPurchased={currentTurn === 1 && hasPurchasedThisTurn}
-                />
+                {myPlayer === 2 && isMyTurn && (
+                    <PurchasePanel
+                        isActive={true} themeColor="violet" borderColor="#7048E8"
+                        selectedHex={selectedHex}
+                        onBuy={handleBuyHex} onSkip={handleSkipHex}
+                        canAfford={p2Budget >= hexCost} hasPurchased={hasPurchasedThisTurn}
+                    />
+                )}
             </Stack>
 
-            <Button
-                style={{ position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}
-                onClick={handleEndTurn}
-            >
-                จบเทิร์น (สลับไป P{currentTurn === 0 ? 2 : 1})
-            </Button>
+            {canAct && (
+                <Button
+                    style={{ position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}
+                    onClick={handleEndTurn}
+                >
+                    จบเทิร์น
+                </Button>
+            )}
         </Box>
     );
 }
