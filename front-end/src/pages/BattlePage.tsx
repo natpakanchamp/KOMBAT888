@@ -7,6 +7,7 @@ import { PlayerPanel } from '../components/PlayerPanel';
 import { PurchasePanel } from '../components/PurchasePanel';
 import { SpawnMinionModal } from '../components/SpawnMinionModal';
 import type { HexState } from '../type/HexState';
+import { setBattleHowl } from '../hooks/useBGM';
 
 const HEX_COST = 150;
 const ROWS = 8;
@@ -47,11 +48,17 @@ export default function BattlePage() {
         const battleBGM = new Howl({
             src: ['/bgm/battle-bgm.mp3'],
             loop: true,
-            volume: 0.3,
+            volume: 0.1,
             mute: sessionStorage.getItem("bgmMuted") === "true",
         });
-        battleBGM.play();
-        return () => { battleBGM.stop(); }; // cleanup เมื่อออกจากหน้า
+        setBattleHowl(battleBGM); // register ให้ GearMenu mute ได้
+        if (sessionStorage.getItem("bgmMuted") !== "true") {
+            battleBGM.play();
+        }
+        return () => {
+            battleBGM.stop();
+            setBattleHowl(null); // unregister เมื่อออกจากหน้า
+        };
     }, []);
 
     // State นับหมายเลขเทิร์น (เริ่มที่ 1)

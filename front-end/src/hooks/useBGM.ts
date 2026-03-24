@@ -4,6 +4,13 @@ import { Howl } from 'howler';
 const bgmFile = '/bgm/Giorno_Theme_normal.mp3';
 
 let sharedHowl: Howl | null = null;
+let battleHowl: Howl | null = null;
+
+// ตั้งค่า battleHowl จาก BattlePage เพื่อให้ GearMenu mute ได้
+export function setBattleHowl(h: Howl | null) { battleHowl = h; }
+
+// คืน BGM instance ที่กำลังใช้งานอยู่ (battle หรือ main)
+export function getActiveBGM(): Howl { return battleHowl ?? getHowl(); }
 
 // ฟังก์ชันสำหรับสร้างและแชร์ Howl instance สำหรับ BGM
 export function getHowl(): Howl {
