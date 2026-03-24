@@ -1,6 +1,6 @@
-spawn_cost=10000
-hex_purchase_cost=1000
-init_budget=10000
+spawn_cost=500
+hex_purchase_cost=750
+init_budget=2000
 init_hp=100
 turn_budget=90
 max_budget=23456
