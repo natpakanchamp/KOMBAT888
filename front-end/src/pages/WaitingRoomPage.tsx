@@ -31,6 +31,7 @@ export default function WaitingRoomPage() {
     const [nameSubmitted, setNameSubmitted] = useState(!!stateUser || created || alreadyJoined);
     const needsName = !nameSubmitted;
 
+    const [isJoined, setIsJoined] = useState(false);
     const [roomState, setRoomState] = useState<RoomState | null>(null);
     const [loading, setLoading] = useState(!needsName);
     const [error, setError] = useState<string | null>(null);
@@ -84,7 +85,7 @@ export default function WaitingRoomPage() {
         if (roomState?.you?.id) {
             return roomState.you.id;
         }
-        return sessionStorage.getItem(playerIdKey);
+        return playerIdRef.current ?? sessionStorage.getItem(playerIdKey);
     }, [roomState?.you?.id, playerIdKey]);
 
     useEffect(() => {
@@ -154,6 +155,12 @@ export default function WaitingRoomPage() {
             try {
                 setLoading(true);
                 setError(null);
+                // ถ้าเป็นการจงใจ Join ใหม่ ให้เคลียร์ของเก่าทิ้งเพื่อป้องกันบั๊กไอดีตกค้าง
+                if (joining) {
+                    sessionStorage.removeItem(`playerId_${roomId}`);
+                    playerIdRef.current = null;
+                }
+
                 const existingId = sessionStorage.getItem(`playerId_${roomId}`);
                 if (existingId) {
                     // มี playerId แล้ว (เช่น spectator กลับจาก battle) → ดึง state เลย ไม่ต้อง join
@@ -164,8 +171,9 @@ export default function WaitingRoomPage() {
                 } else {
                     await joinThenLoad();
                 }
+                if (!cancelled) setIsJoined(true);
             } catch (e: any) {
-                if (!cancelled) navigate("/not-found", { replace: true });
+                if (!cancelled) setError(e?.message ?? "Room not found");
             } finally {
                 if (!cancelled) setLoading(false);
             }
@@ -258,6 +266,12 @@ export default function WaitingRoomPage() {
             const me = roomState.players.find((p: any) => p.id === playerId);
             const amSpectator = me?.isSpectator === true;
             sessionStorage.setItem(`isSpectator_${roomId}`, amSpectator ? "true" : "false");
+
+            // คำนวณ player number (1 หรือ 2) จากลำดับผู้เล่นที่ไม่ใช่ spectator
+            const activePlayers = roomState.players.filter((p: any) => !p.isSpectator);
+            const myIndex = activePlayers.findIndex((p: any) => p.id === playerId);
+            const myPlayerNumber = myIndex >= 0 ? myIndex + 1 : 0; // 1 = P1, 2 = P2, 0 = spectator
+            sessionStorage.setItem(`playerNumber_${roomId}`, String(myPlayerNumber));
             // spectator ที่ตั้งใจกลับมาจาก battle → ไม่ redirect กลับ
             const params = new URLSearchParams(window.location.search);
             if (amSpectator && params.get("fromBattle") === "true") return;
@@ -270,13 +284,13 @@ export default function WaitingRoomPage() {
     }, [roomState, roomId, navigate]);
 
     useEffect(() => {
-        if(!roomState || !playerId) return;
+        if(!isJoined || !roomState || !playerId) return;
         if (!roomState.players.some(p => p.id === playerId)) {
             setKicked(true);
             sessionStorage.removeItem(`playerId_${roomId}`);
             leavingRoomRef.current = false;
         }
-    }, [roomState, playerId]);
+    }, [roomState, playerId, isJoined]);
 
     async function toggleReady() {
         if (!roomId || !playerId) return;
