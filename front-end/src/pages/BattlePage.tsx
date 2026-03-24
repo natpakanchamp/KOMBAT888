@@ -14,6 +14,7 @@ import type { HexState } from '../type/HexState';
 import type { UnitData } from '../components/MinionToken';
 import { setBattleHowl } from '../hooks/useBGM';
 
+
 const HEX_COST = 150;
 const ROWS = 8;
 const COLS = 8;
@@ -125,11 +126,13 @@ export default function BattlePage() {
                 if (state.p1Budget !== undefined) setP1Budget(state.p1Budget);
                 if (state.p2Budget !== undefined) setP2Budget(state.p2Budget);
                 if (state.currentTurn !== undefined) setTurnCount(state.currentTurn);
+                if (state.maxTurns !== undefined) setMaxTurns(state.maxTurns);
             })
             .catch(() => {});
     }, [roomId]);
 
     const [turnCount, setTurnCount] = useState<number>(1);
+    const [maxTurns, setMaxTurns] = useState<number>(0);
     const [hasPurchasedThisTurn, setHasPurchasedThisTurn] = useState<boolean>(false);
 
     const [board, setBoard] = useState<Record<string, HexState>>(initializeBoard());
@@ -265,7 +268,7 @@ export default function BattlePage() {
                 }}
             >
                 <Text size="xl" fw={800} c="white" style={{ letterSpacing: '2px' }}>
-                    TURN {turnCount}
+                    TURN {turnCount} / {maxTurns}
                 </Text>
             </Paper>
 
