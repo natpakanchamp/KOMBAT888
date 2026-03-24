@@ -10,8 +10,8 @@ export function Hexagon({ state, onClick, isSelected, unit }: HexagonProps) {
         switch (state) {
             case 'LIGHT': return 'rgba(250, 176, 5, 0.8)';
             case 'DARK': return 'rgba(112, 72, 232, 0.8)';
-            case 'TURNING_LIGHT': return 'rgba(180, 230, 180, 0.6)'; // สีเขียวอ่อนๆ (เปลี่ยนสีได้ตามชอบ)
-            case 'TURNING_DARK': return 'rgba(240, 180, 180, 0.6)'; // สีแดงอ่อนๆ (เปลี่ยนสีได้ตามชอบ)
+            case 'TURNING_LIGHT': return 'rgba(180, 230, 180, 0.75)'; // สีเขียวอ่อนๆ (เปลี่ยนสีได้ตามชอบ)
+            case 'TURNING_DARK': return 'rgba(155, 127, 239, 0.8)'; // สีแดงอ่อนๆ (เปลี่ยนสีได้ตามชอบ)
             case 'NEUTRAL': return 'rgba(255, 255, 255, 0.5)';
             default: return 'transparent';
         }
@@ -33,7 +33,7 @@ export function Hexagon({ state, onClick, isSelected, unit }: HexagonProps) {
                 transition: 'all 0.2s ease',
                 position: 'relative',
 
-                // 👇 ขยายขนาดถ่าถูกคลิกเลือกอยู่
+                // ขยายขนาดถ่าถูกคลิกเลือกอยู่
                 transform: isSelected ? 'scale(1.15)' : 'scale(1)',
                 zIndex: isSelected ? '10' : '1',
             }}

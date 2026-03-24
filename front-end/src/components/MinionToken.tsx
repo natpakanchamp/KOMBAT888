@@ -7,7 +7,12 @@ import LightLancer from '../assets/Light/Light_Lancer.png';
 import LightCaster from '../assets/Light/Light_Caster.png';
 import LightBerserker from '../assets/Light/Light_Berserker.png';
 
-// Light images (ฝั่ง Dark ยังไม่มีรูป — ใช้รูปเดียวกันไปก่อน แล้วใส่ filter เปลี่ยนสี)
+import  DarkSaber from '../assets/Dark/Dark_Saber.png';
+import DarkArcher from '../assets/Dark/Dark_Archer.png';
+import DarkLancer from '../assets/Dark/Dark_Lancer.png';
+import DarkCaster from '../assets/Dark/Dark_Caster.png';
+import DarkBerserker from '../assets/Dark/Dark_Berserker.png';
+
 const LIGHT_IMAGES: Record<number, string> = {
     1: LightSaber,
     2: LightArcher,
@@ -16,15 +21,30 @@ const LIGHT_IMAGES: Record<number, string> = {
     5: LightBerserker,
 };
 
-// ถ้ามีรูป Dark ให้เพิ่ม import แล้วสร้าง DARK_IMAGES ตาม pattern เดียวกัน
+const DARK_IMAGES: Record<number, string> = {
+    1: DarkSaber,
+    2: DarkArcher,
+    3: DarkLancer,
+    4: DarkCaster,
+    5: DarkBerserker,
+};
+
 // const DARK_IMAGES: Record<number, string> = { ... };
 
-const MINION_ICONS: Record<number, string> = {
+const LIGHT_MINION_ICONS: Record<number, string> = {
     1: '🗡️',  // Saber (fallback)
     2: '🏹',  // Archer
     3: '🔱',  // Lancer
     4: '🪄',  // Caster
     5: '🪓',  // Berserker
+};
+
+const DARK_MINION_ICONS: Record<number, string> = {
+    1: '⚔️',  // Dark Saber (fallback)
+    2: '🎯',  // Dark Archer
+    3: '🔱',  // Dark Lancer (ใช้เหมือนกัน)
+    4: '🪄',  // Dark Caster (ใช้เหมือนกัน)
+    5: '🪓',  // Dark Berserker (ใช้เหมือนกัน)
 };
 
 export interface UnitData {
@@ -43,8 +63,8 @@ interface MinionTokenProps {
 
 export function MinionToken({ unit }: MinionTokenProps) {
     const isLight = unit.owner === 1;
-    const image = isLight ? LIGHT_IMAGES[unit.type] : null; // Dark ยังไม่มีรูป
-    const fallbackIcon = MINION_ICONS[unit.type] ?? '❓';
+    const image = isLight ? LIGHT_IMAGES[unit.type] : DARK_IMAGES[unit.type]; // Dark ยังไม่มีรูป
+    const fallbackIcon = LIGHT_MINION_ICONS[unit.type] ?? DARK_MINION_ICONS[unit.type];
     const hpPct = Math.max(0, Math.min(100, (unit.hp / unit.maxHp) * 100));
     const hpColor = hpPct > 50 ? '#4caf50' : hpPct > 25 ? '#ff9800' : '#f44336';
 
