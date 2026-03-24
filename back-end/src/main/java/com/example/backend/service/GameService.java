@@ -3,6 +3,7 @@ package com.example.backend.service;
 import com.example.backend.dto.GameSummaryDto;
 import com.example.backend.dto.RoomDtos;
 import com.example.backend.engine.GameEngine;
+import com.example.backend.model.engine.Unit;
 import com.example.backend.model.engine.GameState;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -45,6 +46,24 @@ public class GameService {
     // เช็คว่าเกมจบหรือยัง
     public boolean isGameOver(String roomId) {
         return mustGetEngine(roomId).isGameOver();
+    }
+
+    // ซื้อ hex และ broadcast
+    public boolean buyHex(String roomId, int player, int row, int col) {
+        GameEngine engine = mustGetEngine(roomId);
+        long cost = engine.getGameState().getP1Budget() >= 150 || engine.getGameState().getP2Budget() >= 150 ? 150 : 0;
+        boolean ok = engine.getGameState().buyHex(row, col, player, 150);
+        if (ok) broadcastState(roomId);
+        return ok;
+    }
+
+    // spawn unit และ broadcast
+    public void spawnUnit(String roomId, int player, String minionType, int row, int col) {
+        GameEngine engine = mustGetEngine(roomId);
+        int type = engine.mapType(minionType);
+        Unit unit = new Unit(1L, player, type, row, col);
+        engine.getGameState().addUnit(unit);
+        broadcastState(roomId);
     }
 
     // ลบเกมของห้อง (เมื่อเกมจบ หรือห้องถูกลบ)

@@ -1,8 +1,9 @@
 // src/components/Hexagon.tsx
 import { UnstyledButton } from '@mantine/core';
 import type { HexagonProps } from '../props/HexagonProps';
+import { MinionToken } from './MinionToken';
 
-export function Hexagon({ state, onClick, isSelected }: HexagonProps) {
+export function Hexagon({ state, onClick, isSelected, unit }: HexagonProps) {
 
     // สีจะเปลี่ยนไปตาม State ที่ส่งเข้ามา (รวมถึง TURNING_LIGHT/DARK ด้วย)
     const getFillColor = () => {
@@ -62,6 +63,7 @@ export function Hexagon({ state, onClick, isSelected }: HexagonProps) {
                     strokeWidth="2"
                 />
             </svg>
+            {unit && <MinionToken unit={unit} />}
         </UnstyledButton>
     );
 }

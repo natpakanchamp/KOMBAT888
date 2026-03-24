@@ -51,7 +51,7 @@ public class GameEngine {
     }
 
     /** แปลงชื่อ type จาก frontend เป็น Unit constant */
-    private int mapType(String typeName) {
+    public int mapType(String typeName) {
         return switch (typeName.toLowerCase()) {
             case "saber"     -> Unit.TYPE_SABER;
             case "archer"    -> Unit.TYPE_ARCHER;

@@ -14,6 +14,10 @@ public class RoomDtos {
 
     public record SpectateRequest(String playerId, boolean isSpectator) {}
 
+    // Game actions
+    public record BuyHexRequest(int player, int row, int col) {}
+    public record SpawnUnitRequest(int player, String minionType, int row, int col) {}
+
     public record PlayerDto(
             String id,
             String name,

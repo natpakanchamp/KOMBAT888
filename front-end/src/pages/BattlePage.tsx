@@ -1,12 +1,15 @@
 // src/pages/BattlePage.tsx
 import { Box, Button, Stack, Text, Paper } from '@mantine/core';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 import { Hexagon } from '../components/Hexagon';
 import { PlayerPanel } from '../components/PlayerPanel';
 import { PurchasePanel } from '../components/PurchasePanel';
 import { SpawnMinionModal } from '../components/SpawnMinionModal';
 import type { HexState } from '../type/HexState';
+import type { UnitData } from '../components/MinionToken';
 import { setBattleHowl } from '../hooks/useBGM';
 
 const HEX_COST = 150;
@@ -31,11 +34,27 @@ const initializeBoard = () => {
     return initial;
 };
 
+// แปลง hexOwnership[row][col] (0=neutral,1=light,2=dark) เป็น board Record
+function ownershipToBoard(ownership: number[][]): Record<string, HexState> {
+    const b: Record<string, HexState> = {};
+    for (let r = 0; r < ownership.length; r++) {
+        for (let c = 0; c < ownership[r].length; c++) {
+            const v = ownership[r][c];
+            b[`${c}-${r}`] = v === 1 ? 'LIGHT' : v === 2 ? 'DARK' : 'NEUTRAL';
+        }
+    }
+    return b;
+}
+
 export default function BattlePage() {
     const { roomId } = useParams<{ roomId: string }>();
     const isSpectator = roomId ? sessionStorage.getItem(`isSpectator_${roomId}`) === "true" : false;
     const [fadeIn, setFadeIn] = useState(true);
     const [currentTurn, setCurrentTurn] = useState<number>(0);
+
+    // State จาก backend
+    const [units, setUnits] = useState<UnitData[]>([]);
+    const stompRef = useRef<Client | null>(null);
 
     useEffect(() => {
         // เริ่มจากจอดำ แล้วค่อยๆ fade out ใน 2 วินาที
@@ -60,6 +79,49 @@ export default function BattlePage() {
             setBattleHowl(null); // unregister เมื่อออกจากหน้า
         };
     }, []);
+
+    // Subscribe WebSocket /topic/game/{roomId}
+    useEffect(() => {
+        if (!roomId) return;
+        const client = new Client({
+            webSocketFactory: () => new SockJS('/ws'),
+            onConnect: () => {
+                client.subscribe(`/topic/game/${roomId}`, (msg) => {
+                    const state = JSON.parse(msg.body);
+                    // อัปเดต board จาก hexOwnership
+                    if (state.hexOwnership) {
+                        setBoard(ownershipToBoard(state.hexOwnership));
+                    }
+                    // อัปเดต units
+                    if (state.units) setUnits(state.units);
+                    // อัปเดต budget
+                    if (state.p1Budget !== undefined) setP1Budget(state.p1Budget);
+                    if (state.p2Budget !== undefined) setP2Budget(state.p2Budget);
+                    // อัปเดต turn
+                    if (state.currentTurn !== undefined) setTurnCount(state.currentTurn);
+                });
+            },
+        });
+        client.activate();
+        stompRef.current = client;
+        return () => { client.deactivate(); };
+    }, [roomId]);
+
+    // ดึง state ครั้งแรก
+    useEffect(() => {
+        if (!roomId) return;
+        fetch(`/api/game/${roomId}/state`)
+            .then(r => r.ok ? r.json() : null)
+            .then(state => {
+                if (!state) return;
+                if (state.hexOwnership) setBoard(ownershipToBoard(state.hexOwnership));
+                if (state.units) setUnits(state.units);
+                if (state.p1Budget !== undefined) setP1Budget(state.p1Budget);
+                if (state.p2Budget !== undefined) setP2Budget(state.p2Budget);
+                if (state.currentTurn !== undefined) setTurnCount(state.currentTurn);
+            })
+            .catch(() => {});
+    }, [roomId]);
 
     // State นับหมายเลขเทิร์น (เริ่มที่ 1)
     const [turnCount, setTurnCount] = useState<number>(1);
@@ -121,24 +183,21 @@ export default function BattlePage() {
         }
     };
 
-    const handleBuyHex = () => {
-        if (isSpectator || !selectedHex || hasPurchasedThisTurn) return;
-
-        // หักเงินผู้เล่น
-        if (currentTurn === 0) {
-            setP1Budget(prev => prev - HEX_COST);
-        } else {
-            setP2Budget(prev => prev - HEX_COST);
+    const handleBuyHex = async () => {
+        if (isSpectator || !selectedHex || hasPurchasedThisTurn || !roomId) return;
+        const player = currentTurn === 0 ? 1 : 2;
+        const res = await fetch(`/api/game/${roomId}/buy-hex`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ player, row: selectedHex.row, col: selectedHex.col }),
+        });
+        if (res.ok) {
+            // board/budget จะ update ผ่าน WebSocket broadcast
+            setHasPurchasedThisTurn(true);
+            // เปิด modal spawn ทันที
+            setHexToSpawn({ col: selectedHex.col, row: selectedHex.row });
+            setSelectedHex(null);
         }
-
-        // เปลี่ยนสีช่องบนกระดาน
-        setBoard(prev => ({
-            ...prev,
-            [`${selectedHex.col}-${selectedHex.row}`]: currentTurn === 0 ? 'LIGHT' : 'DARK'
-        }));
-
-        setHasPurchasedThisTurn(true);
-        setSelectedHex(null);
     };
 
     const handleSkipHex = () => {
@@ -147,24 +206,17 @@ export default function BattlePage() {
         setSelectedHex(null);
     };
 
-    const handleConfirmSpawn = (minionClass: string, cost: number) => {
-        if (isSpectator || !hexToSpawn) return;
-
-        // หักเงินค่าลงมินเนียน
-        if (currentTurn === 0) {
-            setP1Budget(prev => prev - cost);
-        } else {
-            setP2Budget(prev => prev - cost);
-        }
-
-        console.log(`ผู้เล่น ${currentTurn + 1} ลง ${minionClass} ที่ช่อง [${hexToSpawn.col}, ${hexToSpawn.row}] จ่ายไป ${cost}`);
-
-        setHexToSpawn(null); // ปิดหน้าต่างลงมินเนียน
-
-        // บังคับจบเทิร์นทันทีที่ลงมินเนียนเสร็จ
-        if (currentTurn === 1) {
-            setTurnCount(prev => prev + 1);
-        }
+    const handleConfirmSpawn = async (minionClass: string, _cost: number) => {
+        if (isSpectator || !hexToSpawn || !roomId) return;
+        const player = currentTurn === 0 ? 1 : 2;
+        await fetch(`/api/game/${roomId}/spawn`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ player, minionType: minionClass, row: hexToSpawn.row, col: hexToSpawn.col }),
+        });
+        // units จะ update ผ่าน WebSocket broadcast
+        setHexToSpawn(null);
+        if (currentTurn === 1) setTurnCount(prev => prev + 1);
         setCurrentTurn(currentTurn === 0 ? 1 : 0);
         setSelectedHex(null);
         setHasPurchasedThisTurn(false);
@@ -259,10 +311,12 @@ export default function BattlePage() {
                                 displayState = currentTurn === 0 ? 'TURNING_LIGHT' : 'TURNING_DARK';
                             }
 
+                            const unitOnHex = units.find(u => u.col === c && u.row === r) ?? null;
                             return (
                                 <Hexagon
                                     key={`hex-${c}-${r}`} state={displayState}
                                     onClick={() => handleHexagonClick(c, r)} isSelected={isSelected}
+                                    unit={unitOnHex}
                                 />
                             );
                         })}

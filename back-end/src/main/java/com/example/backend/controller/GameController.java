@@ -1,6 +1,7 @@
 package com.example.backend.controller;
 
 import com.example.backend.dto.GameSummaryDto;
+import com.example.backend.dto.RoomDtos;
 import com.example.backend.model.engine.GameState;
 import com.example.backend.service.GameService;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,19 @@ public class GameController {
         return gameService.isGameOver(roomId);
     }
 
+
+    @PostMapping("/buy-hex")
+    public ResponseEntity<?> buyHex(@PathVariable String roomId, @RequestBody RoomDtos.BuyHexRequest req) {
+        boolean ok = gameService.buyHex(roomId, req.player(), req.row(), req.col());
+        if (!ok) return ResponseEntity.badRequest().body(new ErrorBody("Cannot buy hex: insufficient budget or invalid position"));
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/spawn")
+    public ResponseEntity<?> spawnUnit(@PathVariable String roomId, @RequestBody RoomDtos.SpawnUnitRequest req) {
+        gameService.spawnUnit(roomId, req.player(), req.minionType(), req.row(), req.col());
+        return ResponseEntity.ok().build();
+    }
 
     @GetMapping("/summary")
     public GameSummaryDto getSummary(@PathVariable String roomId) {
