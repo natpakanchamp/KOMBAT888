@@ -1,0 +1,43 @@
+attack = 75 - random % 6
+berserk = random % 4
+if (berserk) then attack2 = 0
+else attack2 = 70 - random % 10
+dir = random % 10
+if (nearby up) then
+    shoot up attack
+else if (nearby upright) then
+    shoot upright attack
+else if (nearby downright) then
+    shoot downright attack
+else if (nearby down) then
+    shoot down attack
+else if (nearby downleft) then
+    shoot downleft attack
+else if (nearby upleft) then
+    shoot upleft attack
+else if (0 - nearby up) then
+    shoot up attack2
+else if (0 - nearby upright) then
+    shoot upright attack2
+else if (0 - nearby downright) then
+    shoot downright attack2
+else if (0 - nearby down) then
+    shoot down attack2
+else if (0 - nearby downleft) then
+    shoot downleft attack2
+else if (0 - nearby upleft) then
+    shoot upleft attack2
+else if (dir - 5) then
+    move upleft
+else if (dir - 4) then
+    move downleft
+else if (dir - 3) then
+    move down
+else if (dir - 2) then
+    move downright
+else if (dir - 1) then
+    move upright
+else if (dir) then
+    move up
+else
+    move downright
