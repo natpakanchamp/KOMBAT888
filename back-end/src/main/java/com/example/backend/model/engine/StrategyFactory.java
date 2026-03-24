@@ -23,7 +23,7 @@ public class StrategyFactory {
                 // จุดไหนที่ต้องการแทรกตัวแปร ให้ใส่ %s
                 script = """
                 if (nearby %s) then
-                    shoot %s 1
+                    shoot %s 25
                 else
                     move %s
                 """.formatted(forward, forward, forward); // พิมพ์ forward เข้าไป 3 ครั้ง
@@ -37,14 +37,14 @@ public class StrategyFactory {
                             move %s
                             m = m + 1
                         }
-                        shoot %s 3
+                        shoot %s 40
                         """.formatted(forward, forward); // มี %s 2 ตัว ก็ใส่ forward 2 ครั้ง
                 break;
 
             case Unit.TYPE_LANCER:
                 script = """
                         if (nearby %s) then
-                            shoot %s 2
+                            shoot %s 35
                         else
                             move %s
                         """.formatted(forward, forward, forward); // มี %s 3 ตัว
