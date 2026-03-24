@@ -15,8 +15,8 @@ public class GameState {
     private List<Unit> units;
     private Map<String, Long> globalVars;
     // budget จริงแบบ ไม่ได้ตัด ทศนิยมออก
-    private double p1BudgetExact ;
-    private double p2BudgetExact ;
+    private double p1BudgetExact;
+    private double p2BudgetExact;
 
     private long p1Budget;
     private long p2Budget;
@@ -77,35 +77,26 @@ public class GameState {
         }
     }
 
-
-
     // Helper Method  : คำณวนดอกเบี้ยตาม Spec
-
-    private double calculateInterest (double budget , GameConfig config) {
-        if (budget < 1) return 0 ;
+    private double calculateInterest(double budget, GameConfig config) {
+        if (budget < 1) return 0;
         double b = config.getInterestPct(); // interest value from config file
-        double m = budget ; // ! redundant
-        double t = currentTurn ;
+        double m = budget; // ! redundant
+        double t = currentTurn;
 
         // สูตรคำณวน interest
-        double r = b * Math.log10(m) * Math.log(t) ;
-        return m * r /100 ;
+        double r = b * Math.log10(m) * Math.log(t);
+        return m * r / 100;
     }
+
     // ==========================================
     // ระบบรับเงินรายเทิร์นและคิดดอกเบี้ย
     // ==========================================
     public void applyTurnIncome(GameConfig config) {
-        // old code
-//        long p1Interest = (this.p1Budget * config.getInterestPct()) / 100;
-//        long p2Interest = (this.p2Budget * config.getInterestPct()) / 100;
-//
-//        this.p1Budget += config.getTurnBudget() + p1Interest;
-//        this.p2Budget += config.getTurnBudget() + p2Interest;
-        // turnBudget + cal interest rate
-        p1BudgetExact += config.getTurnBudget() ;
+        p1BudgetExact += config.getTurnBudget();
         p1BudgetExact += calculateInterest(p1BudgetExact, config);
 
-        p2BudgetExact += config.getTurnBudget() ;
+        p2BudgetExact += config.getTurnBudget();
         p2BudgetExact += calculateInterest(p2BudgetExact, config);
 
         // ห้ามเกิน Max Budget
@@ -113,9 +104,8 @@ public class GameState {
         if (this.p2BudgetExact > config.getMaxBudget()) this.p2BudgetExact = config.getMaxBudget();
 
         // update for UI (แบบที่ตัดทศนิยมออกแล้ว )
-        this.p1Budget = (long) p1BudgetExact ;
-        this.p2Budget = (long) p2BudgetExact ;
-
+        this.p1Budget = (long) p1BudgetExact;
+        this.p2Budget = (long) p2BudgetExact;
     }
 
     public List<int[]> getPurchasableHexes(int player) {
@@ -167,7 +157,7 @@ public class GameState {
         };
     }
 
-    private int directionToNumber (String  direction) {
+    private int directionToNumber(String direction) {
         return switch (direction.toLowerCase()){
             case "up"        -> 1;
             case "upright"   -> 2;
@@ -178,14 +168,11 @@ public class GameState {
             default          -> 0;
         };
     }
-    // move หักเงินเสมอ ไม่ว่า จะ move ได้หรือไม่
-    // เงินไม่พอ -> จบ strategy
+
     public boolean move(Unit currentUnit, String direction) {
-        // หักเงืนก่อนเสมอ
-        if(!pay(currentUnit , 1 )) {
+        if(!pay(currentUnit, 1)) {
             return false;
         }
-        // คำณวนใหม่
         int[] offset = getDirectionOffset(direction);
 
         int newRow = currentUnit.getRow() + offset[0];
@@ -194,55 +181,49 @@ public class GameState {
         if (isWithinBounds(newRow, newCol) && getUnitAt(newRow, newCol) == null) {
             currentUnit.setRow(newRow);
             currentUnit.setCol(newCol);
-
         }
-        // move ได้ไหมไม่สน ถือว่า command execute แล้ว
-        return true ;
+        return true;
     }
 
+    // 👇 ระบบยิง ให้ค้นหาเป้าหมายทะลุแมพตามทิศทาง
     public void shoot(Unit currentUnit, String direction, long expenditure) {
         int[] offset = getDirectionOffset(direction);
-//        int targetRow = currentUnit.getRow() + (offset[0] * (int)expenditure);
         int targetRow = currentUnit.getRow() + offset[0];
         int targetCol = currentUnit.getCol() + offset[1];
 
         // หักเงิน
         if (!pay(currentUnit, expenditure + 1)) return;
 
-        if (isWithinBounds(targetRow , targetCol )) {
-            Unit target  = getUnitAt(targetRow , targetCol ) ;
+        // ให้กระสุนพุ่งไปตามทิศทางจนกว่าจะเจอ Unit หรือหลุดขอบกระดาน
+        while (isWithinBounds(targetRow, targetCol)) {
+            Unit target = getUnitAt(targetRow, targetCol);
 
-            if (target != null ) {
-                // damage = max(1, expenditure - defense) ตาม spec
-                long damage  = Math.max(1, expenditure - target.getDefense()) ;
-                //  HP ใหม่ = max(0, h - damage) ตาม spec
+            if (target != null && target.isAlive()) {
+                // คำนวณดาเมจ
+                long damage = Math.max(1, expenditure - target.getDefense());
                 target.takeDamage(damage);
+                // พอโดนเป้าหมายแล้ว กระสุนหายไปเลย
+                break;
             }
 
+            // ถ้าช่องว่าง ให้กระสุนพุ่งต่อไป
+            targetRow += offset[0];
+            targetCol += offset[1];
         }
-
-
     }
 
-
-
     public long query(Unit currentUnit, String type, String direction) {
-        // spec :  return value distance*10 + directionNumber
-        // EX : เจอ opponent ห่าง2 ช่อง ด้านบน  ->  21
-
         if (type.equals("ally") || type.equals("opponent")) {
-
-            long bestValue = Long.MAX_VALUE; // เก็บค่าดีสุด (น้อบที่สุด)
+            long bestValue = Long.MAX_VALUE;
             boolean found = false;
 
-            // วนหา 6 ทิศ
             String[] directions = {"up", "upright", "downright", "down", "downleft", "upleft"};
 
             for (String direct : directions) {
                 int[] offset = getDirectionOffset(direct);
                 int checkRow = currentUnit.getRow() + offset[0];
                 int checkCol = currentUnit.getCol() + offset[1];
-                long dist = 1;  // ระยะห่าง จาก cur unit
+                long dist = 1;
 
                 while (isWithinBounds(checkRow, checkCol)) {
                     Unit other = getUnitAt(checkRow, checkCol);
@@ -251,56 +232,82 @@ public class GameState {
                         boolean match = (type.equals("ally") && isAlly) || (type.equals("opponent") && !isAlly);
                         if (match) {
                             long val = dist * 10 + directionToNumber(direct);
-                            // เก็บค่าน้อยสุด
                             if (val < bestValue) {
                                 bestValue = val;
-                                found = false;
-
+                                found = true; // หาเจอแล้ว
                             }
                         }
                         break;
                     }
-                    // ถ้ายังไม่เจอ เดินต่อในทิศเดิม
                     checkRow += offset[0];
                     checkCol += offset[1];
                     dist++;
                 }
             }
             return found ? bestValue : 0;
-            // case nearby
-            // spec : return 100x + 10y +z
-            // x: HP , y :defense , z : distance
-            // ถ้าเป็น ally (ฝั่งเรา) -> ค่าติดลบ
-        } else if (type.equals("nearby") && direction != null ){
-            int[] offset =  getDirectionOffset(direction);
+
+        } else if (type.equals("nearby") && direction != null) {
+            int[] offset = getDirectionOffset(direction);
             int checkRow = currentUnit.getRow() + offset[0];
             int checkCol = currentUnit.getCol() + offset[1];
-            long dist  = 1 ;
-            // เดินตลอด ในทิศที่ระบุ
+            long dist = 1;
+
             while (isWithinBounds(checkRow, checkCol)) {
-             Unit target = getUnitAt(checkRow, checkCol);
+                Unit target = getUnitAt(checkRow, checkCol);
 
-             if (target != null && target.isAlive()) {
-                 int hpDigits  = String.valueOf(target.getHP()).length();
-                 int defDigits  =  String.valueOf(target.getDefense()).length();
+                if (target != null && target.isAlive()) {
+                    int hpDigits = String.valueOf(target.getHP()).length();
+                    int defDigits = String.valueOf(target.getDefense()).length();
 
-                 // คำนวณค่าตาม spec: 100x + 10y + z
-                 long result = 100L * hpDigits + 10L * defDigits + dist ;
+                    long result = 100L * hpDigits + 10L * defDigits + dist;
 
-                 // ally -> -(value)
-                 if (target.getOwner() == currentUnit.getOwner()) {
-                     return -result;
-                 }
-                 return result ;
-             }
-             // เดินไม่เจอ Unit เดินต่อไป
+                    if (target.getOwner() == currentUnit.getOwner()) {
+                        return -result;
+                    }
+                    return result;
+                }
                 checkRow += offset[0];
-             checkCol += offset[1];
-             dist++ ;
+                checkCol += offset[1];
+                dist++;
             }
         }
-        return 0 ;
+        return 0;
+    }
+
+    // 👇 นับจำนวน Unit ที่ยังมีชีวิตอยู่
+    public int countActiveUnits(int player) {
+        int count = 0;
+        for (Unit unit : this.units) {
+            if (unit.getOwner() == player && unit.isAlive()) {
+                count++;
+            }
         }
+        return count;
+    }
+
+    // 👇 หาผลรวม HP ของ Unit ที่ยังมีชีวิตอยู่
+    public int sumHP(int player) {
+        int totalHP = 0;
+        for (Unit unit : this.units) {
+            if (unit.getOwner() == player && unit.isAlive()) {
+                totalHP += unit.getHP();
+            }
+        }
+        return totalHP;
+    }
+
+    // 👇 นับจำนวนพื้นที่ (Hex) ที่ผู้เล่นครอบครองอยู่
+    public int countOwnerHexs(int player) {
+        int count = 0;
+        for (int r = 0; r < boardRows; r++) {
+            for (int c = 0; c < boardCols; c++) {
+                if (this.hexOwnership[r][c] == player) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
 
     public MatchResult checkNormalWin() {
         boolean p1HasUnits = false; boolean p2HasUnits = false;
@@ -332,37 +339,4 @@ public class GameState {
         if (this.p2Budget > this.p1Budget) return MatchResult.PLAYER2_WINS;
         return MatchResult.DRAW;
     }
-
-    // ======== add  method for summary Game =========
-    // นับจำนวน minion ที่เหลือของแต่ละฝั่ง
-    public int countActiveUnits(int owner ) {
-        int activeUnits = 0;
-        for (Unit unit : this.units) {
-            if (unit.isAlive() && unit.getOwner() == owner )   activeUnits ++;
-
-        }
-        return activeUnits;
-    }
-
-    // total Hp of All minion
-    public int sumHP(int owner ) {
-        int totalHp = 0 ;
-        for (Unit  unit : this.units) {
-            if (unit.isAlive()  && unit.getOwner() == owner )   totalHp += unit.getHP();
-        }
-        return totalHp;
-    }
-    // total Hex ที่แต่ละผู้เล่น เป็น เจ้าของ
-    public int countOwnerHexs (int owner ) {
-        int countHex = 0;
-        for (int r = 0; r < boardRows; r++)
-            for (int c = 0; c < boardCols; c++) {
-                if (hexOwnership[r][c] == owner) countHex++;
-
-            }
-        return countHex;
-    }
-
-
-
 }

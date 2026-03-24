@@ -34,11 +34,12 @@ public class TerminalGameRunner {
         GameState state = new GameState(8, 8, config);
         Unit.resetId();
 
-        Unit p1Starter = new Unit(config.getInitHp(), 1, Unit.TYPE_SABER, 0, 0);
+        // 👇 แก้ไข Defense ให้เป็นค่าตั้งต้นน้อยๆ (เช่น 1L) แทนการใส่ HP
+        Unit p1Starter = new Unit(1L, 1, Unit.TYPE_SABER, 0, 0);
         p1Starter.setStrategy(StrategyFactory.createStrategy(Unit.TYPE_SABER, 1));
         state.addUnit(p1Starter);
 
-        Unit p2Starter = new Unit(config.getInitHp(), 2, Unit.TYPE_ARCHER, 7, 7);
+        Unit p2Starter = new Unit(1L, 2, Unit.TYPE_ARCHER, 7, 7);
         p2Starter.setStrategy(StrategyFactory.createStrategy(Unit.TYPE_ARCHER, 2));
         state.addUnit(p2Starter);
 
@@ -68,10 +69,9 @@ public class TerminalGameRunner {
                     System.out.println("\n--- 🤖 สิทธิ์ของ Player " + player + " (BOT) ---");
                     System.out.println("💰 งบประมาณ: $" + currentBudget);
 
-                    // 1. บอทสุ่มซื้อที่ดิน (ถ้ามีเงินพอและมีที่ว่าง)
+                    // 1. บอทสุ่มซื้อที่ดิน
                     List<int[]> availableHexes = state.getPurchasableHexes(player);
                     if (!availableHexes.isEmpty() && currentBudget >= hexCost) {
-                        // โอกาส 70% ที่จะซื้อที่ดิน เพื่อประหยัดเงินไว้ซื้อมินเนียนบ้าง
                         if (RANDOM.nextInt(100) < 70) {
                             int[] chosenHex = availableHexes.get(RANDOM.nextInt(availableHexes.size()));
                             state.buyHex(chosenHex[0], chosenHex[1], player, hexCost);
@@ -82,7 +82,7 @@ public class TerminalGameRunner {
                         }
                     }
 
-                    // 2. บอทสุ่มวางมินเนียน (ถ้ามีเงินพอและมีที่ให้วาง)
+                    // 2. บอทสุ่มวางมินเนียน
                     if (currentBudget >= spawnCost) {
                         List<int[]> validSpawnHexes = new ArrayList<>();
                         for (int r = 0; r < state.getBoardRows(); r++) {
@@ -97,7 +97,8 @@ public class TerminalGameRunner {
                             int[] chosenHex = validSpawnHexes.get(RANDOM.nextInt(validSpawnHexes.size()));
                             int chosenType = ALLOWED_MINIONS.get(RANDOM.nextInt(ALLOWED_MINIONS.size()));
 
-                            Unit newUnit = new Unit(config.getInitHp(), player, chosenType, chosenHex[0], chosenHex[1]);
+                            // 👇 แก้ไข Defense ให้บอทเป็น 1L ด้วย
+                            Unit newUnit = new Unit(1L, player, chosenType, chosenHex[0], chosenHex[1]);
                             newUnit.setStrategy(StrategyFactory.createStrategy(chosenType, player));
                             state.addUnit(newUnit);
 
@@ -110,7 +111,6 @@ public class TerminalGameRunner {
                         System.out.println("⏩ BOT P" + player + " เงินไม่พอซื้อมินเนียน ข้ามเทิร์น");
                     }
 
-                    // หน่วงเวลาเล็กน้อยให้คนอ่านทัน
                     try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
 
                 } else {
@@ -216,7 +216,8 @@ public class TerminalGameRunner {
 
                                     if (isValidSpawn) {
                                         if (currentBudget >= spawnCost) {
-                                            Unit newUnit = new Unit(config.getInitHp(), player, type, row, col);
+                                            // 👇 แก้ไข Defense ให้คนเล่นเป็น 1L ด้วย
+                                            Unit newUnit = new Unit(1L, player, type, row, col);
                                             newUnit.setStrategy(StrategyFactory.createStrategy(type, player));
 
                                             state.addUnit(newUnit);
@@ -262,7 +263,6 @@ public class TerminalGameRunner {
 
             state.setCurrentTurn(state.getCurrentTurn() + 1);
             if(mode == 3) {
-                // โหมด Auto หน่วงเวลา 2 วินาทีตอนจบเทิร์นให้ดูภาพรวมทัน
                 try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
             }
         }
