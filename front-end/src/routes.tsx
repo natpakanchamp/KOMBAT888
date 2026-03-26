@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage';
 import SelectMinionsPage from "./pages/SelectMinionsPage.tsx";
 import WaitingRoomPage from "./pages/WaitingRoomPage.tsx";
 import BattlePage from "./pages/BattlePage.tsx";
+import StatPage from "./pages/StatPage.tsx";
 
 export const router = createBrowserRouter([
     {
@@ -19,6 +20,7 @@ export const router = createBrowserRouter([
             {path: "battle/:roomId", element: <BattlePage/>},
             {path: "waitingRoom", element: <WaitingRoomPage/>},
             {path: "waitingRoom/:roomId", element: <WaitingRoomPage/>},
+            {path: "stat", element: <StatPage/>},
         ],
     },
     {path: "*", element: <ErrorPage/>}
