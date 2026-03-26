@@ -243,7 +243,11 @@ export default function BattlePage() {
     const handleConfirmSpawn = async (minionClass: string, _cost: number) => {
         void _cost;
 
-        if (!canAct || !hexToSpawn || !roomId) return;
+        if (!canAct || !hexToSpawn || !roomId) {
+            // กรณีที่ข้อมูลไม่ครบหรือไม่สามารถกระทำได้ ให้ปิด Modal และรีเซ็ตสถานะ
+            return;
+        }
+
 
         await fetch(`/api/game/${roomId}/spawn`, {
             method: 'POST',
