@@ -422,6 +422,7 @@ public class GameState {
                 if (hexOwnership[r][c] == owner) countHex++;
             }
         }
+
         return countHex;
     }
 }
