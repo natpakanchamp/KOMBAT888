@@ -97,7 +97,7 @@ public class TerminalGameRunner {
         while (state.checkNormalWin() == MatchResult.ONGOING && state.getCurrentTurn() <= config.getMaxTurns()) {
 
             if (state.getCurrentTurn() > 1) {
-                state.applyTurnIncome(config);
+                state.applyTurnIncome(state.getCurrentPlayer() , config );
             }
 
             state.cleanUpDeadUnits();

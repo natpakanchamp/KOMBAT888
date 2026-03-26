@@ -64,7 +64,7 @@ export default function WaitingRoomPage() {
         window.addEventListener("keydown", handleKeyDown);
 
         return () => {
-        window.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("keydown", handleKeyDown);
         };
     }, [navigate, showManual]);
 

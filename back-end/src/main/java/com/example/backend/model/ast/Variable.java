@@ -24,7 +24,7 @@ public record Variable(String name) implements Expr {
                 // เช็คว่าเป็นของใครแล้วดึงกระเป๋าเงินให้ถูกคน
                 return currentUnit.getOwner() == 1 ? state.getP1Budget() : state.getP2Budget();
             case "Int":
-                return state.getInterestRate();
+                return Math.round(state.getCurrentInterestPctForPlayer(currentUnit.getOwner()));
             case "MaxBudget":
                 return state.getMaxBudget();
             case "SpawnsLeft":
