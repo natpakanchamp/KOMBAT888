@@ -145,9 +145,10 @@ export default function BattlePage() {
             .catch(() => {});
     }, [roomId]);
 
+    // ส่งไปหน้า Stat
     useEffect(() => {
         if (!roomId) return;
-
+        //
         fetch(`/api/game/${roomId}/state`)
             .then(r => (r.ok ? r.json() : null))
             .then(state => {

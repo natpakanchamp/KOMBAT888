@@ -28,6 +28,10 @@ public class GameService {
     public void startGame(String roomId, Map<Integer, List<RoomDtos.MinionDto>> playerMinions) {
         GameEngine engine = new GameEngine();
         engine.initial(playerMinions);
+
+        // เริ่มต้น turn ของ player 1
+        engine.getGameState().applyTurnIncome(1, engine.getConfig());
+
         engines.put(roomId, engine);
         broadcastState(roomId);
     }
