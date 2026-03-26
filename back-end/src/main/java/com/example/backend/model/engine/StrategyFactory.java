@@ -12,53 +12,110 @@ public class StrategyFactory {
 
         String script = "";
 
-        // กำหนดทิศทางเดินหน้าตามฝั่งของผู้เล่น
-        // (P1 เดินลงขวา, P2 เดินขึ้นซ้าย)
-        String forward = (player == 1) ? "downright" : "upleft";
-
-        // กำหนดสคริปต์ให้แต่ละคลาส
+        // 🌟 1 อาชีพ = 1 สคริปต์ตายตัว ไม่แยกฝั่ง ไม่ใช้การตัดต่อคำใดๆ
         switch (type) {
-            case Unit.TYPE_SABER:
-                // ใช้ Text Block (พิมพ์ """ แล้วขึ้นบรรทัดใหม่)
-                // จุดไหนที่ต้องการแทรกตัวแปร ให้ใส่ %s
+            case 1: // Saber
                 script = """
-                if (nearby %s) then
-                    shoot %s 25
-                else
-                    move %s
-                """.formatted(forward, forward, forward); // พิมพ์ forward เข้าไป 3 ครั้ง
+                        if (nearby downright) then
+                            shoot downright 25
+                        else
+                            move downright
+                        """;
                 break;
 
-            case Unit.TYPE_ARCHER:
+            case 2: // Archer
                 script = """
                         t = t + 1
                         m = 0
                         while (3 - m) {
-                            move %s
+                            move downright
                             m = m + 1
                         }
-                        shoot %s 40
-                        """.formatted(forward, forward); // มี %s 2 ตัว ก็ใส่ forward 2 ครั้ง
+                        shoot downright 40
+                        """;
                 break;
 
-            case Unit.TYPE_LANCER:
+            case 3: // Lancer
                 script = """
-                        if (nearby %s) then
-                            shoot %s 35
-                        else
-                            move %s
-                        """.formatted(forward, forward, forward); // มี %s 3 ตัว
+                          attack = 15 - random % 3
+                          sprint = random % 10
+                          if (sprint) then step = 2
+                          else step = 3
+                        
+                          dir2 = (random % 6) + 1
+                        
+                          while (step) {
+                              dir = opponent % 10
+                        
+                              if (nearby up) then
+                                  shoot up attack
+                              else if (nearby upright) then
+                                  shoot upright attack
+                              else if (nearby downright) then
+                                  shoot downright attack
+                              else if (nearby down) then
+                                  shoot down attack
+                              else if (nearby downleft) then
+                                  shoot downleft attack
+                              else if (nearby upleft) then
+                                  shoot upleft attack
+                        
+                              else if (dir - 5) then
+                                  move upleft
+                              else if (dir - 4) then
+                                  move downleft
+                              else if (dir - 3) then
+                                  move down
+                              else if (dir - 2) then
+                                  move downright
+                              else if (dir - 1) then
+                                  move upright
+                              else if (dir) then
+                                  move up
+                        
+                              else if (dir2 - 5) then
+                                  move upleft
+                              else if (dir2 - 4) then
+                                  move downleft
+                              else if (dir2 - 3) then
+                                  move down
+                              else if (dir2 - 2) then
+                                  move downright
+                              else if (dir2 - 1) then
+                                  move upright
+                              else move up
+                        
+                              step = step - 1
+                          }
+                        """;
+                break;
+
+            case 4: // Caster
+                script = """
+                        move downright
+                        shoot downright 15
+                        move downright
+                        """;
+                break;
+
+            case 5: // Berserker
+                script = """
+                        while (1) {
+                            if (nearby downright) then
+                                shoot downright 50
+                            else
+                                move downright
+                        }
+                        """;
                 break;
 
             default:
-                script = "done\n";
+                script = "done";
                 break;
         }
 
-        System.out.println("📜 โหลดสคริปต์ให้ P" + player + " (คลาส " + type + "):\n" + script);
-
         // =========================================================
-        // จุดเชื่อมต่อ Parser ของจริงเข้ากับ Game Engine
+        // จุดเชื่อมต่อ Parser เข้ากับ Game Engine (รันแบบเงียบๆ)
         // =========================================================
         try {
             Tokenizer tokenizer = new ExprTokenizer(script);
@@ -66,7 +123,7 @@ public class StrategyFactory {
             return parser.parse();
 
         } catch (Exception e) {
-            System.err.println("🚨 Parse Error (P" + player + " / คลาส " + type + "): " + e.getMessage());
+            // ถ้า Syntax สคริปต์มีปัญหา ให้คืนค่า Done (ข้ามเทิร์น) แทน
             return new DoneStatement();
         }
     }
