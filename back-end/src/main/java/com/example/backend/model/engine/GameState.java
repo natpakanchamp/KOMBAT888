@@ -74,7 +74,7 @@ public class GameState {
         if (boardRows > 1 && boardCols > 2) {
             int lastRow = boardRows - 1;
             int lastCol = boardCols - 1;
-            this.hexOwnership[lastRow - 1][lastCol - 2] = 2;
+            this.hexOwnership[lastRow - 1][lastCol] = 2;
             this.hexOwnership[lastRow - 1][lastCol - 1] = 2;
             this.hexOwnership[lastRow][lastCol - 2] = 2;
             this.hexOwnership[lastRow][lastCol - 1] = 2;

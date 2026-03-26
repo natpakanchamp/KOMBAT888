@@ -41,8 +41,12 @@ public class StrategyFactory {
                           sprint = random % 10
                           if (sprint) then step = 2
                           else step = 3
+                        
+                          dir2 = (random % 6) + 1
+                        
                           while (step) {
                               dir = opponent % 10
+                        
                               if (nearby up) then
                                   shoot up attack
                               else if (nearby upright) then
@@ -55,6 +59,7 @@ public class StrategyFactory {
                                   shoot downleft attack
                               else if (nearby upleft) then
                                   shoot upleft attack
+                        
                               else if (dir - 5) then
                                   move upleft
                               else if (dir - 4) then
@@ -67,8 +72,19 @@ public class StrategyFactory {
                                   move upright
                               else if (dir) then
                                   move up
-                              else
+                        
+                              else if (dir2 - 5) then
+                                  move upleft
+                              else if (dir2 - 4) then
+                                  move downleft
+                              else if (dir2 - 3) then
+                                  move down
+                              else if (dir2 - 2) then
                                   move downright
+                              else if (dir2 - 1) then
+                                  move upright
+                              else move up
+                        
                               step = step - 1
                           }
                         """;
