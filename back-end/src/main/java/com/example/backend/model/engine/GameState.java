@@ -79,7 +79,7 @@ public class GameState {
         // แจกพื้นที่เริ่มต้น  P2
         if (boardRows > 1 && boardCols > 2) {
             int lastRow = boardRows - 1; int lastCol = boardCols - 1;
-            this.hexOwnership[lastRow - 1][lastCol - 2] = 2; this.hexOwnership[lastRow - 1][lastCol - 1] = 2;
+            this.hexOwnership[lastRow - 1][lastCol] = 2; this.hexOwnership[lastRow - 1][lastCol - 1] = 2;
             this.hexOwnership[lastRow][lastCol - 2] = 2;     this.hexOwnership[lastRow][lastCol - 1] = 2;
             this.hexOwnership[lastRow][lastCol] = 2;
         }
@@ -226,13 +226,8 @@ public class GameState {
                 //  HP ใหม่ = max(0, h - damage) ตาม spec
                 target.takeDamage(damage);
             }
-
         }
-
-
     }
-
-
 
     public long query(Unit currentUnit, String type, String direction) {
         // spec :  return value distance*10 + directionNumber
@@ -370,7 +365,4 @@ public class GameState {
             }
         return countHex;
     }
-
-
-
 }
