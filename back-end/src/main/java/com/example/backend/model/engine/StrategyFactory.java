@@ -16,77 +16,69 @@ public class StrategyFactory {
         switch (type) {
             case 1: // Saber
                 script = """
-                        if (nearby downright) then
-                            shoot downright 25
-                        else
-                            move downright
+                      step = 3
+                      while(step) {
+                          move downright
+                          step = step - 1
+                      }
+                      shoot downright 20
                         """;
                 break;
 
             case 2: // Archer
                 script = """
-                        t = t + 1
-                        m = 0
-                        while (3 - m) {
-                            move downright
-                            m = m + 1
-                        }
-                        shoot downright 40
+                        attack = 15
+                      step = 3
+
+                      while (step) {
+                          dir = opponent
+
+                          if (dir) then {
+                              if (dir - 5) then { shoot upleft attack }
+                              else {
+                                  if (dir - 4) then { shoot downleft attack }
+                                  else {
+                                      if (dir - 3) then { shoot down attack }
+                                      else {
+                                          if (dir - 2) then { shoot downright attack }
+                                          else {
+                                              if (dir - 1) then { shoot upright attack }
+                                              else { shoot up attack }
+                                          }
+                                      }
+                                  }
+                              }
+                          }
+                          else {
+                              if (row - 4) then {
+                                  if (col - 4) then { move upleft }
+                                  else { move upright }
+                              }
+                              else {
+                                  if (col - 4) then { move downleft }
+                                  else { move downright }
+                              }
+                          }
+
+                          step = step - 1
+                      }
                         """;
                 break;
 
             case 3: // Lancer
                 script = """
-                          attack = 15 - random % 3
-                          sprint = random % 10
-                          if (sprint) then step = 2
-                          else step = 3
-                        
-                          dir2 = (random % 6) + 1
-                        
-                          while (step) {
-                              dir = opponent % 10
-                        
-                              if (nearby up) then
-                                  shoot up attack
-                              else if (nearby upright) then
-                                  shoot upright attack
-                              else if (nearby downright) then
-                                  shoot downright attack
-                              else if (nearby down) then
-                                  shoot down attack
-                              else if (nearby downleft) then
-                                  shoot downleft attack
-                              else if (nearby upleft) then
-                                  shoot upleft attack
-                        
-                              else if (dir - 5) then
-                                  move upleft
-                              else if (dir - 4) then
-                                  move downleft
-                              else if (dir - 3) then
-                                  move down
-                              else if (dir - 2) then
-                                  move downright
-                              else if (dir - 1) then
-                                  move upright
-                              else if (dir) then
-                                  move up
-                        
-                              else if (dir2 - 5) then
-                                  move upleft
-                              else if (dir2 - 4) then
-                                  move downleft
-                              else if (dir2 - 3) then
-                                  move down
-                              else if (dir2 - 2) then
-                                  move downright
-                              else if (dir2 - 1) then
-                                  move upright
-                              else move up
-                        
-                              step = step - 1
-                          }
+                        if(row - 4) then {
+                            if(col - 4) then {
+                                move upleft
+                            }
+                            else move upright
+                        }
+                        else {
+                            if(col - 4) then {
+                                move downleft
+                            }
+                            else move downright
+                        }
                         """;
                 break;
 
@@ -115,7 +107,7 @@ public class StrategyFactory {
         }
 
         // =========================================================
-        // จุดเชื่อมต่อ Parser เข้ากับ Game Engine (รันแบบเงียบๆ)
+        // จุดเชื่อมต่อ Parser เข้ากับ Game Engine (เปิดแจ้งเตือนแล้ว!)
         // =========================================================
         try {
             Tokenizer tokenizer = new ExprTokenizer(script);
@@ -123,8 +115,10 @@ public class StrategyFactory {
             return parser.parse();
 
         } catch (Exception e) {
-            // ถ้า Syntax สคริปต์มีปัญหา ให้คืนค่า Done (ข้ามเทิร์น) แทน
-            return new DoneStatement();
+            // 🚨 เปิดไฟฉายส่องบั๊ก: ถ้า Syntax ผิด จะโวยวายออก Terminal ตรงนี้เลย!
+            System.err.println("🚨 Parse Error (P" + player + " / คลาส " + type + "): " + e.getMessage());
+            e.printStackTrace();
+            return new DoneStatement(); // และให้หมากยืนนิ่งๆ เป็นกระสอบทรายไปก่อน
         }
     }
 }
