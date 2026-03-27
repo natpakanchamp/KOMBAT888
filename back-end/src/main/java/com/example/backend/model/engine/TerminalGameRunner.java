@@ -73,7 +73,7 @@ public class TerminalGameRunner {
             System.out.println("✅ อาชีพที่เลือกใช้ในเกมนี้: " + summaryText);
         }
 
-        GameConfig config = GameConfig.loadFromFile("C:\\Users\\User\\IdeaProjects\\KOMBAT888_VNNTTTT\\back-end\\config.txt");
+        GameConfig config = GameConfig.loadFromFile("D:\\proj200\\parserDemo\\back-end\\config.txt");
         GameState state = new GameState(8, 8, config);
         Unit.resetId();
 
