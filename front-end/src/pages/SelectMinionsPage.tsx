@@ -20,12 +20,14 @@ import bow from "../assets/bow.png";
 import lancer_card from "../assets/lancer_card.png";
 import berserker_card from "../assets/berserker_card.png";
 import caster_card from "../assets/caster_card.png";
+import {useSparkleTrail} from "../hooks/useSparkleTrail.ts";
 
 type SelectedMinion = { type: string; strategy: string };
 
 export default function SelectMinionsPage() {
     const navigate = useNavigate();
     const location = useLocation();
+    useSparkleTrail();
 
     // Check if coming from a waiting room
     const roomId = (location.state as any)?.roomId as string | undefined;
