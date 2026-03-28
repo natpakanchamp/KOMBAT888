@@ -17,11 +17,14 @@ public class TerminalGameRunner {
     );
 
     private static List<Integer> allowedMinions = new ArrayList<>();
+    // เอาไว้เก็บค่า Def ของแต่ละอาชีพที่ผู้เล่นกรอกเข้ามา
+    public static Map<Integer, Integer> minionDefs = new HashMap<>();
+
     private static final Random RANDOM = new Random();
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        System.out.println("=== 🚀 KOMBAT AUTO-BATTLER STARTED ===");
+        System.out.println("===  KOMBAT AUTO-BATTLER STARTED ===");
 
         // ==========================================
         // 1. เลือกโหมดการเล่น
@@ -39,33 +42,46 @@ public class TerminalGameRunner {
         }
 
         // ==========================================
-        // 2. ระบบถามตอบ (y/n) พร้อมโชว์ชื่ออาชีพ
+        // 2. ระบบถามตอบแบบใหม่: ป้อนค่า Def (+) เพื่อใช้ หรือกด Enter เพื่อข้าม
         // ==========================================
         System.out.println("\n[ ตั้งค่าอาชีพ Minion ที่จะใช้งาน ]");
-        System.out.println("ระบบจะถามคุณทีละอาชีพ (1-5) ว่าต้องการนำมาใช้ในเกมนี้หรือไม่");
+        System.out.println("ระบบจะถามคุณทีละอาชีพ ป้อนค่าพลังป้องกัน (Def) เพื่อนำมาใช้ หรือกด Enter เพื่อข้าม");
 
         for (int i = 1; i <= 5; i++) {
             while (true) {
-                System.out.print("👉 ต้องการเปิดใช้งานอาชีพ [" + i + " = " + MINION_NAMES.get(i) + "] หรือไม่? (y/n): ");
-                String ans = scanner.nextLine().trim().toLowerCase();
-                if (ans.equals("y")) {
-                    allowedMinions.add(i);
+                System.out.print("👉 อาชีพ [" + i + " = " + MINION_NAMES.get(i) + "] ค่า Def (ตัวเลขบวก) หรือกด Enter เพื่อข้าม: ");
+                String ans = scanner.nextLine().trim();
+
+                // ถ้ายอมกด Enter ว่างๆ ให้ถือว่าไม่เอา (แทน n)
+                if (ans.isEmpty()) {
                     break;
-                } else if (ans.equals("n")) {
-                    break;
-                } else {
-                    System.out.println("❌ กรุณาพิมพ์ y หรือ n เท่านั้นครับ");
+                }
+
+                // ถ้าพิมพ์มา ให้เช็คว่าเป็นตัวเลขบวกหรือไม่
+                try {
+                    int defValue = Integer.parseInt(ans);
+                    if (defValue > 0) {
+                        allowedMinions.add(i);
+                        minionDefs.put(i, defValue); // เก็บค่า Def ไว้
+                        break;
+                    } else {
+                        System.out.println("❌ กรุณาป้อนตัวเลขที่มีค่ามากกว่า 0 ครับ");
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("❌ กรุณาป้อนตัวเลข หรือกด Enter ถ้าไม่ต้องการใช้ครับ");
                 }
             }
         }
 
         if (allowedMinions.isEmpty()) {
-            System.out.println("⚠️ คุณไม่ได้เลือกอาชีพเลย! ระบบจะตั้งค่าเริ่มต้นให้เป็น [1, 2, 3, 4, 5]");
+            System.out.println("⚠️ คุณไม่ได้เลือกอาชีพเลย! ระบบจะตั้งค่าเริ่มต้นให้เป็น [1, 2, 3, 4, 5] (Def=0)");
             allowedMinions.addAll(Arrays.asList(1, 2, 3, 4, 5));
+            for(int i=1; i<=5; i++) minionDefs.put(i, 0);
         } else {
             StringBuilder summary = new StringBuilder("[ ");
             for (int id : allowedMinions) {
-                summary.append(id).append("=").append(MINION_NAMES.get(id)).append(", ");
+                summary.append(id).append("=").append(MINION_NAMES.get(id))
+                        .append("(Def:").append(minionDefs.get(id)).append("), ");
             }
             String summaryText = summary.toString();
             if (summaryText.endsWith(", ")) summaryText = summaryText.substring(0, summaryText.length() - 2);
@@ -80,18 +96,20 @@ public class TerminalGameRunner {
         int p1Type = allowedMinions.get(0);
         int p2Type = allowedMinions.size() > 1 ? allowedMinions.get(1) : allowedMinions.get(0);
 
-        Unit p1Starter = new Unit(config.getInitHp(), 1, p1Type, 0, 0);
+        // 🌟 แก้พารามิเตอร์ตัวแรกเป็นค่า Def ของตัวเริ่มต้น P1
+        Unit p1Starter = new Unit(minionDefs.get(p1Type), 1, p1Type, 0, 0);
         p1Starter.setStrategy(StrategyFactory.createStrategy(p1Type, 1));
         state.addUnit(p1Starter);
 
-        Unit p2Starter = new Unit(config.getInitHp(), 2, p2Type, 7, 7);
+        // 🌟 แก้พารามิเตอร์ตัวแรกเป็นค่า Def ของตัวเริ่มต้น P2
+        Unit p2Starter = new Unit(minionDefs.get(p2Type), 2, p2Type, 7, 7);
         p2Starter.setStrategy(StrategyFactory.createStrategy(p2Type, 2));
         state.addUnit(p2Starter);
 
         while (state.checkNormalWin() == MatchResult.ONGOING && state.getCurrentTurn() <= config.getMaxTurns()) {
 
             if (state.getCurrentTurn() > 1) {
-                state.applyTurnIncome(state.getCurrentTurn(), config); // ส่งเทิร์นปัจจุบันไปคิดดอกเบี้ย
+                state.applyTurnIncome(state.getCurrentTurn(), config);
             }
 
             state.cleanUpDeadUnits();
@@ -119,8 +137,7 @@ public class TerminalGameRunner {
                             int[] chosenHex = availableHexes.get(RANDOM.nextInt(availableHexes.size()));
                             state.buyHex(chosenHex[0], chosenHex[1], player, hexCost);
                             currentBudget -= hexCost;
-                            // 🌟 แก้ให้โชว์เป็น 1-8 ให้ผู้เล่นดู
-                            System.out.println("✅ BOT P" + player + " ขยายอาณาเขตไปที่ [" + (chosenHex[0] + 1) + "," + (chosenHex[1] + 1) + "]");
+                            System.out.println("✅ BOT P" + player + " ขยายอาณาเขตไปที่ [" + chosenHex[0] + "," + chosenHex[1] + "]");
                         } else {
                             System.out.println("⏩ BOT P" + player + " ตัดสินใจเก็บเงินไว้ไม่ซื้อที่ดิน");
                         }
@@ -141,15 +158,15 @@ public class TerminalGameRunner {
                             int chosenType = allowedMinions.get(RANDOM.nextInt(allowedMinions.size()));
                             String typeName = MINION_NAMES.getOrDefault(chosenType, "Unknown");
 
-                            Unit newUnit = new Unit(config.getInitHp(), player, chosenType, chosenHex[0], chosenHex[1]);
+                            // 🌟 แก้พารามิเตอร์ตัวแรกเป็นค่า Def ให้บอทตอนสร้างมินเนียน
+                            Unit newUnit = new Unit(minionDefs.get(chosenType), player, chosenType, chosenHex[0], chosenHex[1]);
                             newUnit.setStrategy(StrategyFactory.createStrategy(chosenType, player));
                             state.addUnit(newUnit);
 
                             if (player == 1) state.setP1Budget(currentBudget - spawnCost);
                             else state.setP2Budget(currentBudget - spawnCost);
 
-                            // 🌟 แก้ให้โชว์เป็น 1-8 ให้ผู้เล่นดู
-                            System.out.println("⚔️ BOT P" + player + " ส่งมินเนียน (" + typeName + ") ลงที่ [" + (chosenHex[0] + 1) + "," + (chosenHex[1] + 1) + "]");
+                            System.out.println("⚔️ BOT P" + player + " ส่งมินเนียน (" + typeName + ") ลงที่ [" + chosenHex[0] + "," + chosenHex[1] + "]");
                         }
                     } else {
                         System.out.println("⏩ BOT P" + player + " เงินไม่พอซื้อมินเนียน ข้ามเทิร์น");
@@ -158,7 +175,7 @@ public class TerminalGameRunner {
                     try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
 
                 } else {
-                    System.out.println("\n--- 🎮 สิทธิ์ของ Player " + player + " ---");
+                    System.out.println("\n--- 🎮 turn ของ Player " + player + " ---");
                     System.out.println("💰 งบประมาณที่มี: $" + currentBudget);
 
                     System.out.print("ต้องการซื้อพื้นที่ 1 ช่อง (Hex ราคา $" + hexCost + ") หรือไม่? (y/n): ");
@@ -175,19 +192,17 @@ public class TerminalGameRunner {
                             currentBudget = (player == 1) ? state.getP1Budget() : state.getP2Budget();
                             System.out.print("📍 พื้นที่ที่ซื้อได้: ");
                             for (int[] hex : availableHexes) {
-                                // 🌟 ปริ้นต์โชว์เป็นแบบ 1-8
-                                System.out.print("[" + (hex[0] + 1) + "," + (hex[1] + 1) + "] ");
+                                System.out.print("[" + hex[0] + "," + hex[1] + "] ");
                             }
-                            System.out.println("\n(งบเหลือ: $" + currentBudget + ") >> ป้อนพิกัด (row col) 1-8 หรือพิมพ์ 'done': ");
+                            System.out.println("\n(งบเหลือ: $" + currentBudget + ") >> ป้อนพิกัด (row col) หรือพิมพ์ 'done': ");
 
                             String hexInput = scanner.nextLine().trim().toLowerCase();
                             if (hexInput.equals("done")) break;
 
                             try {
                                 String[] tokens = hexInput.split(" ");
-                                // 🌟 ลบ 1 ทันทีที่รับค่า เพื่อส่งเข้า Engine เป็น 0-7
-                                int row = Integer.parseInt(tokens[0]) - 1;
-                                int col = Integer.parseInt(tokens[1]) - 1;
+                                int row = Integer.parseInt(tokens[0]);
+                                int col = Integer.parseInt(tokens[1]);
 
                                 boolean isValid = false;
                                 for (int[] hex : availableHexes) {
@@ -196,7 +211,7 @@ public class TerminalGameRunner {
 
                                 if (isValid) {
                                     if (state.buyHex(row, col, player, hexCost)) {
-                                        System.out.println("✅ P" + player + " ซื้อพื้นที่ [" + (row + 1) + "," + (col + 1) + "] สำเร็จ!");
+                                        System.out.println("✅ P" + player + " ซื้อพื้นที่ [" + row + "," + col + "] สำเร็จ!");
                                         break;
                                     } else {
                                         System.out.println("❌ เงินไม่พอ!");
@@ -205,7 +220,7 @@ public class TerminalGameRunner {
                                     System.out.println("❌ ซื้อไม่ได้! ต้องเป็นช่องที่ติดกับอาณาเขตของคุณ");
                                 }
                             } catch (Exception e) {
-                                System.out.println("❌ รูปแบบพิกัดไม่ถูกต้อง! (กรุณาพิมพ์ตัวเลขเช่น '3 3')");
+                                System.out.println("❌ รูปแบบพิกัดไม่ถูกต้อง!");
                             }
                         }
                     }
@@ -232,8 +247,7 @@ public class TerminalGameRunner {
                             currentBudget = (player == 1) ? state.getP1Budget() : state.getP2Budget();
                             System.out.print("📍 พื้นที่ที่วางได้: ");
                             for (int[] hex : validSpawnHexes) {
-                                // 🌟 ปริ้นต์โชว์เป็นแบบ 1-8
-                                System.out.print("[" + (hex[0] + 1) + "," + (hex[1] + 1) + "] ");
+                                System.out.print("[" + hex[0] + "," + hex[1] + "] ");
                             }
 
                             System.out.println("\n(งบเหลือ: $" + currentBudget + ", ราคาเกิด: $" + spawnCost + ")");
@@ -247,8 +261,7 @@ public class TerminalGameRunner {
                             spawnMenuText += " ]";
 
                             System.out.println("ตัวเลือกอาชีพ: " + spawnMenuText);
-                            // 🌟 เปลี่ยนคำใบ้ให้พิมพ์แบบ 1-8 (เช่น 1 2 1 แทน 1 1 0)
-                            System.out.print(">> ป้อนข้อมูล (หมายเลขอาชีพ row col) เช่น '" + allowedMinions.get(0) + " 2 1' หรือพิมพ์ 'done': ");
+                            System.out.print(">> ป้อนข้อมูล (หมายเลขอาชีพ row col) เช่น '" + allowedMinions.get(0) + " 1 0' หรือพิมพ์ 'done': ");
 
                             String minionInput = scanner.nextLine().trim().toLowerCase();
                             if (minionInput.equals("done")) break;
@@ -257,9 +270,8 @@ public class TerminalGameRunner {
                             if (tokens.length == 3) {
                                 try {
                                     int type = Integer.parseInt(tokens[0]);
-                                    // 🌟 ลบ 1 ทันทีที่รับค่าพิกัด เพื่อส่งเข้า Engine เป็น 0-7
-                                    int row = Integer.parseInt(tokens[1]) - 1;
-                                    int col = Integer.parseInt(tokens[2]) - 1;
+                                    int row = Integer.parseInt(tokens[1]);
+                                    int col = Integer.parseInt(tokens[2]);
 
                                     if (!allowedMinions.contains(type)) {
                                         System.out.println("❌ อาชีพเบอร์ " + type + " ไม่มีให้เลือกในแมตช์นี้ครับ!");
@@ -273,14 +285,16 @@ public class TerminalGameRunner {
 
                                     if (isValidSpawn) {
                                         if (currentBudget >= spawnCost) {
-                                            Unit newUnit = new Unit(config.getInitHp(), player, type, row, col);
+
+                                            // 🌟 แก้พารามิเตอร์ตัวแรกเป็นค่า Def ให้ผู้เล่นตอนสร้างมินเนียน
+                                            Unit newUnit = new Unit(minionDefs.get(type), player, type, row, col);
                                             newUnit.setStrategy(StrategyFactory.createStrategy(type, player));
 
                                             state.addUnit(newUnit);
                                             if (player == 1) state.setP1Budget(currentBudget - spawnCost);
                                             else state.setP2Budget(currentBudget - spawnCost);
 
-                                            System.out.println("P" + player + " สร้าง Minion (" + MINION_NAMES.get(type) + ") ลงที่ [" + (row + 1) + "," + (col + 1) + "] สำเร็จ!");
+                                            System.out.println("✅ P" + player + " สร้าง Minion (" + MINION_NAMES.get(type) + ") สำเร็จ!");
                                             break;
                                         } else {
                                             System.out.println("❌ เงินไม่พอ!");
@@ -299,9 +313,9 @@ public class TerminalGameRunner {
                 }
             }
 
-            // ==========================================
-            // Phase 2: Execution Phase (รันเงียบๆ แต่ถ้ามี Error จะฟ้อง)
-            // ==========================================
+
+            // Phase 2: Execution Phase (รันเงียบๆ ไม่โชว์ข้อความ)
+
             for (Unit currentUnit : state.getUnits()) {
                 if (currentUnit.isAlive()) {
                     Statement strategy = currentUnit.getStrategy();
@@ -309,9 +323,7 @@ public class TerminalGameRunner {
                         try {
                             strategy.execute(state, currentUnit, new HashMap<>(), state.getGlobalVars());
                         } catch (Exception e) {
-                            // 🚨 เปิดสปอตไลท์จับบั๊กตอนรัน (Execute)
-                            System.err.println("🚨 Execute Error [Unit ID: " + currentUnit.getId() + "]: " + e.getMessage());
-                            e.printStackTrace();
+                            // รันเงียบๆ ถ้ามี Error ใน AST ก็ปล่อยผ่านไม่ให้รกจอ
                         }
                     }
                 }
@@ -332,13 +344,11 @@ public class TerminalGameRunner {
     private static void printBoard(GameState state) {
         System.out.println("\n  (สัญลักษณ์พื้นที่: x = P1, o = P2, . = ว่าง)");
         System.out.print("  ");
-        // 🌟 เปลี่ยนเลขหัวคอลัมน์ด้านบน (บวก 1)
-        for (int i = 0; i < state.getBoardCols(); i++) System.out.print((i + 1) + " ");
+        for (int i = 0; i < state.getBoardCols(); i++) System.out.print(i + " ");
         System.out.println();
 
         for (int row = 0; row < state.getBoardRows(); row++) {
-            // 🌟 เปลี่ยนเลขหน้าแถวแนวดิ่ง (บวก 1)
-            System.out.print((row + 1) + " ");
+            System.out.print(row + " ");
             for (int col = 0; col < state.getBoardCols(); col++) {
                 Unit u = state.getUnitAt(row, col);
                 int owner = state.getHexOwnership()[row][col];

@@ -27,41 +27,10 @@ public class StrategyFactory {
 
             case 2: // Archer
                 script = """
-                        attack = 15
-                      step = 3
-
-                      while (step) {
-                          dir = opponent
-
-                          if (dir) then {
-                              if (dir - 5) then { shoot upleft attack }
-                              else {
-                                  if (dir - 4) then { shoot downleft attack }
-                                  else {
-                                      if (dir - 3) then { shoot down attack }
-                                      else {
-                                          if (dir - 2) then { shoot downright attack }
-                                          else {
-                                              if (dir - 1) then { shoot upright attack }
-                                              else { shoot up attack }
-                                          }
-                                      }
-                                  }
-                              }
-                          }
-                          else {
-                              if (row - 4) then {
-                                  if (col - 4) then { move upleft }
-                                  else { move upright }
-                              }
-                              else {
-                                  if (col - 4) then { move downleft }
-                                  else { move downright }
-                              }
-                          }
-
-                          step = step - 1
-                      }
+                        if (nearby up) then shoot up 100
+                        else {
+                            done
+                        }
                         """;
                 break;
 
