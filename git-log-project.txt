@@ -1,0 +1,1094 @@
+* commit d13164f8da81eda38264f6795814fc15d3471f14
+| Author: Film_ <pawich23013@gmail.com_>
+| Date:   Fri Mar 27 09:17:12 2026 +0700
+| 
+|     adjust table hex
+|   
+*   commit acaa9cfcdfa49f9b879187ebb7a91ba772d7e885
+|\  Merge: d92ffde 438b266
+| | Author: untimatetotal <untimatetotal@gmail.com>
+| | Date:   Fri Mar 27 00:57:47 2026 +0700
+| | 
+| |     Merge branch 'delta' of https://github.com/natpakanchamp/KOMBAT888 into delta
+| | 
+| * commit 438b2660558db5abdcf90350138bf9e0681a66e3
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Fri Mar 27 00:52:29 2026 +0700
+| | 
+| |     adjust start hex
+| |   
+| *   commit f4f1f600cc859b8e384160c2ee72405acaaf3247
+| |\  Merge: 5c8f506 5794201
+| | | Author: Film_ <pawich23013@gmail.com_>
+| | | Date:   Fri Mar 27 00:34:34 2026 +0700
+| | | 
+| | |     Merge branch 'delta' of https://github.com/natpakanchamp/KOMBAT888 into delta
+| | | 
+| | * commit 5794201d1a08653caf0f115f4331628deb260361
+| | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | Date:   Fri Mar 27 00:28:35 2026 +0700
+| | | 
+| | |     noono
+| | | 
+| | * commit 13138693c59966e7c357fa1573fc8cc6f040cfc0
+| | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | Date:   Fri Mar 27 00:27:42 2026 +0700
+| | | 
+| | |     dont push this commit
+| | | 
+| * | commit 5c8f506d253bf428d1ad270b23168d397c924045
+| |/  Author: Film_ <pawich23013@gmail.com_>
+| |   Date:   Fri Mar 27 00:34:20 2026 +0700
+| |   
+| |       adjust terminalGameRunner
+| |   
+| *   commit bdc50250a38354187522834abc3312a928312dc1
+| |\  Merge: 1266857 728ba75
+| | | Author: Film_ <pawich23013@gmail.com_>
+| | | Date:   Fri Mar 27 00:12:14 2026 +0700
+| | | 
+| | |     Merge branch 'delta' of https://github.com/natpakanchamp/KOMBAT888 into delta
+| | | 
+| * | commit 126685710f8f8863ff51f68919782f3207f13df2
+| | | Author: Film_ <pawich23013@gmail.com_>
+| | | Date:   Fri Mar 27 00:11:57 2026 +0700
+| | | 
+| | |     add select minnion in terminal
+| | | 
+* | | commit d92ffde709f2a25eb1e66d082bd6053a2926e6a5
+| |/  Author: untimatetotal <untimatetotal@gmail.com>
+|/|   Date:   Fri Mar 27 00:57:46 2026 +0700
+| |   
+| |       update TerminalGameRunner
+| | 
+* | commit 728ba75ea57ad114d01f9ef8f2f7b54d068b295b
+|\| Merge: f955b04 5425ad2
+| | Author: untimatetotal <untimatetotal@gmail.com>
+| | Date:   Thu Mar 26 23:49:47 2026 +0700
+| | 
+| |     fix bug budget
+| | 
+| * commit 5425ad2abae2f0769041b24135b7c32fe18adc8a
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Thu Mar 26 21:34:26 2026 +0700
+| | 
+| |     debug start hex
+| | 
+| * commit 797a6b2892034a6d8943c662dfe0cc5155545a71
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Thu Mar 26 03:08:25 2026 +0700
+| | 
+| |     add StatePage
+| | 
+* | commit f955b04ff5035a14777ffa09404d04ed98e6d741
+| | Author: untimatetotal <untimatetotal@gmail.com>
+| | Date:   Thu Mar 26 23:42:48 2026 +0700
+| | 
+| |     fix bug budget
+| | 
+* | commit 8d5456eea53d8044d459b64f704606b021b28a18
+|/  Author: untimatetotal <untimatetotal@gmail.com>
+|   Date:   Thu Mar 26 23:35:28 2026 +0700
+|   
+|       fix bug budget
+| 
+* commit 57a33e75a36cb336cbf9c237abe6a05ea662e9f8
+| Author: untimatetotal <untimatetotal@gmail.com>
+| Date:   Wed Mar 25 02:40:10 2026 +0700
+| 
+|     fix endturn fist user
+|   
+*   commit 2259aeaaa465a86c95ab6898575f1f31abf3badf
+|\  Merge: 5ec6d09 f80b071
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Tue Mar 24 23:02:16 2026 +0700
+| | 
+| |     Merge branch 'delta' of https://github.com/natpakanchamp/KOMBAT888 into delta
+| | 
+| * commit f80b07127799f6c3106aaaa8bacb110f6135678e
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Tue Mar 24 20:25:07 2026 +0700
+| | 
+| |     update RoomController
+| | 
+| * commit f38e293bd7d91f5f2ed4038920690989da442ff0
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Tue Mar 24 20:20:04 2026 +0700
+| | 
+| |     fix bug ready
+| | 
+* | commit 5ec6d09e321461b97cdb4f854a841fe7d9d4dee5
+|/  Author: Film_ <pawich23013@gmail.com_>
+|   Date:   Tue Mar 24 23:02:04 2026 +0700
+|   
+|       add default strategy input
+|   
+*   commit 75680bef21ea5e9a6ffe2564c8561bae2b69c082
+|\  Merge: d8f9683 80a4a00
+| | Author: untimatetotal <untimatetotal@gmail.com>
+| | Date:   Tue Mar 24 19:53:16 2026 +0700
+| | 
+| |     resolve confict 3 file
+| | 
+| * commit 80a4a00313b52d02f749d6425d0913fab0ee97bd
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Tue Mar 24 19:29:42 2026 +0700
+| | 
+| |     add getConfig()
+| | 
+| * commit 9b78709ad75b62e9d8691e223c959927ae912271
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Tue Mar 24 17:39:44 2026 +0700
+| | 
+| |     debug buying minion
+| | 
+| * commit dcdacf1cc4e39ad231cfdb7910362234cadc6ead
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Tue Mar 24 17:31:10 2026 +0700
+| | 
+| |     fix color for minion
+| | 
+| * commit ceb9946738905e065bbed67947bde5514464211d
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Tue Mar 24 17:19:35 2026 +0700
+| | 
+| |     add Maxturn to battle
+| | 
+| * commit 57b0f71d09a06c85def97f3efcb142f2015ab9a3
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Tue Mar 24 17:17:51 2026 +0700
+| | 
+| |     move config.txt
+| | 
+| * commit c591c8e0d24367e993bd0f8dd4a1a2ff4f22586f
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Tue Mar 24 17:05:30 2026 +0700
+| | 
+| |     move config.txt
+| | 
+| * commit 2719ec325d5d80a97c82f4423cbc1e075dc917ab
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Tue Mar 24 16:54:52 2026 +0700
+| | 
+| |     adjust battle page
+| | 
+| * commit 0c8360133e4077c316a74a3b6695ae068dd151f1
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Tue Mar 24 16:41:17 2026 +0700
+| | 
+| |     ...
+| | 
+* | commit d8f96838861a34cbe84d44dbb50d73e40db56926
+| | Author: untimatetotal <untimatetotal@gmail.com>
+| | Date:   Tue Mar 24 19:29:12 2026 +0700
+| | 
+| |     fix New Game Runner
+| |     
+| | *   commit ee5820e461667ffd127f3c48690d4a6baf0eb691
+| | |\  Merge: 477af46 806ba7f
+| | | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | | Date:   Tue Mar 24 17:21:30 2026 +0700
+| | | | 
+| | | |     WIP on delta: 477af46 add Maxturn to battle
+| | | | 
+| | | * commit 806ba7f30271ee5400a6d29175e7e14c661e16e7
+| | |/  Author: natpakanchamp <champnatpakan@gmail.com>
+| | |   Date:   Tue Mar 24 17:21:30 2026 +0700
+| | |   
+| | |       index on delta: 477af46 add Maxturn to battle
+| | | 
+| | * commit 477af4655f7022be6785ce6fa7c00d7f29c4fa8a
+| |/  Author: natpakanchamp <champnatpakan@gmail.com>
+| |   Date:   Tue Mar 24 17:19:35 2026 +0700
+| |   
+| |       add Maxturn to battle
+| | 
+| * commit 6ea555da407c24edbe772ed1086cdd43364ad7ab
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Tue Mar 24 16:20:25 2026 +0700
+| | 
+| |     fix color at battle page
+| | 
+| * commit 0c712a0fe58908d1a675bfefa570519d87663e99
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Tue Mar 24 15:57:10 2026 +0700
+| | 
+| |     add picture
+| | 
+| * commit 86276db9f0306a2cb8df13e7d599de0187a70b47
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Tue Mar 24 15:49:29 2026 +0700
+| | 
+| |     add hero on top hex
+| | 
+| * commit ea5021084285f562d90017c784a2c6b087938a68
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Tue Mar 24 15:15:02 2026 +0700
+| | 
+| |     add picture
+| |   
+| *   commit 13a019eec2a8f378b27d08a2dd9df439c66399ff
+| |\  Merge: 3150ed4 587deb7
+| | | Author: Film_ <pawich23013@gmail.com_>
+| | | Date:   Tue Mar 24 15:09:59 2026 +0700
+| | | 
+| | |     Merge branch 'delta' of https://github.com/natpakanchamp/KOMBAT888 into delta
+| | | 
+| | * commit 587deb722753de8ca1c2594e732960997bf25efc
+| | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | Date:   Tue Mar 24 14:54:07 2026 +0700
+| | | 
+| | |     fix volume
+| | | 
+| | * commit c5a23a3a8a3a5a71b60f39963bc1ce69b94e915e
+| | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | Date:   Tue Mar 24 14:34:07 2026 +0700
+| | | 
+| | |     add battle-bgm
+| | | 
+| | * commit bf6e762fc778653ffdc707317d70a8f63899c768
+| |/  Author: natpakanchamp <champnatpakan@gmail.com>
+|/|   Date:   Tue Mar 24 14:33:10 2026 +0700
+| |   
+| |       add battle-bgm
+| | 
+* | commit 61bddb69dc8f171e7af7d03e3eadc4fa9df5452f
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Tue Mar 24 13:59:37 2026 +0700
+| | 
+| |     fix bux
+| | 
+* | commit 886a56069620f5606ff3fbe96991eb854eab7ef0
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Tue Mar 24 02:48:13 2026 +0700
+| | 
+| |     update
+| | 
+* | commit 4fc18ee9ac75398a1bff1bd77e552340e8f70940
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Tue Mar 24 02:01:20 2026 +0700
+| | 
+| |     add Wryy
+| |     
+| |     # Conflicts:
+| |     #       front-end/src/pages/BattlePage.tsx
+| | 
+| * commit 3150ed450b4fa586367043c04fa6f96c73f378d1
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Tue Mar 24 15:09:33 2026 +0700
+| | 
+| |     adjust input strategy
+| | 
+| * commit bcd9138533026e8cdc6b80353f345c50a6a70937
+|/  Author: Film_ <pawich23013@gmail.com_>
+|   Date:   Tue Mar 24 15:01:46 2026 +0700
+|   
+|       adjust input strategy
+| 
+* commit 4ac37ee9c3eed39caaeae1983d9a28949e55ea38
+| Author: Film_ <pawich23013@gmail.com_>
+| Date:   Tue Mar 24 02:09:47 2026 +0700
+| 
+|     add run in setup modal
+| 
+* commit 4023e614e3cf0e4f2d5c8028eb5d7d6ea52ee9ef
+| Author: Film_ <pawich23013@gmail.com_>
+| Date:   Tue Mar 24 01:47:10 2026 +0700
+| 
+|     adjust buying minions
+| 
+* commit 6e781ac6d7f80005d56e33724da98affb15a6df4
+| Author: natpakanchamp <champnatpakan@gmail.com>
+| Date:   Tue Mar 24 01:25:23 2026 +0700
+| 
+|     add sfx yes yes
+| 
+* commit 1463a8cedbe42263dfdcba719600bc09f56552e8
+| Author: natpakanchamp <champnatpakan@gmail.com>
+| Date:   Tue Mar 24 01:02:28 2026 +0700
+| 
+|     add sound
+|   
+*   commit 200b4a0244fcc7667d46beacc2e636d39dceb8c6
+|\  Merge: d427429 9d0dd81
+| | Author: untimatetotal <untimatetotal@gmail.com>
+| | Date:   Tue Mar 24 00:49:10 2026 +0700
+| | 
+| |     Merge branch 'delta' of https://github.com/natpakanchamp/KOMBAT888 into delta
+| | 
+| * commit 9d0dd81a451161363108b8b18e2498ba316405c6
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Tue Mar 24 00:21:03 2026 +0700
+| | 
+| |     fix close button
+| | 
+| * commit 5184041b96768f6a6fe92def73692a474585ad5a
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Tue Mar 24 00:19:36 2026 +0700
+| | 
+| |     add BGM
+| | 
+| * commit c14a1faac6cfbec3327ee0faae89a969f10a083a
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Mon Mar 23 23:23:33 2026 +0700
+| | 
+| |     add sparkle effect
+| | 
+* | commit d427429437b33bbb547a00c038d20c9f3839ab94
+|/  Author: untimatetotal <untimatetotal@gmail.com>
+|   Date:   Tue Mar 24 00:47:37 2026 +0700
+|   
+|       add endpoint summaryGame and implement abount method this
+| 
+* commit 96f64b3e0826dbcf55ccceddee3f8082d4661ec6
+| Author: natpakanchamp <champnatpakan@gmail.com>
+| Date:   Mon Mar 23 22:50:49 2026 +0700
+| 
+|     paint waitingroom
+| 
+* commit fc968ecae2abf779137c97a4dd4640dfcd6df280
+| Author: natpakanchamp <champnatpakan@gmail.com>
+| Date:   Mon Mar 23 21:36:51 2026 +0700
+| 
+|     new interface
+|     
+|     # Conflicts:
+|     #       front-end/src/pages/BattlePage.tsx
+| 
+* commit 51e7a86dde2360ff62666f1c571d22461f73a690
+| Author: Film_ <pawich23013@gmail.com_>
+| Date:   Mon Mar 23 21:27:40 2026 +0700
+| 
+|     turn
+| 
+* commit e1bb86d269c0f6a516738e954a66a0d053304a7a
+| Author: Film_ <pawich23013@gmail.com_>
+| Date:   Mon Mar 23 20:49:34 2026 +0700
+| 
+|     turn
+| 
+* commit 9a5f466f8072b7e3c300405952889a77d3d720f8
+| Author: untimatetotal <untimatetotal@gmail.com>
+| Date:   Mon Mar 23 18:09:34 2026 +0700
+| 
+|     fix method in GameState according spec
+| 
+* commit c920f7e0e40be499737de7fe7d5b95f0dcd3bbdd
+| Author: Film_ <pawich23013@gmail.com_>
+| Date:   Sun Mar 22 23:06:02 2026 +0700
+| 
+|     add buying minion
+| 
+* commit 5de57f51a595fce10d874f1e3d22b3a66e733a8e
+| Author: Film_ <pawich23013@gmail.com_>
+| Date:   Sun Mar 22 15:54:46 2026 +0700
+| 
+|     add buying hex
+| 
+* commit 50993ac2c180de33971dfafa58ec6603fe553488
+| Author: untimatetotal <untimatetotal@gmail.com>
+| Date:   Sun Mar 22 14:16:07 2026 +0700
+| 
+|     add Docker file for connect Network
+| 
+* commit 22cab585586bf9fcdb0854ad78cb0c86055ff73c
+| Author: natpakanchamp <champnatpakan@gmail.com>
+| Date:   Sun Mar 22 03:50:35 2026 +0700
+| 
+|     something
+| 
+* commit dab133dac88d4b9fb88fa2b6eca6a7e70594dfd5
+| Author: natpakanchamp <champnatpakan@gmail.com>
+| Date:   Sun Mar 22 03:17:39 2026 +0700
+| 
+|     fix error page that can go back(-1)
+| 
+* commit 442c6bb25632002a124dd7fc796237081cd053b0
+| Author: natpakanchamp <champnatpakan@gmail.com>
+| Date:   Sun Mar 22 02:46:47 2026 +0700
+| 
+|     adjust waiting room frame
+| 
+* commit 5d066e9342e2af7e5bf0da36409d65ef1a6df168
+| Author: natpakanchamp <champnatpakan@gmail.com>
+| Date:   Sun Mar 22 01:09:55 2026 +0700
+| 
+|     update
+| 
+* commit fd20dab91a9c6776d0d6179c09e9b2773f91f34b
+| Author: natpakanchamp <champnatpakan@gmail.com>
+| Date:   Sun Mar 22 00:02:24 2026 +0700
+| 
+|     update esc keydown
+|   
+*   commit 376de4b1ff93f10d333038f7890dd9be012001e9
+|\  Merge: 33a5ce5 51f16c9
+| | Author: untimatetotal <untimatetotal@gmail.com>
+| | Date:   Sat Mar 21 22:23:41 2026 +0700
+| | 
+| |     use remote version of BattlePage
+| | 
+| * commit 51f16c93c7b047d90c9d8987109b745a98cd2423
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Sat Mar 21 22:14:43 2026 +0700
+| | 
+| |     adjust battle page
+| |   
+| *   commit ba44618221bb01784af74fc78163248e450fd5b9
+| |\  Merge: f24c5bc cc964fd
+| | | Author: Film_ <pawich23013@gmail.com_>
+| | | Date:   Sat Mar 21 21:57:38 2026 +0700
+| | | 
+| | |     Merge branch 'delta' of https://github.com/natpakanchamp/KOMBAT888 into delta
+| | | 
+| | * commit cc964fd84588c1a965c844a564c280ffda44a2c2
+| | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | Date:   Sat Mar 21 21:13:58 2026 +0700
+| | | 
+| | |     add KICK and fix cdd
+| | | 
+| * | commit f24c5bcbb9430d922d17be0d0319140ed25d0b39
+| |/  Author: Film_ <pawich23013@gmail.com_>
+| |   Date:   Sat Mar 21 21:56:20 2026 +0700
+| |   
+| |       adjust hex
+| | 
+| * commit ac3f6098dbcc483488e8a4bf307c5daaba5dd8e5
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Sat Mar 21 20:50:03 2026 +0700
+| | 
+| |     add KICK button for frontend
+| | 
+| * commit 081e6a15b4d001147e9a1d7dadcef7d2601a9698
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Sat Mar 21 20:41:43 2026 +0700
+| | 
+| |     add team name
+| | 
+* | commit 33a5ce5f6b63ca2b5de3cde9614f74a037cc11aa
+| | Author: untimatetotal <untimatetotal@gmail.com>
+| | Date:   Sat Mar 21 22:16:18 2026 +0700
+| | 
+| |     New battle page connect back-end
+| | 
+* | commit 72fdd91eacae07813611136ea87cd7dde75aa3f7
+|/  Author: untimatetotal <untimatetotal@gmail.com>
+|   Date:   Sat Mar 21 22:07:57 2026 +0700
+|   
+|       New battle page connect back-end
+|   
+*   commit 386fe9e6855e1662555d54f46771e1a22db93286
+|\  Merge: 344b36f 3789c80
+| | Author: untimatetotal <untimatetotal@gmail.com>
+| | Date:   Sat Mar 21 20:34:21 2026 +0700
+| | 
+| |     Merge branch 'delta' of https://github.com/natpakanchamp/KOMBAT888 into delta
+| | 
+| * commit 3789c80f103188ae15052a0019b53a9506a04e61
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Sat Mar 21 20:11:47 2026 +0700
+| | 
+| |     add manual for waiting room
+| | 
+| * commit 0c8c9276b294a63b47c22971f029733147fbb263
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Sat Mar 21 18:41:55 2026 +0700
+| | 
+| |     a little
+| | 
+| * commit a617e6aeeeaec0ac1fb46024d676287c0acfaffa
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Sat Mar 21 18:20:19 2026 +0700
+| | 
+| |     edit comment
+| | 
+| * commit 4d81295f2110fd9111cf5d656d780aa7f4f79c6a
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Sat Mar 21 17:14:31 2026 +0700
+| | 
+| |     add 3 mode in TerminalGameRunner
+| | 
+* | commit 344b36fc002b233390d30a993b0ce6a92d9f69bd
+|/  Author: untimatetotal <untimatetotal@gmail.com>
+|   Date:   Sat Mar 21 20:30:32 2026 +0700
+|   
+|       add bot complete
+| 
+* commit babd5b3bf76d74abd4932ecc21d7c09fc1b50527
+| Author: Film_ <pawich23013@gmail.com_>
+| Date:   Sat Mar 21 17:02:56 2026 +0700
+| 
+|     add spectate button
+|   
+*   commit 79a2a374be94b50be22a0c0697556b8067d27970
+|\  Merge: 3198dc9 6f515f2
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Sat Mar 21 15:25:50 2026 +0700
+| | 
+| |     Merge branch 'delta' of https://github.com/natpakanchamp/KOMBAT888 into delta
+| |   
+| *   commit 6f515f26e4749622e97261161a0c0e50d0f195c5
+| |\  Merge: 4f8e9e5 cdd4d2f
+| | | Author: untimatetotal <untimatetotal@gmail.com>
+| | | Date:   Sat Mar 21 14:46:25 2026 +0700
+| | | 
+| | |     Merge branch 'delta' of https://github.com/natpakanchamp/KOMBAT888 into delta
+| | | 
+| * | commit 4f8e9e5e1b5fee3dbde50a9b7efd5e77e94a6334
+| | | Author: untimatetotal <untimatetotal@gmail.com>
+| | | Date:   Sat Mar 21 14:42:45 2026 +0700
+| | | 
+| | |     fix endpoint v2
+| | | 
+| * | commit 05d19863d7f0424cbb071495974b652adf417512
+| | | Author: untimatetotal <untimatetotal@gmail.com>
+| | | Date:   Sat Mar 21 14:40:21 2026 +0700
+| | | 
+| | |     fix endpoint v2
+| | | 
+* | | commit 3198dc9f85e103e58ba094cea4b3cac29f06f9ab
+| |/  Author: Film_ <pawich23013@gmail.com_>
+|/|   Date:   Sat Mar 21 15:22:09 2026 +0700
+| |   
+| |       adjust waiting room
+| | 
+* | commit cdd4d2fff9014e2ef6cbef243fdf9cb68315ed2e
+|/  Author: natpakanchamp <champnatpakan@gmail.com>
+|   Date:   Sat Mar 21 14:29:04 2026 +0700
+|   
+|       fix bug: player can select heros without disconnect while joining room
+| 
+* commit 9c9f55a4943885077731183b4293ba2a04e53893
+| Author: natpakanchamp <champnatpakan@gmail.com>
+| Date:   Sat Mar 21 13:20:54 2026 +0700
+| 
+|     git merge
+| 
+* commit 5814850c20523e967802f7fb88a492cabe6a2a58
+| Author: natpakanchamp <champnatpakan@gmail.com>
+| Date:   Sat Mar 21 13:13:37 2026 +0700
+| 
+|     add ignore
+| 
+* commit f0bf804269d97bffa979d311112000fd5eeb48d3
+| Author: natpakanchamp <champnatpakan@gmail.com>
+| Date:   Sat Mar 21 12:50:10 2026 +0700
+| 
+|     add Join button and fix bug
+| 
+* commit f5430847ba07f68e0a24d69a7055903ed81d7367
+| Author: natpakanchamp <champnatpakan@gmail.com>
+| Date:   Sat Mar 21 05:25:38 2026 +0700
+| 
+|     update GameService
+|   
+| * commit a82c106610680ebe7cf77ad1788d4c0a02539f67
+| | Author: untimatetotal <untimatetotal@gmail.com>
+| | Date:   Sun Mar 22 15:18:52 2026 +0700
+| | 
+| |     Add Dockerfile for back-end application (inmain)
+| |     
+| |     add docker file in main
+| |   
+| | * commit 2e9d655c87019221e7a3ae50377bac95888fc346
+| |/  Author: natpakanchamp <champnatpakan@gmail.com>
+|/|   Date:   Sat Mar 21 12:50:10 2026 +0700
+| |   
+| |       add Join button and fix bug
+| | 
+* | commit e3891b01c9d03fe3292ef3bd5fd38ae67f940e6f
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Sat Mar 21 03:45:53 2026 +0700
+| | 
+| |     modifing waitingPage
+| | 
+* | commit 5d5e7df171be1ee500d8d5177bf2c03b5846e62e
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Wed Mar 18 02:08:27 2026 +0700
+| | 
+| |     delete sonme label that's not important
+| | 
+* | commit 732dd4a04aada710b3c35db4eb1ffe493b2cd63b
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Wed Mar 18 02:06:17 2026 +0700
+| | 
+| |     nothing to commi
+| | 
+* | commit 17954f989e2adef3547c6569de6bc4a63f7ede49
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Wed Mar 11 19:19:24 2026 +0700
+| | 
+| |     adjust GameState, StrategyFactory and TerminalGameRunner
+| | 
+* | commit f7ec50e06b72f9351c322c96177da0d4fec2718c
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Wed Mar 11 17:38:06 2026 +0700
+| | 
+| |     made it can play in terminal
+| | 
+* | commit dc2009d59c41325626cca6c22851bc42e1f70a06
+| | Author: untimatetotal <untimatetotal@gmail.com>
+| | Date:   Mon Mar 9 23:21:55 2026 +0700
+| | 
+| |     complete api endp point start game
+| |   
+* |   commit 6dd47daa9ed7af16e70adeafb4e1a5c1db9797e6
+|\ \  Merge: 4800282 7fc66f2
+| | | Author: natpakan <champnatpakan@gmail.com>
+| | | Date:   Thu Mar 5 17:35:17 2026 +0700
+| | | 
+| | |     Merge pull request #5 from natpakanchamp/feature/waiting-room-ui
+| | |     
+| | |     flip card to select unit
+| | | 
+| * | commit 7fc66f2d7b1ae6f98426a7152bf2663ec087d05e
+| | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | Date:   Thu Mar 5 17:34:10 2026 +0700
+| | | 
+| | |     flip card to select unit
+| | |   
+* | |   commit 4800282d2c27e607c2f43f7219fd95396c41c03c
+|\ \ \  Merge: 0371a12 487fdff
+| | |/  Author: natpakan <champnatpakan@gmail.com>
+| |/|   Date:   Thu Mar 5 17:24:54 2026 +0700
+| | |   
+| | |       Merge pull request #4 from natpakanchamp/main
+| | |       
+| | |       Move main to delta branch
+| | | 
+| * | commit 487fdff3ade153b21b65a05385807b2360f6149f
+| |\| Merge: c7db077 420973a
+| | | Author: natpakan <champnatpakan@gmail.com>
+| | | Date:   Thu Mar 5 17:23:38 2026 +0700
+| | | 
+| | |     Merge pull request #3 from natpakanchamp/feature/waiting-room-ui
+| | |     
+| | |     Feature/waiting room UI
+| | |   
+| * |   commit c7db077c6bd9ea3f95f6cd66c6ae082f9d8c45ec
+| |\ \  Merge: ce349a7 29d86b3
+| | | | Author: natpakan <champnatpakan@gmail.com>
+| | | | Date:   Wed Mar 4 10:56:04 2026 +0700
+| | | | 
+| | | |     Merge pull request #2 from natpakanchamp/delta
+| | | |     
+| | | |     Delta
+| | | | 
+* | | | commit 0371a12599e845b6c04722bd9c96ebbae05da629
+| | | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | | Date:   Thu Mar 5 17:11:09 2026 +0700
+| | | | 
+| | | |     update
+| | | | 
+* | | | commit c347901f138e31c2bc3ad09271f28fc0d649f0a1
+| |_|/  Author: natpakanchamp <champnatpakan@gmail.com>
+|/| |   Date:   Thu Mar 5 14:08:40 2026 +0700
+| | |   
+| | |       add git-log
+| | | 
+* | | commit 420973a5c48af799c295eae3b7ca8af9abb9c5e6
+| | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | Date:   Thu Mar 5 13:13:44 2026 +0700
+| | | 
+| | |     update ui waiting page
+| | | 
+* | | commit 93698777d66b6c41b42388b8255688b1a9113e73
+| | | Author: untimatetotal <untimatetotal@gmail.com>
+| | | Date:   Wed Mar 4 19:21:54 2026 +0700
+| | | 
+| | |     abount API Login
+| | | 
+* | | commit 2b0de14075726f42d563feb900f53d6a4e62a49f
+| | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | Date:   Wed Mar 4 19:07:12 2026 +0700
+| | | 
+| | |     add API success
+| | | 
+* | | commit e2f0d252894a9c170e2c48c346a4dac589ef5d15
+| | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | Date:   Wed Mar 4 19:06:25 2026 +0700
+| | | 
+| | |     add API success
+| | | 
+* | | commit d7b8ff5ab03b5ff8a75d00298c0967292eda778c
+| | | Author: untimatetotal <untimatetotal@gmail.com>
+| | | Date:   Wed Mar 4 18:45:26 2026 +0700
+| | | 
+| | |     add API to frontend
+| | | 
+* | | commit 3d2e655b1b78b3673a0e795d36bd3a4d100eb301
+| | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | Date:   Wed Mar 4 18:37:58 2026 +0700
+| | | 
+| | |     add bottom gradian bar
+| | | 
+* | | commit 6814c9e246569fc21317915d228583cda559f98c
+| | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | Date:   Wed Mar 4 18:13:18 2026 +0700
+| | | 
+| | |     fix
+| | | 
+* | | commit 6aa9d38a2c270f6bd2873811f3fc8a64c841954f
+| | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | Date:   Wed Mar 4 18:05:34 2026 +0700
+| | | 
+| | |     fix api to frontend
+| | |     
+| | |     # Conflicts:
+| | |     #       front-end/src/routes.tsx
+| | | 
+* | | commit 2c649c9c41cfbf37d92a16a85eadd49734e3b321
+| | | Author: untimatetotal <untimatetotal@gmail.com>
+| | | Date:   Wed Mar 4 18:12:22 2026 +0700
+| | | 
+| | |     post new about api
+| | |   
+* | |   commit feed4df9760454f152cf97577fde306fb1c4a1bb
+|\ \ \  Merge: 00b4b75 120a262
+| | | | Author: untimatetotal <untimatetotal@gmail.com>
+| | | | Date:   Wed Mar 4 18:06:04 2026 +0700
+| | | | 
+| | | |     Merge branch 'delta' of https://github.com/natpakanchamp/KOMBAT888 into delta
+| | | |   
+| * | |   commit 120a262e5bea5c08a778f14cd12d126e7a4d2aed
+| |\ \ \  Merge: 567282b a06b0d7
+| | | | | Author: Film_ <pawich23013@gmail.com_>
+| | | | | Date:   Wed Mar 4 18:04:18 2026 +0700
+| | | | | 
+| | | | |     add BattlePage and Hexagon
+| | | | | 
+| | * | | commit a06b0d75d456e13c48b34b42ab836b027b263a84
+| | | | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | | | Date:   Wed Mar 4 16:43:07 2026 +0700
+| | | | | 
+| | | | |     add websocket to waitingroom
+| | | | | 
+| * | | | commit 567282bad4baabaa5517cebd38c0887069d0b122
+| |/ / /  Author: Film_ <pawich23013@gmail.com_>
+| | | |   Date:   Wed Mar 4 17:49:08 2026 +0700
+| | | |   
+| | | |       add BattlePage and Hexagon
+| | | |   
+* | | |   commit 00b4b75c4f75377acdcf46667dd5889353ae6a84
+|\ \ \ \  Merge: fe76f01 3e707ca
+| |/ / /  Author: untimatetotal <untimatetotal@gmail.com>
+|/| | |   Date:   Wed Mar 4 17:27:25 2026 +0700
+| | | |   
+| | | |       Merge branch 'feature/rest-api' into delta
+| | | | 
+| * | | commit 3e707caf8ff1794da2d091ea5ee5e87f322f1d9d
+| | | | Author: untimatetotal <untimatetotal@gmail.com>
+| | | | Date:   Wed Mar 4 16:12:39 2026 +0700
+| | | | 
+| | | |     complete websocket Test v1
+| | | | 
+| * | | commit 0fd20b7902bd9c578526cb7da1be2c5de0696611
+| | | | Author: untimatetotal <untimatetotal@gmail.com>
+| | | | Date:   Wed Mar 4 13:58:50 2026 +0700
+| | | | 
+| | | |     remove target folder from git tracking
+| | | |   
+| * | |   commit 52e023c355e7eb0a667f488230e32b8df8534f7f
+| |\ \ \  Merge: bc4cb92 cf42525
+| | | | | Author: untimatetotal <untimatetotal@gmail.com>
+| | | | | Date:   Wed Mar 4 13:39:42 2026 +0700
+| | | | | 
+| | | | |     Merge branch 'delta' into feature/rest-api
+| | | | |     # Please enter a commit message to explain why this merge is necessary,
+| | | | |     # especially if it merges an updated upstream into a topic branch.
+| | | | |     #
+| | | | |     # Lines starting with '#' will be ignored, and an empty message aborts
+| | | | |     # the commit.
+| | | | | 
+| * | | | commit bc4cb920b9d9d17e5a3f75d823c2dc8a479a5e88
+| | | | | Author: untimatetotal <untimatetotal@gmail.com>
+| | | | | Date:   Wed Mar 4 10:07:52 2026 +0700
+| | | | | 
+| | | | |     Websocket Test complete can send request
+| | | | | 
+| * | | | commit 77eaa48c4d7aa4027edf497badff7241650be572
+| | |/ /  Author: untimatetotal <untimatetotal@gmail.com>
+| |/| |   Date:   Tue Mar 3 21:26:36 2026 +0700
+| | | |   
+| | | |       API and network version Test
+| | | | 
+* | | | commit fe76f014e62342234e1a1a2066941052806097b9
+| | | | Author: Film_ <pawich23013@gmail.com_>
+| | | | Date:   Wed Mar 4 15:34:19 2026 +0700
+| | | | 
+| | | |     adjust gameState and ast
+| | | | 
+* | | | commit 1e37487e0a6e77fadcdc6f0b410c89bbc99e48e8
+| | | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | | Date:   Wed Mar 4 15:16:15 2026 +0700
+| | | | 
+| | | |     modified button page and more prettier
+| | | | 
+* | | | commit c99ee2765198f05410e78d6b819fee0897d5922c
+| | | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | | Date:   Wed Mar 4 14:20:40 2026 +0700
+| | | | 
+| | | |     modify login page
+| | | | 
+* | | | commit a3d6d4c43c0a069f19115a09ed872bd6fe76d0ba
+| |/ /  Author: Film_ <pawich23013@gmail.com_>
+|/| |   Date:   Wed Mar 4 14:13:18 2026 +0700
+| | |   
+| | |       add madal
+| | | 
+* | | commit cf42525e3be236b0cbb76f0e752ded181bf9cda2
+| | | Author: Film_ <pawich23013@gmail.com_>
+| | | Date:   Wed Mar 4 11:23:23 2026 +0700
+| | | 
+| | |     add loginPage
+| | |   
+* | |   commit 0e29119f1681e80f3aeaa322013fbc4fcad8fd3f
+|\ \ \  Merge: 3c843ac 29d86b3
+| | |/  Author: Film_ <pawich23013@gmail.com_>
+| |/|   Date:   Wed Mar 4 11:09:20 2026 +0700
+| | |   
+| | |       adjust gameState
+| | | 
+| * | commit 29d86b38bae215d1157d3db3f7c3d9cd1f71b2b5
+| | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | Date:   Tue Mar 3 23:41:52 2026 +0700
+| | | 
+| | |     nothing
+| | | 
+| * | commit f9d36d5194837c84205ceb82850ab85c228f8363
+| | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | Date:   Wed Mar 4 00:22:56 2026 +0700
+| | | 
+| | |     update routes
+| | | 
+* | | commit 3c843ac5d028a5394bdf7fcdf7a1ab98ffea2871
+|/ /  Author: Film_ <pawich23013@gmail.com_>
+| |   Date:   Wed Mar 4 10:55:57 2026 +0700
+| |   
+| |       adjust gameState
+| | 
+* | commit 4b32eb34b346712a2111fd3f000dafbe73fe4f1c
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Tue Mar 3 23:03:39 2026 +0700
+| | 
+| |     add back card archer
+| | 
+* | commit 26d407fc5224e98d207797f9ab3424a1baa837fc
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Tue Mar 3 22:44:10 2026 +0700
+| | 
+| |     แก้ไขหน้าบ้านนิดหน่อย
+| | 
+* | commit bd291360e7d2419d9e42af4f82d7be1cf10ca173
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Tue Mar 3 21:50:17 2026 +0700
+| | 
+| |     แก้ไขให้มีหลายสนามได้
+| |   
+| | * commit 007f45041f4f934984a35248f1c0bb9bde3436d3
+| |/  Author: natpakanchamp <champnatpakan@gmail.com>
+| |   Date:   Tue Mar 3 22:45:46 2026 +0700
+| |   
+| |       delete all files
+| |   
+| *   commit ce349a7512c284729cfcbceb8aa5350c28baf3a8
+| |\  Merge: 324489a 49f1bb0
+| | | Author: natpakan <champnatpakan@gmail.com>
+| | | Date:   Tue Mar 3 18:04:17 2026 +0700
+| | | 
+| | |     Merge pull request #1 from natpakanchamp/delta
+| | |     
+| | |     Delta
+| | |   
+| | | * commit 24e6a5136e1b042254a2c4e940c12895fb0973c6
+| | | | Author: natpakanchamp <champnatpakan@gmail.com>
+| | | | Date:   Tue Mar 3 19:49:51 2026 +0700
+| | | | 
+| | | |     changed dependency
+| | | | 
+| | | * commit 3248638a1dd652c1fc3cdbe40b4e4429f66cabd4
+| |_|/  Author: Film_ <pawich23013@gmail.com_>
+|/| |   Date:   Tue Mar 3 19:03:37 2026 +0700
+| | |   
+| | |       change file stucture
+| | | 
+* | | commit dfb590b25da99d22341aac9b94f32957d55be22b
+| |/  Author: Film_ <pawich23013@gmail.com_>
+|/|   Date:   Tue Mar 3 18:10:17 2026 +0700
+| |   
+| |       change .gitignore
+| | 
+* | commit 49f1bb0404e5a685c99f72e91f0c32c02dfbecc8
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Tue Mar 3 17:07:50 2026 +0700
+| | 
+| |     Consolidate .gitignore into root directory
+| | 
+* | commit 0ddf969c87a1399f374e08639bd5bb7bcff69443
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Tue Mar 3 16:51:30 2026 +0700
+| | 
+| |     add .gitignore
+| | 
+* | commit 473d903db36c025e18a86d5eb595fb0d284fed4d
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Tue Mar 3 16:34:22 2026 +0700
+| | 
+| |     Migrate project structure to Spring Boot backend and change node to statement
+| | 
+* | commit 395b10d5bc7cf0126a23bc9747768da781b2f4df
+|/  Author: natpakanchamp <champnatpakan@gmail.com>
+|   Date:   Tue Mar 3 08:47:52 2026 +0700
+|   
+|       update shake to card component => when it flipped, It should be shaking
+|   
+*   commit 324489a0bc085d7f5f832456f7359d286c69f4e9
+|\  Merge: 9d9ae07 8162de6
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Mon Mar 2 00:20:14 2026 +0700
+| | 
+| |     update
+| | 
+| * commit 8162de6fcd748bc3311d20884d4b39f5f2feb43d
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Sun Mar 1 23:52:49 2026 +0700
+| | 
+| |     test
+| | 
+| * commit 50b31c4c75cb952f977c76a5d282984723ea1c7b
+| | Author: Allendel24 <pawich23013@gmail.com>
+| | Date:   Sun Mar 1 23:44:54 2026 +0700
+| | 
+| |     Create .keep
+| | 
+| * commit 68f2c72535d9f15136e246c99442a62a36718dca
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Thu Feb 19 09:32:25 2026 +0700
+| | 
+| |     แก้ parser gamaState
+| | 
+| * commit 2ac415c79a0ef4170c25062d81296c61ddbc17ba
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Tue Feb 17 20:02:10 2026 +0700
+| | 
+| |     เพิ่ม RESERVED_WORDS ใน ExprParser
+| | 
+| * commit f762139d35d6d8d76989d33d11ffc2f112243266
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Tue Feb 17 19:50:16 2026 +0700
+| | 
+| |     แก้ค่าที่เกี่ยวข้องกับ unit.id ใน gameState และ unit
+| | 
+| * commit 82c067ba5a180b3b16b7881411f57c92929ff3c4
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Tue Feb 17 19:39:24 2026 +0700
+| | 
+| |     แก้ gameState และ unit
+| | 
+| * commit d4cc911444da39888fe0a70dea628d2d7fcb9795
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Sun Feb 15 21:53:29 2026 +0700
+| | 
+| |     git-log
+| | 
+| * commit b4c2c5e18a05d1f7510579fa74c22aa72ba2124b
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Sun Feb 15 21:45:47 2026 +0700
+| | 
+| |     update game state, unit and main
+| | 
+| * commit 59070934a9ba1e9c91bc4e35c8e0fd960be40664
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Sat Feb 14 22:57:41 2026 +0700
+| | 
+| |     update game state, unit and main
+| | 
+| * commit 93f3a49b8a850565c9954879d48baf7356520e49
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Sat Feb 14 21:20:22 2026 +0700
+| | 
+| |     update game state, unit and main
+| | 
+| * commit b67ad11142819df33c9b8258731d42d429006cd1
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Sat Feb 14 20:43:04 2026 +0700
+| | 
+| |     change int to long
+| | 
+| * commit 64f6cadc35a944735bf48022319ae5c14225f7ec
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Sat Feb 14 20:35:38 2026 +0700
+| | 
+| |     update game state
+| | 
+| * commit 4d78a4ffcf5e47ba0243cee0947fea72bb8a6f55
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Sat Feb 14 19:23:56 2026 +0700
+| | 
+| |     add test cause
+| | 
+| * commit ccbb03671ea4d2dac7c3496af431cd2fe88dce83
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Sat Feb 14 17:29:32 2026 +0700
+| | 
+| |     add git log
+| | 
+| * commit daab1af846d329118d8daf6e45f4e790dccb7e98
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Sat Feb 14 17:15:45 2026 +0700
+| | 
+| |     separation package
+| | 
+| * commit d90a57767a9d7c6b1bba0e0cae7613444fb06b3d
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Sat Feb 14 16:19:09 2026 +0700
+| | 
+| |     add .idea/ in gitignore
+| | 
+| * commit 9a818b1c2020a377c62feb6612d987a186d05268
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Sat Feb 14 16:16:36 2026 +0700
+| | 
+| |     correct ExprParser and SyntaxError
+| | 
+| * commit 3739793ed6a7f7402265e8f564ff2c51fbda8ad8
+| | Author: Film_ <pawich23013@gmail.com_>
+| | Date:   Sat Feb 14 16:07:20 2026 +0700
+| | 
+| |     Update: add factory pattern
+| | 
+* | commit 9d9ae07e94b8dccb15b231fe98697195ce8db3d4
+| | Author: natpakanchamp <champnatpakan@gmail.com>
+| | Date:   Mon Mar 2 00:09:18 2026 +0700
+| | 
+| |     Import changes from gamma branch
+| | 
+* | commit f314a10c51e5f5627113fcf2f8c2f3fe456d0557
+ /  Author: natpakan <champnatpakan@gmail.com>
+|   Date:   Wed Feb 4 14:00:54 2026 +0700
+|   
+|       Initial commit
+|   
+| * commit 202954d99ef8ef4249eb89ced58e939b650b5d3a
+|/  Author: Allendel24 <pawich23013@gmail.com>
+|   Date:   Fri Feb 13 21:02:41 2026 +0700
+|   
+|       Create README.md
+| 
+* commit 1a9ec527635c8dd3b107b5e6ed1311560290ee17
+| Author: Film_ <pawich23013@gmail.com_>
+| Date:   Fri Feb 13 21:00:09 2026 +0700
+| 
+|     Initial commit
+|   
+| * commit 699dd777c77ffb3300124963efd5fc344d21b838
+|/  Author: Allendel24 <pawich23013@gmail.com>
+|   Date:   Tue Feb 10 20:41:23 2026 +0700
+|   
+|       Create README.md
+| 
+* commit 7b2763c7cd0a50e482b31bf3b8edb5e07914636b
+  Author: Film_ <pawich23013@gmail.com_>
+  Date:   Tue Feb 10 20:40:07 2026 +0700
+  
+      Initial commit
