@@ -12,6 +12,7 @@ import { SpawnMinionModal } from '../components/SpawnMinionModal';
 import type { HexState } from '../type/HexState';
 import type { UnitData } from '../components/MinionToken';
 import { setBattleHowl } from '../hooks/useBGM';
+import {useSparkleTrail} from "../hooks/useSparkleTrail.ts";
 
 const ROWS = 8;
 const COLS = 8;
@@ -78,6 +79,8 @@ export default function BattlePage() {
 
     const p1SelectedMinions = ['Saber', 'Archer'];
     const p2SelectedMinions = ['Lancer', 'Caster', 'Berserker'];
+
+    useSparkleTrail();
 
     useEffect(() => {
         const timer = setTimeout(() => setFadeIn(false), 100);
