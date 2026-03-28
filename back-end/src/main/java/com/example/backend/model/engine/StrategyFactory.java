@@ -27,41 +27,24 @@ public class StrategyFactory {
 
             case 2: // Archer
                 script = """
-                        attack = 15
-                      step = 3
-
-                      while (step) {
-                          dir = opponent
-
-                          if (dir) then {
-                              if (dir - 5) then { shoot upleft attack }
-                              else {
-                                  if (dir - 4) then { shoot downleft attack }
-                                  else {
-                                      if (dir - 3) then { shoot down attack }
-                                      else {
-                                          if (dir - 2) then { shoot downright attack }
-                                          else {
-                                              if (dir - 1) then { shoot upright attack }
-                                              else { shoot up attack }
-                                          }
-                                      }
-                                  }
-                              }
-                          }
-                          else {
-                              if (row - 4) then {
-                                  if (col - 4) then { move upleft }
-                                  else { move upright }
-                              }
-                              else {
-                                  if (col - 4) then { move downleft }
-                                  else { move downright }
-                              }
-                          }
-
-                          step = step - 1
-                      }
+                        a = 100
+                        if (nearby up) then shoot up a
+                        else {
+                            if (nearby down) then shoot down a
+                            else {
+                                if (nearby upleft) then shoot upleft a
+                                else {
+                                    if (nearby upright) then shoot upright a
+                                    else {
+                                        if (nearby downleft) then shoot downleft a
+                                        else {
+                                            if (nearby downright) then shoot downright a
+                                            else done
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         """;
                 break;
 
@@ -92,12 +75,7 @@ public class StrategyFactory {
 
             case 5: // Berserker
                 script = """
-                        while (1) {
-                            if (nearby downright) then
-                                shoot downright 50
-                            else
-                                move downright
-                        }
+                        done
                         """;
                 break;
 
